@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questbook Dashboard</title>
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script.js" defer></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,6 +22,17 @@
             <div class="progress-bar">
                 <div id="xp-progress" class="progress"></div>
             </div>
+
+            <!-- Avatar wird hier erscheinen -->
+            <div id="avatar-container">
+                <img id="avatar-anzeige" src="" alt="Dein Avatar">
+            </div>
+
+            <!-- HP & MP Balken (noch ohne Funktion, aber als Platzhalter) -->
+            <div id="hp-mp-container">
+                <div class="hp-bar"><div id="hp-progress"></div></div>
+                <div class="mp-bar"><div id="mp-progress"></div></div>
+            </div>
         </section>
 
         <!-- Avatar Auswahl -->
@@ -31,9 +42,6 @@
                 <option value="">-- Avatar wählen --</option>
             </select>
             <button onclick="avatarSpeichern()">Speichern</button>
-            <div id="avatar-container">
-                <img id="avatar-anzeige" src="" alt="Dein Avatar" style="max-width: 150px;">
-            </div>
         </section>
 
         <section id="quests">
