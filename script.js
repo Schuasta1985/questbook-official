@@ -194,6 +194,16 @@ function ladeQuests() {
     });
 };
 
+// 🖼 Avatar-Auswahl anzeigen
+window.zeigeAvatarAuswahl = function() {
+    document.getElementById("avatar-auswahl-container").style.display = "block";
+};
+
+// ❌ Avatar-Auswahl schließen
+window.schließeAvatarAuswahl = function() {
+    document.getElementById("avatar-auswahl-container").style.display = "none";
+};
+
 // **Starte das Spiel nach dem Laden**
 window.onload = function() {
     ladeQuests();
