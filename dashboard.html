@@ -14,27 +14,27 @@
     </header>
 
     <main>
-        <!-- Spielerprofil mit Avatar -->
         <section id="benutzer-info">
             <h2>👤 Spielerprofil</h2>
-            <img id="avatar-anzeige" src="avatars/default.webp" alt="Avatar" class="avatar-bild">
             <p><strong>Name:</strong> <span id="benutzer-name">Lädt...</span></p>
             <p><strong>Level:</strong> <span id="benutzer-level">1</span></p>
             <p><strong>XP:</strong> <span id="benutzer-xp">0</span></p>
             <div class="progress-bar">
                 <div id="xp-progress" class="progress"></div>
             </div>
-            <button onclick="zeigeAvatarAuswahl()">🎭 Avatar wählen</button>
         </section>
 
         <!-- Avatar Auswahl -->
-        <div id="avatar-auswahl-container" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="schließeAvatarAuswahl()">&times;</span>
-                <h2>Wähle deinen Avatar</h2>
-                <div id="avatar-auswahl"></div>
+        <section id="avatar-section">
+            <h2>🎭 Wähle deinen Avatar</h2>
+            <select id="avatar-select">
+                <option value="">-- Avatar wählen --</option>
+            </select>
+            <button onclick="speichereAvatar()">Speichern</button>
+            <div id="avatar-container">
+                <img id="benutzer-avatar" src="" alt="Dein Avatar">
             </div>
-        </div>
+        </section>
 
         <section id="quests">
             <h2>📜 Aktuelle Quests</h2>
