@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questbook Dashboard</title>
+    <script type="module" src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Willkommen im Questbook</h1>
+        <button onclick="ausloggen()">🔑 Ausloggen</button>
+    </header>
+
+    <main>
+        <section id="benutzer-info">
+            <h2>👤 Spielerprofil</h2>
+            <p><strong>Name:</strong> <span id="benutzer-name">Lädt...</span></p>
+            <p><strong>Level:</strong> <span id="benutzer-level">1</span></p>
+            <p><strong>XP:</strong> <span id="benutzer-xp">0</span></p>
+            <div class="progress-bar">
+                <div id="xp-progress" class="progress"></div>
+            </div>
+        </section>
+
+        <section id="quests">
+            <h2>📜 Aktuelle Quests</h2>
+            <ul id="quest-liste">Lädt...</ul>
+        </section>
+
+        <section id="admin-bereich" style="display: none;">
+            <h2>🔧 Admin-Bereich</h2>
+            <button onclick="neueQuestErstellen()">➕ Neue Quest erstellen</button>
+            <button onclick="questsZurücksetzen()">🗑 Alle Quests zurücksetzen</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Questbook</p>
+    </footer>
+</body>
+</html>
