@@ -8,7 +8,7 @@
     <script type="module">
         // Firebase SDK importieren
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
         // Firebase-Konfiguration
@@ -84,7 +84,7 @@
                                 familie: familienID
                             }).then(() => {
                                 alert("Familie erfolgreich erstellt!");
-                                window.location.reload();
+                                window.location.href = "dashboard.html";
                             });
                         });
                 })
@@ -113,7 +113,7 @@
                                     familie: fam.key
                                 }).then(() => {
                                     alert("Familienbeitritt erfolgreich!");
-                                    window.location.reload();
+                                    window.location.href = "dashboard.html";
                                 });
                             }
                         });
