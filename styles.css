@@ -78,3 +78,40 @@ footer {
     color: #FFD700;
     font-size: 0.9rem;
 }
+#avatar-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#avatar-anzeige {
+    max-width: 150px;
+    display: block;
+    margin: 0 auto;
+    background: none;
+}
+
+.hp-bar, .mp-bar {
+    width: 150px;
+    height: 10px;
+    background: #333;
+    margin: 5px auto;
+    border-radius: 5px;
+    position: relative;
+}
+
+#hp-progress, #mp-progress {
+    height: 100%;
+    border-radius: 5px;
+}
+
+#hp-progress {
+    width: 70%; /* Später durch HP-Werte ersetzen */
+    background: red;
+}
+
+#mp-progress {
+    width: 50%; /* Später durch MP-Werte ersetzen */
+    background: blue;
+}
+
+
