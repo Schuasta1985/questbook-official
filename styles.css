@@ -5,239 +5,76 @@ body {
     background-position: center; /* Bild mittig ausrichten */
     background-attachment: fixed; /* Bild bleibt beim Scrollen fest */
     background-repeat: no-repeat; /* Kein Wiederholen */
-    color: #FFFFFF; /* Weiße Schrift für bessere Lesbarkeit */
+    color: #FFD700; /* Goldene Schrift */
     font-family: 'Arial', sans-serif;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+    text-align: center; /* Zentriert alle Texte */
 }
 
-/* Header */
-header {
-    text-align: center;
-    margin-top: 20px;
+/* Zentriere den Hauptinhalt */
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* Nutzt fast die ganze Bildschirmhöhe */
 }
 
+/* Header-Titel */
 h1 {
     font-size: 3rem;
     font-weight: 600;
-    color: #FFD700; /* Goldene Schrift */
-    text-shadow: 3px 3px 7px rgba(0, 0, 0, 0.9); /* Stärkere Schattierung */
+    color: #F5F5DC;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+    margin-bottom: 30px;
 }
 
-/* Spielerprofil */
-#spielerprofil {
-    font-weight: bold;
-    font-size: 1.2em;
-    color: #FFD700; /* Goldene Schrift */
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 1);
-}
-
-/* XP-Zähler und Level */
-#xp-counter {
-    margin-top: 20px;
-}
-
-#xp-level-container {
-    margin: 20px auto;
-    padding: 15px;
-    border: 3px solid #FFD700;  /* Goldene Umrandung */
-    background-color: rgba(0, 0, 0, 0.8);  /* Dunklerer Hintergrund */
-    color: white;  /* Schriftfarbe für bessere Lesbarkeit */
-    width: fit-content;  /* Automatische Anpassung der Breite */
-    text-align: center;  /* Zentrierte Texte */
-    box-shadow: 0 0 15px gold;  /* Schimmernder Effekt */
-}
-
-#level-display {
-    font-size: 1.5em;  /* Vergrößere Schriftgröße */
-    margin: 5px 0;
-}
-
-/* Fortschrittsbalken */
-#xp-bar-container {
-    position: relative;
-    width: 80%;
-    background: #8B4513; /* Holzbraun */
-    margin: 20px auto;
-    height: 30px;
-    border-radius: 15px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-/* XP-Fortschrittsbalken */
-#xp-progress {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(to right, red, green);
-    border-radius: 15px;
-    transition: width 0.5s ease-in-out;
-}
-
-/* XP-Text im Fortschrittsbalken */
-#xp-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: bold;
-    color: white;
-    z-index: 1;  /* XP-Anzeige sichtbar über dem XP-Balken */
+/* Container für Login und Registrierung */
+#login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    width: 300px;
+    align-items: center;
 }
 
 /* Buttons */
 button {
-    background-color: #444; /* Dunkleres Grau */
-    color: #FFD700; /* Goldene Schrift */
+    background-color: #808000; /* Olivgrün */
+    color: #FFD700; /* Goldton */
     border: none;
     padding: 10px 15px;
     font-weight: 600;
     border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
+    width: 80%;
 }
 
 button:hover {
     background-color: #FFD700;
-    color: black; /* Bessere Lesbarkeit */
+    color: black;
     transform: scale(1.05);
 }
 
-/* Quest-Titel */
-#quests-section h2 {
-    text-align: center;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #FFD700;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 1);
-}
-
-/* Quests-Container */
-#quests {
-    list-style-type: none;  /* Entfernt die Aufzählungszeichen */
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#quests li {
-    background: rgba(0, 0, 0, 0.8);  /* Dunkler Hintergrund */
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    width: 90%;
-    max-width: 600px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-    color: #FFD700;  /* Goldene Schrift */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* HP- und MP-Leisten */
-.hp-bar, .mp-bar {
-    width: 100%;
-    height: 20px;
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.hp-bar .progress {
-    height: 100%;
-    background: green;
-}
-
-.mp-bar .progress {
-    height: 100%;
-    background: blue;
-}
-
-/* Avatare */
-#avatar-container {
-    transition: all 0.3s ease-in-out;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px auto;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background-color: transparent;
-    position: relative;
-}
-
-#avatar-container img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 5px solid #FFD700;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-/* Logbuch */
-#logbuch-container {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 300px;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: rgba(0, 0, 0, 0.9);
-    color: #FFD700;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    display: none;
-}
-
-#logbuch-button {
-    position: static;
-    margin: 20px auto;
-    display: block;
-    background-color: black;
-    color: white;
-    border: none;
+/* Formular-Eingaben */
+input {
+    width: 80%;
+    padding: 8px;
     border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
+    border: 1px solid #FFD700;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
 }
 
-/* NPC Login */
-#npc-login-section {
-    position: static;
-    bottom: auto;
-    right: auto;
-    background-color: rgba(0,0,0,0.8);
-    padding: 10px;
-    border-radius: 8px;
-    width: 200px;
-    margin: 20px auto;
-}
-
-/* Admin Login */
-.admin-login {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    width: 180px;
-}
-
-.admin-login input {
-    margin: 5px 0;
-    padding: 5px;
-    width: calc(100% - 20px);
-    font-size: 0.9rem;
-}
-
-.admin-login button {
+/* Footer */
+footer {
+    position: absolute;
+    bottom: 10px;
     width: 100%;
-    margin-top: 10px;
+    color: #FFD700;
     font-size: 0.9rem;
-    padding: 5px 10px;
 }
-
