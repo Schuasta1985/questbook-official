@@ -117,7 +117,7 @@ function ladeFamilie(userId) {
                     isAdmin = familyData.admin === sanitizeEmail(currentUser.email);
 
                     // Spiel starten
-                    ladeBenutzerDaten();
+                    ladeBenutzerdaten();
                 }
             });
         }
@@ -131,6 +131,33 @@ function aktualisiereXPAnzeige(level, xp) {
 
     if (levelElement) levelElement.textContent = `Level: ${level}`;
     if (xpProgressElement) xpProgressElement.style.width = `${(xp / (level * 100)) * 100}%`;
+}
+
+// 📷 Avatare automatisch erkennen & anzeigen
+function ladeAvatare() {
+    const avatarContainer = document.getElementById("avatar-auswahl");
+    avatarContainer.innerHTML = "";
+
+    for (let i = 1; i <= 6; i++) { // Automatisch Avatare von 1 bis 6 suchen
+        let avatarName = `avatar${i}.webp`;
+        let img = document.createElement("img");
+        img.src = `avatars/${avatarName}`;
+        img.classList.add("avatar-option");
+        img.onclick = () => avatarAuswählen(avatarName);
+        avatarContainer.appendChild(img);
+    }
+}
+
+// Avatar speichern
+function avatarAuswählen(avatarName) {
+    document.getElementById("avatar-anzeige").src = `avatars/${avatarName}`;
+    if (currentUser) {
+        update(ref(db, `benutzer/${currentUser.uid}`), {
+            avatar: avatarName
+        }).catch((error) => {
+            console.error("Fehler beim Speichern des Avatars:", error);
+        });
+    }
 }
 
 // 🏆 Quests verwalten
@@ -165,55 +192,10 @@ function ladeQuests() {
             });
         }
     });
-}
-
-// ➕ Neue Quest erstellen (nur Admin)
-window.neueQuestErstellen = function() {
-    if (!isAdmin) {
-        alert("Nur der Admin kann neue Quests erstellen!");
-        return;
-    }
-
-    const beschreibung = prompt("Beschreibung der Quest:");
-    const xp = parseInt(prompt("Wie viele XP gibt diese Quest?"), 10);
-
-    if (!beschreibung || isNaN(xp)) {
-        alert("Ungültige Eingabe!");
-        return;
-    }
-
-    const neueQuest = {
-        beschreibung: beschreibung,
-        xp: xp,
-        erledigt: false,
-        abgeschlossenVon: null
-    };
-
-    get(ref(db, `familien/${currentFamily}/quests`)).then((snapshot) => {
-        const quests = snapshot.exists() ? snapshot.val() : {};
-        quests[`quest_${Date.now()}`] = neueQuest;
-
-        set(ref(db, `familien/${currentFamily}/quests`), quests).then(() => {
-            alert("Quest hinzugefügt!");
-            ladeQuests();
-        });
-    });
-};
-
-// 🛠 Admin: Quests zurücksetzen
-window.questsZurücksetzen = function() {
-    if (!isAdmin) {
-        alert("Nur der Admin kann Quests zurücksetzen!");
-        return;
-    }
-
-    set(ref(db, `familien/${currentFamily}/quests`), {}).then(() => {
-        alert("Alle Quests wurden zurückgesetzt.");
-        ladeQuests();
-    });
 };
 
 // **Starte das Spiel nach dem Laden**
 window.onload = function() {
     ladeQuests();
+    ladeAvatare();
 };
