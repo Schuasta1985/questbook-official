@@ -1,29 +1,16 @@
-/* 🌟 Allgemeine Stile für die gesamte Seite */
+/* Allgemeine Stile für die gesamte Seite */
 body {
-    background-image: url('hintergrund.jpg'); /* Neues Hintergrundbild */
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    color: #FFD700; /* Goldene Schrift */
+    background-image: url('hintergrund.jpg'); /* Hintergrundbild */
+    background-size: cover; /* Bild auf gesamte Seite skalieren */
+    background-position: center; /* Bild mittig ausrichten */
+    background-attachment: fixed; /* Bild bleibt beim Scrollen fest */
+    background-repeat: no-repeat; /* Kein Wiederholen */
+    color: #FFFFFF; /* Weiße Schrift für bessere Lesbarkeit */
     font-family: 'Arial', sans-serif;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
 }
 
-/* ✨ Überschriften */
-h1, h2, h3 {
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    text-align: center;
-}
-
-/* ✨ Goldene Linie für optische Trennung */
-.golden-line {
-    width: 350px;
-    height: 8px;
-    margin: 20px auto;
-    background: linear-gradient(to right, transparent, #FFD700, transparent);
-}
-
-/* 📌 Header */
+/* Header */
 header {
     text-align: center;
     margin-top: 20px;
@@ -32,54 +19,51 @@ header {
 h1 {
     font-size: 3rem;
     font-weight: 600;
-    color: #F5F5DC;
+    color: #FFD700; /* Goldene Schrift */
+    text-shadow: 3px 3px 7px rgba(0, 0, 0, 0.9); /* Stärkere Schattierung */
 }
 
-/* 📌 Benutzerprofile */
-.benutzer-grid {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.benutzer-item {
-    width: 200px;
-    padding: 15px;
-    text-align: center;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    border: 1px solid #FFD700;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-.benutzer-item h3 {
-    font-size: 1.2em;
+/* Spielerprofil */
+#spielerprofil {
     font-weight: bold;
+    font-size: 1.2em;
+    color: #FFD700; /* Goldene Schrift */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 1);
+}
+
+/* XP-Zähler und Level */
+#xp-counter {
+    margin-top: 20px;
+}
+
+#xp-level-container {
+    margin: 20px auto;
+    padding: 15px;
+    border: 3px solid #FFD700;  /* Goldene Umrandung */
+    background-color: rgba(0, 0, 0, 0.8);  /* Dunklerer Hintergrund */
+    color: white;  /* Schriftfarbe für bessere Lesbarkeit */
+    width: fit-content;  /* Automatische Anpassung der Breite */
+    text-align: center;  /* Zentrierte Texte */
+    box-shadow: 0 0 15px gold;  /* Schimmernder Effekt */
+}
+
+#level-display {
+    font-size: 1.5em;  /* Vergrößere Schriftgröße */
     margin: 5px 0;
-    color: #FFD700;
 }
 
-.benutzer-item div {
-    font-size: 1em;
-    margin-top: 5px;
-    padding: 5px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-    color: white;
-}
-
-/* 📌 Fortschrittsbalken */
+/* Fortschrittsbalken */
 #xp-bar-container {
+    position: relative;
     width: 80%;
-    background: #8B4513;
+    background: #8B4513; /* Holzbraun */
     margin: 20px auto;
     height: 30px;
     border-radius: 15px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
+/* XP-Fortschrittsbalken */
 #xp-progress {
     height: 100%;
     width: 0%;
@@ -88,6 +72,7 @@ h1 {
     transition: width 0.5s ease-in-out;
 }
 
+/* XP-Text im Fortschrittsbalken */
 #xp-label {
     position: absolute;
     top: 50%;
@@ -95,76 +80,39 @@ h1 {
     transform: translate(-50%, -50%);
     font-weight: bold;
     color: white;
-    z-index: 1;
+    z-index: 1;  /* XP-Anzeige sichtbar über dem XP-Balken */
 }
 
-/* 📌 Avatar */
-#avatar-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    margin: 20px auto;
-    position: relative;
-}
-
-#avatar-container video {
-    border-radius: 50%;
-    width: 100%;
-    height: auto;
-    border: 5px solid #FFD700;
-}
-
-/* 📌 Buttons */
+/* Buttons */
 button {
-    background-color: #808000;
-    color: #FFD700;
+    background-color: #444; /* Dunkleres Grau */
+    color: #FFD700; /* Goldene Schrift */
     border: none;
     padding: 10px 15px;
     font-weight: 600;
     border-radius: 5px;
     cursor: pointer;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 button:hover {
     background-color: #FFD700;
-    color: black;
+    color: black; /* Bessere Lesbarkeit */
     transform: scale(1.05);
 }
 
-/* 📌 Admin-Login */
-.admin-login {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 10px;
-    border-radius: 10px;
-    width: 180px;
-}
-
-.admin-login input {
-    margin: 5px 0;
-    padding: 5px;
-    width: calc(100% - 20px);
-}
-
-.admin-login button {
-    width: 100%;
-    margin-top: 10px;
-}
-
-/* 📌 Quests */
+/* Quest-Titel */
 #quests-section h2 {
     text-align: center;
     font-size: 1.5em;
     font-weight: bold;
+    color: #FFD700;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 1);
 }
 
+/* Quests-Container */
 #quests {
-    list-style-type: none;
+    list-style-type: none;  /* Entfernt die Aufzählungszeichen */
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -172,33 +120,61 @@ button:hover {
 }
 
 #quests li {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.8);  /* Dunkler Hintergrund */
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 10px;
     width: 90%;
     max-width: 600px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    color: #4E3629;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    color: #FFD700;  /* Goldene Schrift */
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-button.erledigt-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
+/* HP- und MP-Leisten */
+.hp-bar, .mp-bar {
+    width: 100%;
+    height: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-button.erledigt-button:hover {
-    background-color: #FFD700;
-    transform: scale(1.1);
+.hp-bar .progress {
+    height: 100%;
+    background: green;
 }
 
-/* 📌 Logbuch */
+.mp-bar .progress {
+    height: 100%;
+    background: blue;
+}
+
+/* Avatare */
+#avatar-container {
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background-color: transparent;
+    position: relative;
+}
+
+#avatar-container img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 5px solid #FFD700;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Logbuch */
 #logbuch-container {
     position: fixed;
     bottom: 100px;
@@ -207,26 +183,12 @@ button.erledigt-button:hover {
     width: 300px;
     max-height: 300px;
     overflow-y: auto;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #FFD700;
     padding: 10px;
     border-radius: 10px;
-    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     display: none;
-}
-
-#logbuch-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-#logbuch-list li {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #FFD700;
-    padding: 8px 12px;
-    margin: 5px 0;
-    border-radius: 5px;
 }
 
 #logbuch-button {
@@ -238,45 +200,44 @@ button.erledigt-button:hover {
     border: none;
     border-radius: 5px;
     padding: 10px;
+    cursor: pointer;
 }
 
-/* 📌 NPC Login */
+/* NPC Login */
 #npc-login-section {
     position: static;
-    background-color: rgba(0,0,0,0.7);
+    bottom: auto;
+    right: auto;
+    background-color: rgba(0,0,0,0.8);
     padding: 10px;
     border-radius: 8px;
-    z-index: 1;
     width: 200px;
     margin: 20px auto;
 }
 
-/* 📌 Tabelle für Spezialfähigkeiten */
-#aktionen-tabelle {
-    background-color: rgba(33, 37, 41, 0.95);
-    color: #FFD700;
-    border-collapse: collapse;
-    width: 50%;
-    margin: 20px auto;
-    border: 2px solid #FFD700;
-    border-radius: 10px;
-}
-
-#aktionen-tabelle th, #aktionen-tabelle td {
-    border: 1px solid #FFD700;
+/* Admin Login */
+.admin-login {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
     padding: 10px;
-    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    width: 180px;
 }
 
-#aktionen-tabelle th {
-    background-color: rgba(50, 50, 50, 0.9);
-    text-transform: uppercase;
+.admin-login input {
+    margin: 5px 0;
+    padding: 5px;
+    width: calc(100% - 20px);
+    font-size: 0.9rem;
 }
 
-#aktionen-tabelle tr:nth-child(even) {
-    background-color: rgba(40, 40, 40, 0.9);
+.admin-login button {
+    width: 100%;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    padding: 5px 10px;
 }
 
-#aktionen-tabelle tr:hover {
-    background-color: rgba(255, 215, 0, 0.2);
-}
