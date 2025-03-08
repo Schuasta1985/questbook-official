@@ -1,7 +1,7 @@
 // Importiere Firebase-Funktionen
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getDatabase, ref, set, get, update, child } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 // Firebase-Konfiguration
 const firebaseConfig = {
@@ -25,6 +25,11 @@ let currentUser = null;
 let currentFamily = null;
 let isAdmin = false;
 
+// Funktion zur Bereinigung von E-Mail-Adressen für Firebase
+function sanitizeEmail(email) {
+    return email.replace(/\./g, "_").replace(/#/g, "_").replace(/\$/g, "_").replace(/\[/g, "_").replace(/\]/g, "_").replace(/\//g, "_");
+}
+
 // Benutzerstatus prüfen
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -34,6 +39,70 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "index.html"; // Zurück zum Login, falls nicht eingeloggt
     }
 });
+
+// 🔐 Benutzer registrieren
+window.registrieren = function() {
+    const email = document.getElementById("register-email").value;
+    const passwort = document.getElementById("register-passwort").value;
+    const familieName = document.getElementById("register-familie").value;
+
+    if (!email || !passwort || !familieName) {
+        alert("Bitte alle Felder ausfüllen.");
+        return;
+    }
+
+    createUserWithEmailAndPassword(auth, email, passwort)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            const sanitizedEmail = sanitizeEmail(email);
+            const familienId = `familie_${Date.now()}`;
+
+            // Neue Familie erstellen und Benutzer als Admin setzen
+            set(ref(db, `familien/${familienId}`), {
+                name: familieName,
+                admin: sanitizedEmail,
+                mitglieder: { [sanitizedEmail]: true }
+            });
+
+            // Benutzer zur Familie hinzufügen
+            set(ref(db, `benutzer/${user.uid}`), {
+                email: sanitizedEmail,
+                familie: familienId
+            }).then(() => {
+                alert("Registrierung erfolgreich! Du bist nun Admin deiner Familie.");
+                window.location.href = "dashboard.html"; // Weiterleitung nach erfolgreicher Registrierung
+            });
+        })
+        .catch((error) => {
+            console.error("Registrierungsfehler:", error);
+            alert(error.message);
+        });
+};
+
+// 🔑 Benutzer einloggen
+window.einloggen = function() {
+    const email = document.getElementById("login-email").value;
+    const passwort = document.getElementById("login-passwort").value;
+
+    signInWithEmailAndPassword(auth, email, passwort)
+        .then((userCredential) => {
+            alert("Login erfolgreich!");
+            window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+            console.error("Fehler beim Login:", error);
+            alert(error.message);
+        });
+};
+
+// 🔑 Benutzer ausloggen
+window.ausloggen = function() {
+    signOut(auth).then(() => {
+        window.location.href = "index.html";
+    }).catch((error) => {
+        console.error("Fehler beim Logout:", error);
+    });
+};
 
 // 🏡 Familie laden & Benutzerstatus setzen
 function ladeFamilie(userId) {
@@ -45,48 +114,13 @@ function ladeFamilie(userId) {
             get(ref(db, `familien/${currentFamily}`)).then((familySnapshot) => {
                 if (familySnapshot.exists()) {
                     const familyData = familySnapshot.val();
-                    isAdmin = familyData.admin === currentUser.email;
+                    isAdmin = familyData.admin === sanitizeEmail(currentUser.email);
 
                     // Spiel starten
                     ladeBenutzerDaten();
                 }
             });
         }
-    });
-}
-
-// 🔑 Benutzer ausloggen
-window.ausloggen = function() {
-    signOut(auth).then(() => {
-        window.location.href = "index.html";
-    }).catch((error) => {
-        console.error("Fehler beim Logout:", error);
-    });
-};
-
-// 🌟 Benutzerdaten laden & anzeigen
-function ladeBenutzerDaten() {
-    get(ref(db, `benutzer/${currentUser.uid}/fortschritte`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            const daten = snapshot.val();
-            aktualisiereXPAnzeige(daten.level, daten.xp);
-        } else {
-            initialisiereBenutzerdaten();
-        }
-    });
-}
-
-// 🆕 Benutzer initialisieren (falls neu)
-function initialisiereBenutzerdaten() {
-    set(ref(db, `benutzer/${currentUser.uid}/fortschritte`), {
-        level: 1,
-        xp: 0,
-        hp: 100,
-        maxHP: 100,
-        mp: 50,
-        maxMP: 50
-    }).then(() => {
-        ladeBenutzerDaten();
     });
 }
 
@@ -98,26 +132,6 @@ function aktualisiereXPAnzeige(level, xp) {
     if (levelElement) levelElement.textContent = `Level: ${level}`;
     if (xpProgressElement) xpProgressElement.style.width = `${(xp / (level * 100)) * 100}%`;
 }
-
-// 🎮 XP hinzufügen & Levelaufstieg prüfen
-window.xpHinzufügen = function(xpWert) {
-    get(ref(db, `benutzer/${currentUser.uid}/fortschritte`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            let daten = snapshot.val();
-            daten.xp += xpWert;
-
-            // Levelaufstieg prüfen
-            while (daten.xp >= daten.level * 100) {
-                daten.xp -= daten.level * 100;
-                daten.level += 1;
-            }
-
-            update(ref(db, `benutzer/${currentUser.uid}/fortschritte`), daten).then(() => {
-                aktualisiereXPAnzeige(daten.level, daten.xp);
-            });
-        }
-    });
-};
 
 // 🏆 Quests verwalten
 window.questAbschließen = function(questID, xpWert) {
