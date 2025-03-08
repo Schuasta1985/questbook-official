@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest-Buch</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- Firebase und dein Script -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Firebase-Initialisierung
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRB0qfBEcb8Vtvc97-61I6J0HtSnT7y2Y",
+            authDomain: "questbook-3e600.firebaseapp.com",
+            databaseURL: "https://questbook-3e600-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "questbook-3e600",
+            storageBucket: "questbook-3e600.firebasestorage.app",
+            messagingSenderId: "915094173482",
+            appId: "1:915094173482:web:50c21383be0c5e45c5d053",
+            measurementId: "G-P738GMV24T"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+</head>
+<body>
+    <header>
+        <h1 style="font-family: 'Cinzel', serif; font-size: 3em; color: #FFD700; text-shadow: 2px 2px 5px #000;">Willkommen im Quest-Book</h1>
+        <div class="golden-line"></div>
+        <p id="welcome-text" style="font-size: 1.5em; color: #FFD700; text-shadow: 1px 1px 2px #000;">Erledige tägliche Quests, um XP zu sammeln und dein Level zu erhöhen!</p>
+    </header>
+
+    <div id="login-section">
+        <form onsubmit="return false;">
+            <label for="spielerDropdown">Spieler auswählen:</label>
+            <select id="spielerDropdown">
+                <option value="">-- Bitte wählen --</option>
+                <option value="Thomas">Thomas</option>
+                <option value="Elke">Elke</option>
+                <option value="Jamie">Jamie</option>
+            </select>
+            <input type="password" id="spielerPasswort" placeholder="Passwort eingeben">
+            <button type="button" onclick="benutzerAnmeldung()">Anmelden</button>
+        </form>
+    </div>
+
+    <div id="benutzer-container" class="benutzer-grid"></div>
+    
+    <div id="avatar-container"></div>
+    
+    <!-- HP-Leiste -->
+    <div id="hp-bar-container" style="display: none; margin-top: 10px;">
+        <div id="hp-progress">80 / 1900 HP</div>
+    </div>
+
+    <!-- MP-Leiste -->
+    <div id="mp-bar-container" style="display: none; margin-top: 5px;">
+        <div id="mp-progress">50 / 50 MP</div>
+    </div>
+
+    <!-- Quests -->
+    <div id="quests"></div>
+    
+    <!-- XP und Level Anzeige -->
+    <div id="xp-counter" style="display: none;">
+        <div id="xp-level-container">
+            <p id="level-display">Level: <span id="level"></span></p>
+        </div>
+        <div id="xp-bar-container">
+            <div id="xp-progress"></div>
+            <div id="xp-label">Noch 100 XP bis zum nächsten Level-Up</div>
+        </div>
+    </div>
+
+    <!-- Quests-Abschnitt -->
+    <div id="quests-section" style="display: none;">
+       <ul id="quests"></ul>
+    </div>
+
+    <!-- Schadensmeldung -->
+    <div id="damage-message" style="display: none; background: rgba(255, 0, 0, 0.7); color: white; padding: 10px; margin-top: 10px; border-radius: 5px;">Schaden erhalten: -20 HP (Du warst heute nicht brav!)</div>
+
+    <!-- Canvas für Level-Up Animation -->
+    <div id="level-up-container">
+        <canvas id="level-up-canvas" style="display: none;"></canvas>
+    </div>
+<div id="aktionen-log">
+    <div id="aktionen-container">
+        <h3 id="aktionen-titel">Aktionen der Spezialfähigkeiten:</h3>
+        <table id="aktionen-tabelle">
+            <thead>
+                <tr>
+                    <th>Zeitpunkt</th>
+                    <th>Benutzer</th>
+                    <th>Ziel</th>
+                    <th>Fähigkeit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Einträge werden hier dynamisch hinzugefügt -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    <!-- Logout Button -->
+    <button id="logout-button" onclick="ausloggen()" style="display: none;">Ausloggen</button>
+
+    <!-- NPC Login Section -->
+    <div id="npc-login-section" class="npc-login" style="position: fixed; bottom: 10px; right: 10px;">
+        <input type="text" id="npcBenutzername" placeholder="NPC Benutzername">
+        <input type="password" id="npcPasswort" placeholder="NPC Passwort">
+        <button id="npcLoginButton" onclick="npcLogin()">NPC Anmelden</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
