@@ -112,9 +112,10 @@ function ladeAvatare() {
     });
 
     // Falls der Benutzer bereits einen Avatar hat, anzeigen
-    get(ref(db, `benutzer/${currentUser.uid}`)).then(snapshot => {
-        if (snapshot.exists() && snapshot.val().avatar) {
-            document.getElementById("avatar-anzeige").src = `avatars/${snapshot.val().avatar}`;
+    get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
+        if (snapshot.exists()) {
+            let avatarName = snapshot.val();
+            document.getElementById("avatar-anzeige").src = `avatars/${avatarName}`;
         }
     });
 
@@ -145,6 +146,7 @@ window.avatarSpeichern = function () {
         console.error("Fehler beim Speichern des Avatars:", error);
     });
 };
+
 
 // 🏆 Quests verwalten
 window.questAbschließen = function(questID, xpWert) {
