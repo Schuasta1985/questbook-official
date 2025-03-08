@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questbook Dashboard</title>
-    <script type="module" src="script.js" defer></script>
+    <script type="module" src="script.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <h1>Willkommen im Questbook</h1>
-        <button onclick="ausloggen()">🔑 Ausloggen</button>
     </header>
 
     <main>
@@ -22,25 +21,21 @@
             <div class="progress-bar">
                 <div id="xp-progress" class="progress"></div>
             </div>
+        </section>
 
-            <!-- Avatar wird hier erscheinen -->
-            <div id="avatar-container">
-                <img id="avatar-anzeige" src="" alt="Dein Avatar">
-            </div>
-
-            <!-- HP & MP Balken (noch ohne Funktion, aber als Platzhalter) -->
+        <!-- Avatar Anzeige -->
+        <section id="avatar-section">
+            <img id="avatar-anzeige" src="avatars/avatar1.webp" alt="Dein Avatar">
             <div id="hp-mp-container">
-                <div class="hp-bar"><div id="hp-progress"></div></div>
-                <div class="mp-bar"><div id="mp-progress"></div></div>
+                <div id="hp-bar"></div>
+                <div id="mp-bar"></div>
             </div>
         </section>
 
         <!-- Avatar Auswahl -->
-        <section id="avatar-section">
+        <section id="avatar-auswahl">
             <h2>🎭 Wähle deinen Avatar</h2>
-            <select id="avatar-auswahl">
-                <option value="">-- Avatar wählen --</option>
-            </select>
+            <select id="avatar-select"></select>
             <button onclick="avatarSpeichern()">Speichern</button>
         </section>
 
@@ -48,13 +43,9 @@
             <h2>📜 Aktuelle Quests</h2>
             <ul id="quest-liste">Lädt...</ul>
         </section>
-
-        <section id="admin-bereich" style="display: none;">
-            <h2>🔧 Admin-Bereich</h2>
-            <button onclick="neueQuestErstellen()">➕ Neue Quest erstellen</button>
-            <button onclick="questsZurücksetzen()">🗑 Alle Quests zurücksetzen</button>
-        </section>
     </main>
+
+    <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
 
     <footer>
         <p>&copy; 2025 Questbook</p>
