@@ -138,14 +138,25 @@ function ladeAvatare() {
     const avatarContainer = document.getElementById("avatar-auswahl");
     avatarContainer.innerHTML = "";
 
-    for (let i = 1; i <= 6; i++) { // Automatisch Avatare von 1 bis 6 suchen
-        let avatarName = `avatar${i}.webp`;
-        let img = document.createElement("img");
-        img.src = `avatars/${avatarName}`;
-        img.classList.add("avatar-option");
-        img.onclick = () => avatarAuswählen(avatarName);
-        avatarContainer.appendChild(img);
-    }
+    fetch('avatars/') // Liest alle verfügbaren Avatare aus dem Verzeichnis
+        .then(response => response.text())
+        .then(data => {
+            let parser = new DOMParser();
+            let htmlDoc = parser.parseFromString(data, 'text/html');
+            let links = htmlDoc.querySelectorAll("a");
+
+            links.forEach(link => {
+                let filename = link.getAttribute("href");
+                if (filename.endsWith(".webp") || filename.endsWith(".png")) {
+                    let img = document.createElement("img");
+                    img.src = `avatars/${filename}`;
+                    img.classList.add("avatar-option");
+                    img.onclick = () => avatarAuswählen(filename);
+                    avatarContainer.appendChild(img);
+                }
+            });
+        })
+        .catch(error => console.error("Fehler beim Laden der Avatare:", error));
 }
 
 // Avatar speichern
@@ -192,16 +203,6 @@ function ladeQuests() {
             });
         }
     });
-};
-
-// 🖼 Avatar-Auswahl anzeigen
-window.zeigeAvatarAuswahl = function() {
-    document.getElementById("avatar-auswahl-container").style.display = "block";
-};
-
-// ❌ Avatar-Auswahl schließen
-window.schließeAvatarAuswahl = function() {
-    document.getElementById("avatar-auswahl-container").style.display = "none";
 };
 
 // **Starte das Spiel nach dem Laden**
