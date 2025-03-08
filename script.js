@@ -135,29 +135,45 @@ function aktualisiereXPAnzeige(level, xp) {
 
 // 📷 Avatare automatisch erkennen & anzeigen
 function ladeAvatare() {
-    const avatarContainer = document.getElementById("avatar-auswahl");
-    avatarContainer.innerHTML = "";
+    const avatarDropdown = document.getElementById("avatar-auswahl");
 
-    fetch('avatars/') // Liest alle verfügbaren Avatare aus dem Verzeichnis
-        .then(response => response.text())
-        .then(data => {
-            let parser = new DOMParser();
-            let htmlDoc = parser.parseFromString(data, 'text/html');
-            let links = htmlDoc.querySelectorAll("a");
+    if (!avatarDropdown) {
+        console.error("FEHLER: Das Element 'avatar-auswahl' wurde nicht gefunden!");
+        return;
+    }
 
-            links.forEach(link => {
-                let filename = link.getAttribute("href");
-                if (filename.endsWith(".webp") || filename.endsWith(".png")) {
-                    let img = document.createElement("img");
-                    img.src = `avatars/${filename}`;
-                    img.classList.add("avatar-option");
-                    img.onclick = () => avatarAuswählen(filename);
-                    avatarContainer.appendChild(img);
-                }
-            });
-        })
-        .catch(error => console.error("Fehler beim Laden der Avatare:", error));
+    avatarDropdown.innerHTML = ""; // Vorherige Optionen entfernen
+
+    for (let i = 1; i <= 6; i++) { // Automatisch Avatare von 1 bis 6 suchen
+        let avatarName = `avatar${i}.webp`;
+        let option = document.createElement("option");
+        option.value = avatarName;
+        option.textContent = `Avatar ${i}`;
+        avatarDropdown.appendChild(option);
+    }
 }
+
+// 📥 Avatar speichern und anzeigen
+function avatarSpeichern() {
+    const avatarDropdown = document.getElementById("avatar-auswahl");
+    const avatarName = avatarDropdown.value;
+
+    if (!avatarName) {
+        alert("Bitte wähle einen Avatar aus!");
+        return;
+    }
+
+    document.getElementById("avatar-anzeige").src = `avatars/${avatarName}`;
+
+    if (currentUser) {
+        update(ref(db, `benutzer/${currentUser.uid}`), {
+            avatar: avatarName
+        }).catch((error) => {
+            console.error("Fehler beim Speichern des Avatars:", error);
+        });
+    }
+}
+
 
 // Avatar speichern
 function avatarAuswählen(avatarName) {
