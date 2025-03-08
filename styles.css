@@ -1,25 +1,29 @@
-/* Allgemeine Stile für die gesamte Seite */
+/* 🌟 Allgemeine Stile für die gesamte Seite */
 body {
-    margin: 0;
-    padding: 0;
-    background: url('avatars/landkarte.png') no-repeat center center fixed;
+    background-image: url('hintergrund.jpg'); /* Neues Hintergrundbild */
     background-size: cover;
-    font-family: 'Poppins', sans-serif;
-    color: #F5F5DC; /* Elfenbein-Weiß */
-}
-.xp-display {
-    font-weight: bold;
-    color: black;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: #FFD700; /* Goldene Schrift */
+    font-family: 'Arial', sans-serif;
 }
 
+/* ✨ Überschriften */
+h1, h2, h3 {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    text-align: center;
+}
+
+/* ✨ Goldene Linie für optische Trennung */
 .golden-line {
-    width: 350px; /* Die Breite kannst du anpassen */
+    width: 350px;
     height: 8px;
     margin: 20px auto;
     background: linear-gradient(to right, transparent, #FFD700, transparent);
 }
 
-/* Header */
+/* 📌 Header */
 header {
     text-align: center;
     margin-top: 20px;
@@ -29,42 +33,53 @@ h1 {
     font-size: 3rem;
     font-weight: 600;
     color: #F5F5DC;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
 }
 
-/* XP-Zähler und Level */
-#xp-counter {
-    margin-top: 20px;
+/* 📌 Benutzerprofile */
+.benutzer-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
-#xp-level-container {
-    margin: 20px auto;
+.benutzer-item {
+    width: 200px;
     padding: 15px;
-    border: 3px solid gold;  /* Goldene Umrandung */
-    background-color: rgba(0, 0, 0, 0.7);  /* Hintergrundfarbe leicht transparent */
-    color: white;  /* Schriftfarbe für bessere Lesbarkeit */
-    width: fit-content;  /* Automatische Anpassung der Breite */
-    text-align: center;  /* Zentrierte Texte */
-    box-shadow: 0 0 15px gold;  /* Schimmernder Effekt */
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: 1px solid #FFD700;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-#level-display {
-    font-size: 1.5em;  /* Vergrößere Schriftgröße */
+.benutzer-item h3 {
+    font-size: 1.2em;
+    font-weight: bold;
     margin: 5px 0;
+    color: #FFD700;
 }
 
-/* Fortschrittsbalken */
+.benutzer-item div {
+    font-size: 1em;
+    margin-top: 5px;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+}
+
+/* 📌 Fortschrittsbalken */
 #xp-bar-container {
-    position: relative;
     width: 80%;
-    background: #8B4513; /* Holzbraun */
+    background: #8B4513;
     margin: 20px auto;
     height: 30px;
     border-radius: 15px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-/* XP-Fortschrittsbalken */
 #xp-progress {
     height: 100%;
     width: 0%;
@@ -73,7 +88,6 @@ h1 {
     transition: width 0.5s ease-in-out;
 }
 
-/* XP-Text im Fortschrittsbalken */
 #xp-label {
     position: absolute;
     top: 50%;
@@ -81,82 +95,32 @@ h1 {
     transform: translate(-50%, -50%);
     font-weight: bold;
     color: white;
-    z-index: 1;  /* XP-Anzeige sichtbar über dem XP-Balken */
+    z-index: 1;
 }
 
+/* 📌 Avatar */
 #avatar-container {
-    transition: all 0.3s ease-in-out; /* Sanfte Animation bei Größenänderungen */
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
-    margin: 20px auto; /* Platz oben und unten */
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    background-color: transparent; /* Hintergrund entfernen */
-    z-index: 1; /* Sicherstellen, dass der Avatar sichtbar bleibt */
-    position: relative; /* Verhindert Überschneidungen */
-    margin-bottom: 50px; /* Platz unter dem Avatar schaffen */
-}
-
-
-body.logged-in #quests-section {
-    margin-top: 300px; /* Platz unter dem Avatar schaffen */
-}
-
-#quests-section {
+    margin: 20px auto;
     position: relative;
-    z-index: 0; /* Inhalte bleiben unterhalb des Avatars */
 }
 
 #avatar-container video {
-    border-radius: 50%; /* Rundes Design */
-    width: 100%; /* Nimmt die gesamte Breite ein */
-    height: auto; /* Automatische Höhe, passend zur Breite */
-    border: 5px solid #FFD700; /* Goldener Rahmen */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Schatteneffekt */
+    border-radius: 50%;
+    width: 100%;
+    height: auto;
+    border: 5px solid #FFD700;
 }
 
-body #login-section {
-    display: flex;
-    flex-direction: column; /* Ordnet die Elemente vertikal an */
-    align-items: center; /* Zentriert die Elemente horizontal */
-    justify-content: center; /* Zentriert die Elemente vertikal */
-    height: auto; /* Höhe passend anpassen */
-    text-align: center; /* Zentriert den Text */
-}
-
-#login-section label {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #FFD700;
-    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
-    margin-bottom: 15px;
-}
-
-#login-section select,
-#login-section input,
-#login-section button {
-    margin: 10px 0; /* Abstand zwischen den Elementen */
-    width: 80%; /* Einheitliche Breite */
-    max-width: 300px; /* Maximalbreite */
-    padding: 10px; /* Polsterung */
-    font-size: 16px; /* Einheitliche Schriftgröße */
-    text-align: center; /* Zentrierter Text */
-}
-
-
-#benutzerDropdown {
-    width: 100%; /* Volle Breite innerhalb des Containers */
-}
-
-#benutzerPasswort {
-    width: 100%; /* Volle Breite innerhalb des Containers */
-}
-/* Buttons */
+/* 📌 Buttons */
 button {
-    background-color: #808000; /* Olivgrün */
-    color: #FFD700; /* Goldton */
+    background-color: #808000;
+    color: #FFD700;
     border: none;
     padding: 10px 15px;
     font-weight: 600;
@@ -166,10 +130,11 @@ button {
 
 button:hover {
     background-color: #FFD700;
-    color: black; /* Gute Lesbarkeit */
+    color: black;
     transform: scale(1.05);
 }
-/* Admin Login */
+
+/* 📌 Admin-Login */
 .admin-login {
     position: fixed;
     bottom: 20px;
@@ -177,385 +142,141 @@ button:hover {
     background: rgba(255, 255, 255, 0.8);
     padding: 10px;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 180px; /* Reduzierte Breite */
+    width: 180px;
 }
 
 .admin-login input {
     margin: 5px 0;
     padding: 5px;
     width: calc(100% - 20px);
-    font-size: 0.9rem; /* Kleinere Schriftgröße */
 }
 
 .admin-login button {
     width: 100%;
     margin-top: 10px;
-    font-size: 0.9rem; /* Kleinere Schriftgröße */
-    padding: 5px 10px; /* Kleinere Buttons */
 }
 
+/* 📌 Quests */
 #quests-section h2 {
     text-align: center;
     font-size: 1.5em;
     font-weight: bold;
-    margin-bottom: 15px; /* Platz zwischen Überschrift und Quests */
 }
 
-/* Quests-Container anpassen */
 #quests {
-    list-style-type: none;  /* Entfernt die Aufzählungszeichen */
+    list-style-type: none;
     padding: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;  /* Quests in der Mitte ausrichten */
+    align-items: center;
 }
 
 #quests li {
-    background: rgba(255, 255, 255, 0.7);  /* Leichter, heller Hintergrund */
+    background: rgba(255, 255, 255, 0.7);
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 10px;
-    width: 90%;  /* Damit die Quests gleichmäßig wirken */
-    max-width: 600px;  /* Maximalbreite */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Leichter Schatten */
-    color: #4E3629;  /* Dunkelbraune Schriftfarbe */
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: #4E3629;
     display: flex;
-    justify-content: space-between; /* Text und Button positionieren */
+    justify-content: space-between;
     align-items: center;
 }
 
-
-/* Button für "Erledigt" am rechten Rand positionieren */
 button.erledigt-button {
-    background-color: #4CAF50; /* Grün */
+    background-color: #4CAF50;
     color: white;
     border: none;
     padding: 10px;
-    cursor: pointer;
     border-radius: 5px;
-    align-self: flex-end;  /* Button am rechten Rand ausrichten */
 }
 
-button:hover {
-    background-color: #DAA520; /* Goldener Ton */
-    color: white; /* Helle Schriftfarbe für besseren Kontrast */
-    transform: scale(1.1); /* Leichte Vergrößerung bei Hover */
+button.erledigt-button:hover {
+    background-color: #FFD700;
+    transform: scale(1.1);
 }
 
-.benutzer-grid {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.benutzer-item {
-    width: 200px; /* Breitere Karten */
-    padding: 15px;
-    text-align: center;
-    margin: 10px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    border: 1px solid #FFD700;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-.benutzer-item h3 {
-    font-size: 1.2em; /* Größere Schriftgröße für Namen */
-    font-weight: bold;
-    margin: 5px 0;
-    color: #FFD700; /* Goldene Schriftfarbe für Namen */
-    text-shadow: 1px 1px 2px #000000; /* Schwarzer Textschatten */
-}
-
-.benutzer-item div {
-    font-size: 1em; /* Einheitliche Schriftgröße für Level und Zauber */
-    margin-top: 5px;
-    padding: 5px;
-    background-color: rgba(255, 255, 255, 0.2); /* Leicht transparenter Hintergrund */
-    border-radius: 5px;
-    color: #FFFFFF; /* Weiße Schriftfarbe */
-    text-shadow: 1px 1px 2px #000000; /* Schwarzer Textschatten */
-}
-#hp-bar-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 10px auto;
-    width: 100%; /* Gleiche Breite wie der Avatar */
-    max-width: 220px; /* Maximalbreite leicht größer als Avatar */
-    height: 30px; /* Höhe der Leiste erhöhen */
-    background-color: rgba(0, 0, 0, 0.5); /* Halbtransparenter Hintergrund */
-    border-radius: 8px; /* Abgerundete Ecken */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Leichter Schatten */
-}
-
-/* Fortschrittsbalken für HP */
-#hp-progress {
-    position: relative;
-    text-align: center;
-    line-height: 20px; /* Höhe der Leiste */
-    font-weight: bold;
-    color: white;
-    background: green; /* Hintergrundfarbe bleibt gleich */
-    border-radius: 5px; /* Abgerundete Ecken */
-    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3); /* Subtilerer Schatten */
-    margin: 2px; /* Zusätzlicher Abstand innerhalb des Containers */
-}
-
-#avatar-container .avatar-jamie {
-    width: 150px; /* oder jede gewünschte Größe */
-    height: auto;
-    border: 3px solid gold; /* Optional: Umrandung */
-}
-
-#avatar-container .avatar-general {
-    width: 200px; /* Standardgröße für andere Avatare */
-    height: auto;
-}
-
-/* Fortschrittsbalken Container */
-.hp-bar, .mp-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 90%; /* Breite reduziert für einen sauberen Look */
-    height: 16px; /* Reduzierte Höhe für kompakteres Design */
-    margin: 5px auto; /* Zentrierung */
-    background-color: transparent; /* Kein Hintergrund */
-    border-radius: 0; /* Ecken entfernt */
-    overflow: hidden;
-    position: relative;
-    border: none; /* Keine Umrandung */
-}
-
-/* Fortschrittsbalken Fortschritt */
-.hp-bar .progress, .mp-bar .progress {
-    height: 100%;
-    border-radius: 0; /* Keine Rundungen */
-    transition: width 0.3s ease-in-out;
-    z-index: 1; /* Text bleibt sichtbar */
-}
-
-/* Fortschrittsbalken Text */
-.hp-bar .hp-text, .mp-bar .mp-text {
-    position: absolute;
-    z-index: 2; /* Sicherstellen, dass der Text über dem Balken bleibt */
-    width: 100%;
-    text-align: center;
-    line-height: 16px; /* Exakte Zentrierung des Textes */
-    color: white;
-    text-shadow: none; /* Kein Textschatten */
-    font-size: 12px; /* Angepasste Schriftgröße */
-}
-
-#mp-bar-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 5px auto;
-    width: 100%; /* Gleiche Breite wie die HP-Leiste */
-    max-width: 220px; /* Maximalbreite gleich wie bei der HP-Leiste */
-    height: 30px;
-    background-color: rgba(0, 0, 0, 0.5); /* Halbtransparenter Hintergrund */
-    border-radius: 8px; /* Abgerundete Ecken */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Leichter Schatten */
-}
-
-/* Fortschrittsbalken für MP */
-#mp-progress {
-    position: relative;
-    text-align: center;
-    line-height: 20px; /* Höhe der Leiste */
-    font-weight: bold;
-    color: white;
-    background: blue; /* Blau für die MP-Leiste */
-    border-radius: 5px; /* Abgerundete Ecken */
-    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3); /* Subtilerer Schatten */
-    margin: 2px; /* Zusätzlicher Abstand innerhalb des Containers */
-}
-.hp-bar .progress {
-    background: green;
-}
-
-.mp-bar .progress {
-    background: blue;
-}
-/* Logbuch-Container immer unten in der Mitte, aber etwas höher gesetzt */
+/* 📌 Logbuch */
 #logbuch-container {
     position: fixed;
-    bottom: 100px; /* Etwas höher, damit der Logbuch-Button darunter passt */
+    bottom: 100px;
     left: 50%;
     transform: translateX(-50%);
     width: 300px;
-    max-height: 300px; /* Kann angepasst werden */
-    overflow-y: auto; /* Falls du Scroll haben willst */
+    max-height: 300px;
+    overflow-y: auto;
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 10px;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    display: none; /* Standardmäßig versteckt */
-}
-
-#logbuch-container h3 {
-    margin: 0 0 10px; /* Abstand zum unteren Rand */
-    font-size: 1.2em; /* Größere Schrift für den Titel */
-    color: #FFD700; /* Goldene Schriftfarbe für den Titel */
+    display: none;
 }
 
 #logbuch-list {
-    list-style: none; /* Entfernt Aufzählungspunkte */
-    padding: 0; /* Kein Innenabstand */
-    margin: 0; /* Kein Außenabstand */
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 #logbuch-list li {
-    background-color: rgba(0, 0, 0, 0.7); /* Dunklerer Hintergrund */
-    color: #FFD700; /* Goldene Schriftfarbe */
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #FFD700;
     padding: 8px 12px;
     margin: 5px 0;
     border-radius: 5px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-#logbuch-list li:last-child {
-    border-bottom: none; /* Entfernt die Linie beim letzten Eintrag */
-}
-
-#logbuch-list strong {
-    color: #00FF00; /* Grüne Farbe für Quest-Beschreibung */
-}
-/* Logbuch-Button direkt über dem unteren Bildschirmrand, zentriert */
 #logbuch-button {
-    /* Entferne position: fixed; */
-    position: static; /* oder ganz weglassen */
-    margin: 20px auto; /* z.B. unterhalb des Logins oder oben an der Seite */
+    position: static;
+    margin: 20px auto;
     display: block;
     background-color: black;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 10px;
-    cursor: pointer;
-    /* Kein transform, kein fixed, kein hoher z-index */
 }
 
-/* NPC Login immer unten rechts fixiert */
+/* 📌 NPC Login */
 #npc-login-section {
-    /* Entferne position: fixed; */
-    position: static; /* oder ganz weglassen */
-    bottom: auto;
-    right: auto;
-    /* Behalte Hintergrund, Padding, etc. bei */
+    position: static;
     background-color: rgba(0,0,0,0.7);
     padding: 10px;
     border-radius: 8px;
-    z-index: 1; /* Ein niedriger z-index, damit es nicht über anderen Elementen steht */
+    z-index: 1;
     width: 200px;
-    margin: 20px auto; /* z.B. zentrieren oder woanders platzieren */
+    margin: 20px auto;
 }
 
-#zauber-menu {
-    position: absolute;
-    top: 50%;
-    left: calc(100% + 20px); /* Rechts neben dem Avatar */
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    border: 1px solid #FFD700;
-    border-radius: 10px;
-    padding: 15px;
-    width: 250px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-#zauber-menu button {
-    margin: 10px 0;
-    padding: 10px;
-    background-color: #FFD700;
-    color: black;
-    font-weight: bold;
-    border: none;
-    border-radius: 5px;
-    width: 100%;
-    cursor: pointer;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-#zauber-menu button:hover {
-    background-color: #FFC107;
-}
-/* Verbesserte Tabelle mit dunklem Stil */
+/* 📌 Tabelle für Spezialfähigkeiten */
 #aktionen-tabelle {
-    background-color: rgba(33, 37, 41, 0.95); /* Dunkler Hintergrund */
-    color: #FFD700; /* Goldene Schriftfarbe */
+    background-color: rgba(33, 37, 41, 0.95);
+    color: #FFD700;
     border-collapse: collapse;
-    width: 50%; /* Breite reduziert für kompaktere Darstellung */
-    margin: 20px auto; /* Zentriert auf der Seite */
-    border: 2px solid #FFD700; /* Goldene Umrandung */
+    width: 50%;
+    margin: 20px auto;
+    border: 2px solid #FFD700;
     border-radius: 10px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5); /* Schatten */
 }
 
 #aktionen-tabelle th, #aktionen-tabelle td {
-    border: 1px solid #FFD700; /* Goldene Rahmenfarbe */
-    padding: 10px; /* Abstand innerhalb der Zellen */
-    text-align: center; /* Zentrierter Text */
-    font-size: 0.9em; /* Einheitliche Schriftgröße */
-    font-family: Arial, sans-serif; /* Gleiche Schriftart wie Benutzerübersicht */
-    background-color: rgba(44, 44, 44, 0.9); /* Dunkler Hintergrund für Zellen */
+    border: 1px solid #FFD700;
+    padding: 10px;
+    text-align: center;
 }
 
 #aktionen-tabelle th {
-    background-color: rgba(50, 50, 50, 0.9); /* Dunkler Hintergrund für Kopfzeilen */
-    color: #FFD700; /* Goldene Schriftfarbe */
-    text-transform: uppercase; /* Großbuchstaben */
+    background-color: rgba(50, 50, 50, 0.9);
+    text-transform: uppercase;
 }
 
 #aktionen-tabelle tr:nth-child(even) {
-    background-color: rgba(40, 40, 40, 0.9); /* Abwechselnde dunkle Zeilen */
+    background-color: rgba(40, 40, 40, 0.9);
 }
 
 #aktionen-tabelle tr:hover {
-    background-color: rgba(255, 215, 0, 0.2); /* Hover-Effekt */
+    background-color: rgba(255, 215, 0, 0.2);
 }
-
-/* Hintergrundfeld transparent machen */
-#aktionen-container {
-    background-color: rgba(0, 0, 0, 0.5); /* Halbtransparenter, dunkler Hintergrund */
-    border-radius: 10px; /* Abgerundete Ecken */
-    padding: 20px; /* Abstand zum Text */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Leichter Schatten für Kontrast */
-    margin: 20px auto; /* Abstand und Zentrierung */
-    width: 60%; /* Verkleinerte Breite für besseren Fokus */
-}
-
-/* Titel „Aktionen der Spezialfähigkeiten“ in Gold */
-#aktionen-titel {
-    text-align: center;
-    font-size: 1.5em; /* Größere Schrift */
-    color: #FFD700; /* Goldene Schriftfarbe */
-    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.9); /* Starker Schatten für besseren Kontrast */
-    margin-bottom: 15px; /* Abstand zur Tabelle */
-}
-
-/* Allgemeiner transparenter Hintergrund für unwichtige Inhalte */
-.transparent-background {
-    background-color: rgba(255, 255, 255, 0); /* Vollständig transparent */
-}
-
-/* Container für Logs */
-#aktionen-log {
-    background-color: transparent; /* Kein Hintergrund */
-    padding: 0;
-    margin: 0;
-    border: none;
-}
-
-
-
