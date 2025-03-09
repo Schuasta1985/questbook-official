@@ -103,3 +103,26 @@ window.ausloggen = function () {
         console.error("Fehler beim Logout:", error);
     });
 };
+
+// ⚙️ Avatar ändern (öffnet Avatar-Auswahl)
+window.zeigeAvatarEinstellungen = function () {
+    let avatarElement = document.getElementById("avatar-anzeige");
+    if (!avatarElement || !avatarElement.src) {
+        alert("Kein Avatar gefunden!");
+        return;
+    }
+    document.getElementById("avatar-section").style.display = "block";
+};
+
+// 💾 Avatar speichern (schließt das Fenster nach dem Speichern)
+window.avatarSpeichern = function () {
+    let selectedAvatar = document.getElementById("avatar-auswahl").value;
+    if (!selectedAvatar) return;
+
+    set(ref(db, `benutzer/${auth.currentUser.uid}/avatar`), selectedAvatar)
+        .then(() => {
+            document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
+            document.getElementById("avatar-section").style.display = "none"; // 🔥 Avatar-Auswahl ausblenden
+        })
+        .catch(error => console.error("Fehler beim Speichern des Avatars:", error));
+};
