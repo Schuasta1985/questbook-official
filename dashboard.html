@@ -12,6 +12,19 @@
   <h1>Willkommen im Quest-Buch</h1>
   <p id="familien-info">Familie: <span id="familien-name">-</span> | Admin: <span id="admin-email">-</span></p>
 </header>
+  <!-- Avatar-Bereich (z.B. oben im Dashboard) -->
+<div id="avatar-container">
+  <img id="avatar-anzeige" src="avatars/avatar1.png" alt="Dein Avatar">
+  <button id="einstellungen-icon" onclick="zeigeAvatarEinstellungen()">⚙️</button>
+</div>
+
+<!-- Avatar-Einstellungen-Auswahl -->
+<section id="avatar-section" style="display: none;">
+  <h2>Avatar ändern</h2>
+  <select id="avatar-auswahl"></select>
+  <button onclick="avatarSpeichern()">Speichern</button>
+</section>
+
 
 <main>
   <!-- Übersicht aller Spieler in der Familie (Karten-Layout) -->
