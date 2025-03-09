@@ -1,8 +1,9 @@
-// 🔥 Importiere Firebase-Funktionen
+// 🔥 Firebase-Funktionen importieren
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getDatabase, ref, set, get, update, push, onValue } 
-  from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-import { 
+import {
+  getDatabase, ref, set, get, update, push, onValue
+} from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -10,19 +11,18 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup
-} 
-  from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
-// 🔑 DEINE Firebase-Konfiguration
+// 🔑 Deine Firebase-Daten
 const firebaseConfig = {
-  apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
-  authDomain: "questbook-138c8.firebaseapp.com",
-  databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "questbook-138c8",
-  storageBucket: "questbook-138c8.appspot.com",
-  messagingSenderId: "625259298286",
-  appId: "1:625259298286:web:bf60483c258cd311bea2ff",
-  measurementId: "G-H6F2TB6PY7"
+  apiKey: "DEIN_API_KEY",
+  authDomain: "DEIN_PROJECT.firebaseapp.com",
+  databaseURL: "https://DEIN_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "DEIN_PROJECT",
+  storageBucket: "DEIN_PROJECT.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:xxxxxx",
+  measurementId: "G-XXXXXX"
 };
 
 // 🔥 Firebase initialisieren
@@ -30,309 +30,320 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth();
 
-/* ===========================
-   1. LOGIN & REGISTRIERUNG
-=========================== */
+/* =============== LOGIN & REGISTRIERUNG =============== */
 
-/** Wird ausgeführt, sobald das HTML geladen ist. */
-document.addEventListener("DOMContentLoaded", function () {
-  let loginBtn = document.getElementById("login-btn");
-  let registerBtn = document.getElementById("register-btn");
-
+document.addEventListener("DOMContentLoaded", () => {
+  const loginBtn    = document.getElementById("login-btn");
+  const registerBtn = document.getElementById("register-btn");
   if (loginBtn) {
     loginBtn.onclick = () => {
-      document.getElementById("login-form").style.display = "block";
-      document.getElementById("register-form").style.display = "none";
+      if (document.getElementById("login-form")) document.getElementById("login-form").style.display = "block";
+      if (document.getElementById("register-form")) document.getElementById("register-form").style.display = "none";
     };
   }
-
   if (registerBtn) {
     registerBtn.onclick = () => {
-      document.getElementById("login-form").style.display = "none";
-      document.getElementById("register-form").style.display = "block";
+      if (document.getElementById("login-form")) document.getElementById("login-form").style.display = "none";
+      if (document.getElementById("register-form")) document.getElementById("register-form").style.display = "block";
     };
   }
 });
 
-/** Benutzer per E-Mail/Passwort einloggen */
-window.benutzerEinloggen = function () {
+window.benutzerEinloggen = async function() {
   const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
-
-  signInWithEmailAndPassword(auth, email, password)
-    .then(() => {
-      // Bei Erfolg: wechsle zum Dashboard
-      window.location.href = "dashboard.html";
-    })
-    .catch(error => alert(error.message));
+  const pw    = document.getElementById("login-password").value;
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+    window.location.href = "dashboard.html";
+  } catch(e) {
+    alert(e.message);
+  }
 };
 
-/** Google-Login */
-window.googleLogin = function () {
+window.googleLogin = async function() {
   const provider = new GoogleAuthProvider();
-  signInWithPopup(auth, provider)
-    .then(() => {
-      // Erfolgreicher Login → Dashboard
-      window.location.href = "dashboard.html";
-    })
-    .catch(error => {
-      alert(error.message);
-    });
+  try {
+    await signInWithPopup(auth, provider);
+    window.location.href = "dashboard.html";
+  } catch(e) {
+    alert(e.message);
+  }
 };
 
-/** Familie erstellen ODER normale Registrierung, je nach Eingabe */
-window.familieErstellen = function () {
-  const familienName = document.getElementById("family-name").value;
-  const adminEmail = document.getElementById("admin-email").value;
-  const adminPassword = document.getElementById("admin-password").value;
-
-  if (!adminEmail || !adminPassword) {
-    alert("E-Mail und Passwort dürfen nicht leer sein!");
+window.familieErstellen = async function() {
+  const famName     = document.getElementById("family-name").value;
+  const adminEmail  = document.getElementById("admin-email").value;
+  const adminPass   = document.getElementById("admin-password").value;
+  if (!adminEmail || !adminPass) {
+    alert("E-Mail und Passwort erforderlich!");
     return;
   }
-
-  createUserWithEmailAndPassword(auth, adminEmail, adminPassword)
-    .then(userCredential => {
-      const adminUID = userCredential.user.uid;
-
-      // Wenn KEIN Familienname eingegeben wurde → Nur User anlegen, kein isAdmin.
-      if (!familienName) {
-        return set(ref(db, `benutzer/${adminUID}`), {
-          email: adminEmail,
-          familie: null,
-          isAdmin: false,
-          name: adminEmail.split("@")[0],
-          level: 1,
-          xp: 0,
-          hp: 100,
-          mp: 100
-        });
-      } else {
-        // Nutzer WILL eine Familie gründen → isAdmin = true
-        const familienID = Date.now().toString();
-        const familienDaten = {
-          name: familienName,
-          admin: adminEmail,
-          mitglieder: { [adminUID]: true }
-        };
-        // 1) Familie-Eintrag
-        return set(ref(db, `familien/${familienID}`), familienDaten)
-          .then(() => {
-            // 2) Benutzer-Eintrag
-            return set(ref(db, `benutzer/${adminUID}`), {
-              email: adminEmail,
-              familie: familienID,
-              isAdmin: true,
-              name: adminEmail.split("@")[0],
-              level: 1,
-              xp: 0,
-              hp: 100,
-              mp: 100
-            });
-          });
-      }
-    })
-    .then(() => {
-      alert("Registrierung erfolgreich!");
-      window.location.href = "dashboard.html";
-    })
-    .catch(error => {
-      alert(error.message);
-    });
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
+    const uid      = userCred.user.uid;
+    if (!famName) {
+      await set(ref(db, `benutzer/${uid}`), {
+        email: adminEmail,
+        familie: null,
+        isAdmin: false,
+        name: adminEmail.split("@")[0],
+        level: 1,
+        xp: 0,
+        hp: 100,
+        mp: 100
+      });
+    } else {
+      const famID = Date.now().toString();
+      await set(ref(db, `familien/${famID}`), {
+        name: famName,
+        admin: adminEmail,
+        mitglieder: { [uid]: true }
+      });
+      await set(ref(db, `benutzer/${uid}`), {
+        email: adminEmail,
+        familie: famID,
+        isAdmin: true,
+        name: adminEmail.split("@")[0],
+        level: 1,
+        xp: 0,
+        hp: 100,
+        mp: 100
+      });
+    }
+    alert("Registrierung erfolgreich!");
+    window.location.href = "dashboard.html";
+  } catch(e) {
+    alert(e.message);
+  }
 };
 
-/** Ausloggen */
-window.ausloggen = function () {
-  signOut(auth)
-    .then(() => {
-      window.location.href = "index.html";
-    })
-    .catch(error => {
-      console.error("Fehler beim Logout:", error);
-    });
+window.ausloggen = async function() {
+  try {
+    await signOut(auth);
+    window.location.href = "index.html";
+  } catch(e) {
+    console.error(e);
+  }
 };
 
-/* ===========================
-   2. TÄGLICHE REGENERATION
-   => Nur einmal pro Tag
-=========================== */
-async function checkeTäglicheRegeneration(userUID) {
-  // "YYYY-MM-DD"
+/* =============== AUTH-STATE =============== */
+
+onAuthStateChanged(auth, async (user) => {
+  if (user && window.location.href.includes("dashboard.html")) {
+    await ladeBenutzerdaten();
+  } else if (!user && window.location.href.includes("dashboard.html")) {
+    window.location.href = "index.html";
+  }
+});
+
+/* =============== TÄGLICHE REGENERATION =============== */
+
+async function checkeTäglicheRegeneration(uid) {
   const heute = new Date().toISOString().split('T')[0];
+  const benRef = ref(db, `benutzer/${uid}`);
+  const snap = await get(benRef);
+  if (!snap.exists()) return;
 
-  // Benutzerdaten holen
-  const benutzerRef = ref(db, `benutzer/${userUID}`);
-  const snapshot = await get(benutzerRef);
-  if (!snapshot.exists()) return;
+  const userData = snap.val();
+  if (userData.lastDailyRegen === heute) return;
 
-  const userData = snapshot.val();
+  let level   = userData.level || 1;
+  let hp      = userData.hp    ?? 100;
+  let mp      = userData.mp    ?? 100;
+  let maxHP   = 100 + Math.floor((level-1)/10)*100;
+  let maxMP   = 100 + Math.floor((level-1)/10)*50;
+  let neueHP  = Math.min(maxHP, hp + Math.floor(maxHP * 0.1));
+  let neueMP  = Math.min(maxMP, mp + Math.floor(maxMP * 0.1));
 
-  // Schon heute regeneriert?
-  if (userData.lastDailyRegen === heute) {
-    console.log("Heute bereits aufgeladen:", userUID);
-    return;
-  }
-
-  // Regenerations-Logik
-  let level = userData.level || 1;
-  let currentHP = userData.hp ?? 100;
-  let currentMP = userData.mp ?? 100;
-
-  let maxHP = 100 + Math.floor((level - 1) / 10) * 100;
-  let maxMP = 100 + Math.floor((level - 1) / 10) * 50;
-
-  // Beispiel: +10% vom Maximum
-  let neueHP = Math.min(maxHP, currentHP + Math.floor(maxHP * 0.1));
-  let neueMP = Math.min(maxMP, currentMP + Math.floor(maxMP * 0.1));
-
-  await update(benutzerRef, {
+  await update(benRef, {
     hp: neueHP,
     mp: neueMP,
     lastDailyRegen: heute
   });
-
-  console.log("Tägliche Regeneration durchgeführt für:", userUID);
 }
 
-/* ===========================
-   3. DASHBOARD-FUNKTIONEN
-=========================== */
+/* =============== DASHBOARD-FUNKTIONEN =============== */
 
-/** Lädt Benutzerdaten aus DB und füllt Profil/Avatar usw. */
 async function ladeBenutzerdaten() {
   const user = auth.currentUser;
   if (!user) return;
 
-  const snapshot = await get(ref(db, `benutzer/${user.uid}`));
-  if (!snapshot.exists()) return;
+  const snap = await get(ref(db, `benutzer/${user.uid}`));
+  if (!snap.exists()) return;
+  const userData = snap.val();
 
-  const userData = snapshot.val();
-
-  // Profilfelder
-  const nameElem = document.getElementById("benutzer-name");
-  const levelElem = document.getElementById("benutzer-level");
-  const xpElem = document.getElementById("benutzer-xp");
-
-  if (nameElem)  nameElem.textContent  = userData.name  || "Unbekannt";
-  if (levelElem) levelElem.textContent = userData.level || "1";
-  if (xpElem)    xpElem.textContent    = userData.xp    || "0";
-
-  // Admin-Check
-  if (userData.isAdmin) {
-    const adminSection = document.getElementById("admin-section");
-    if (adminSection) adminSection.style.display = "block";
-  }
-
-  // Avatar
-  const avatarElem = document.getElementById("avatar-anzeige");
-  if (avatarElem && userData.avatarURL) {
-    avatarElem.src = userData.avatarURL;
-  }
-
-  // TÄGLICHE REGENERATION nur 1x pro Tag
   await checkeTäglicheRegeneration(user.uid);
 
-  // Danach: Ziel-/Zauberlisten laden + Logs
-  ladeSpielerliste();
-  ladeZauberliste();
-  ladePublicLogs();
+  if (userData.familie) {
+    const famSnap = await get(ref(db, `familien/${userData.familie}`));
+    if (famSnap.exists()) {
+      const famData = famSnap.val();
+      const famNameElem = document.getElementById("familien-name");
+      const adminElem   = document.getElementById("admin-email");
+      if (famNameElem) famNameElem.textContent = famData.name;
+      if (adminElem)   adminElem.textContent   = famData.admin;
+    }
+    await zeigeFamilienMitglieder(userData.familie);
+  } else {
+    const famNameElem = document.getElementById("familien-name");
+    const adminElem   = document.getElementById("admin-email");
+    if (famNameElem) famNameElem.textContent = "Keine";
+    if (adminElem)   adminElem.textContent   = userData.isAdmin ? userData.email : "-";
+    await zeigeAlleNutzer();
+  }
+  ladeZauberListe();
+  ladeZielListe();
+  ladeLogsInTabelle();
+  ladeQuests(user.uid);
 }
 
-/** Alle Spieler aus DB laden und in <select id="zauber-ziel"> einfügen */
-async function ladeSpielerliste() {
-  const selectZiel = document.getElementById("zauber-ziel");
-  if (!selectZiel) return;
+async function zeigeFamilienMitglieder(famID) {
+  const famMembersSnap = await get(ref(db, `familien/${famID}/mitglieder`));
+  if (!famMembersSnap.exists()) return;
+  const memberObj = famMembersSnap.val();
 
-  const snapshot = await get(ref(db, "benutzer"));
-  if (!snapshot.exists()) return;
+  const container = document.getElementById("player-cards-container");
+  if (!container) return;
+  container.innerHTML = "";
 
-  selectZiel.innerHTML = "";
-  const userList = snapshot.val();
-  for (let uid in userList) {
-    const option = document.createElement("option");
-    option.value = uid;
-    option.textContent = userList[uid].name || userList[uid].email;
-    selectZiel.appendChild(option);
+  for (let uid in memberObj) {
+    const benSnap = await get(ref(db, `benutzer/${uid}`));
+    if (!benSnap.exists()) continue;
+    const benData = benSnap.val();
+
+    let card = document.createElement("div");
+    card.className = "player-card";
+
+    let maxHP = 100 + Math.floor((benData.level-1)/10)*100;
+    let maxMP = 100 + Math.floor((benData.level-1)/10)*50;
+
+    card.innerHTML = `
+      <img src="${benData.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
+      <h3>${benData.name}</h3>
+      <p>Level: ${benData.level || 1}</p>
+      <p>${benData.hp || 100} / ${maxHP} HP</p>
+      <p>${benData.mp || 100} / ${maxMP} MP</p>
+    `;
+    container.appendChild(card);
   }
 }
 
-/** Beispiel: Zauber-Liste */
-async function ladeZauberliste() {
-  const selectZauber = document.getElementById("zauber-auswahl");
-  if (!selectZauber) return;
+async function zeigeAlleNutzer() {
+  const snap = await get(ref(db, "benutzer"));
+  if (!snap.exists()) return;
 
-  // Du könntest das auch dynamisch aus DB ("zauber/") laden
-  const zauberArten = [
+  const container = document.getElementById("player-cards-container");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const users = snap.val();
+  for (let uid in users) {
+    const benData = users[uid];
+
+    let card = document.createElement("div");
+    card.className = "player-card";
+
+    let maxHP = 100 + Math.floor((benData.level-1)/10)*100;
+    let maxMP = 100 + Math.floor((benData.level-1)/10)*50;
+
+    card.innerHTML = `
+      <img src="${benData.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
+      <h3>${benData.name}</h3>
+      <p>Level: ${benData.level || 1}</p>
+      <p>${benData.hp || 100} / ${maxHP} HP</p>
+      <p>${benData.mp || 100} / ${maxMP} MP</p>
+    `;
+    container.appendChild(card);
+  }
+}
+
+function ladeZauberListe() {
+  const zauberSelect = document.getElementById("zauber-auswahl");
+  if (!zauberSelect) return;
+  zauberSelect.innerHTML = "";
+
+  const zauber = [
     { id: "z1", name: "Heilzauber",  typ: "heilen", wert: 20 },
     { id: "z2", name: "Feuerball",   typ: "schaden", wert: 30 }
   ];
 
-  selectZauber.innerHTML = "";
-  zauberArten.forEach(z => {
+  zauber.forEach(z => {
     const opt = document.createElement("option");
     opt.value = z.id;
     opt.textContent = z.name;
-    selectZauber.appendChild(opt);
+    zauberSelect.appendChild(opt);
   });
 }
 
-/** Button-Click: Zauber wirken */
-window.zauberWirkenHandler = async function() {
-  const zielID = document.getElementById("zauber-ziel").value;
-  const zauberID = document.getElementById("zauber-auswahl").value;
+async function ladeZielListe() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const userSnap = await get(ref(db, `benutzer/${user.uid}`));
+  if (!userSnap.exists()) return;
+  const userData = userSnap.val();
 
-  // Mock: Hardcodierte Zauberdaten
-  let zauberObj = {};
-  if (zauberID === "z1") {
-    zauberObj = { typ: "heilen", wert: 20, name: "Heilzauber" };
-  } else if (zauberID === "z2") {
-    zauberObj = { typ: "schaden", wert: 30, name: "Feuerball" };
+  const zielSelect = document.getElementById("zauber-ziel");
+  if (!zielSelect) return;
+  zielSelect.innerHTML = "";
+
+  if (userData.familie) {
+    const famSnap = await get(ref(db, `familien/${userData.familie}/mitglieder`));
+    if (!famSnap.exists()) return;
+    const memObj = famSnap.val();
+    for (let uid in memObj) {
+      if (uid === user.uid) continue;
+      const benSnap = await get(ref(db, `benutzer/${uid}`));
+      if (!benSnap.exists()) continue;
+      const benData = benSnap.val();
+      const opt = document.createElement("option");
+      opt.value = uid;
+      opt.textContent = benData.name;
+      zielSelect.appendChild(opt);
+    }
   }
+}
 
-  await wirkeZauber(zielID, zauberObj);
+window.zauberWirkenHandler = async function() {
+  const zielVal   = document.getElementById("zauber-ziel").value;
+  const zauberVal = document.getElementById("zauber-auswahl").value;
+  if (!zielVal) {
+    alert("Kein Ziel ausgewählt!");
+    return;
+  }
+  let zauber = {};
+  if (zauberVal === "z1") zauber = { typ:"heilen", wert:20, name:"Heilzauber" };
+  if (zauberVal === "z2") zauber = { typ:"schaden",wert:30, name:"Feuerball" };
+  await wirkeZauber(zielVal, zauber);
 };
 
-/** Die Kernfunktion zum Anwenden eines Zaubers */
 async function wirkeZauber(zielID, zauber) {
   const user = auth.currentUser;
   if (!user) return;
 
-  const zielSnapshot = await get(ref(db, `benutzer/${zielID}`));
-  if (!zielSnapshot.exists()) {
-    alert("Zielspieler nicht gefunden!");
+  const zielSnap = await get(ref(db, `benutzer/${zielID}`));
+  if (!zielSnap.exists()) {
+    alert("Ziel nicht gefunden!");
     return;
   }
+  const ziel = zielSnap.val();
 
-  const zielData = zielSnapshot.val();
   let updates = {};
-
   if (zauber.typ === "heilen") {
-    let maxHP = 100 + Math.floor((zielData.level - 1) / 10) * 100;
-    let neueHP = Math.min(maxHP, (zielData.hp || 100) + zauber.wert);
+    let maxHP  = 100 + Math.floor((ziel.level-1)/10)*100;
+    let neueHP = Math.min(maxHP, (ziel.hp||100) + zauber.wert);
     updates[`benutzer/${zielID}/hp`] = neueHP;
-
   } else if (zauber.typ === "schaden") {
-    let neueHP = Math.max(0, (zielData.hp || 100) - zauber.wert);
+    let neueHP = Math.max(0, (ziel.hp||100) - zauber.wert);
     updates[`benutzer/${zielID}/hp`] = neueHP;
-
-    // Prüfen, ob Spieler tot
     if (neueHP <= 0) {
-      const neuesLevel = Math.max(1, (zielData.level || 1) - 1);
-      let maxHP = 100 + Math.floor((neuesLevel - 1) / 10) * 100;
+      let neuesLevel = Math.max(1, (ziel.level||1)-1);
+      let maxHP = 100 + Math.floor((neuesLevel-1)/10)*100;
       updates[`benutzer/${zielID}/level`] = neuesLevel;
-      updates[`benutzer/${zielID}/hp`] = maxHP; // Respawn
-      updates[`benutzer/${zielID}/gestorben`] = {
-        datum: new Date().toISOString(),
-        durch: user.uid,
-        zauber: zauber.name
-      };
+      updates[`benutzer/${zielID}/hp`]    = maxHP;
     }
   }
-
-  // Write
   await update(ref(db), updates);
 
-  // Log in publicLogs
   await push(ref(db, "publicLogs"), {
     timestamp: Date.now(),
     caster: user.uid,
@@ -341,144 +352,103 @@ async function wirkeZauber(zielID, zauber) {
     typ: zauber.typ,
     wert: zauber.wert
   });
-
-  alert(`Zauber "${zauber.name}" erfolgreich gewirkt!`);
+  alert(`Zauber '${zauber.name}' ausgeführt!`);
 }
 
-/* ===========================
-   4. LOGS (Public + Admin)
-=========================== */
+/* =============== LOGS =============== */
 
-/** Lädt die öffentlichen Logs in #public-logs-list */
-async function ladePublicLogs() {
-  const publicLogsList = document.getElementById("public-logs-list");
-  if (!publicLogsList) return;
-
+function ladeLogsInTabelle() {
+  const body = document.getElementById("log-table-body");
+  if (!body) return;
   onValue(ref(db, "publicLogs"), (snapshot) => {
-    publicLogsList.innerHTML = "";
+    body.innerHTML = "";
     if (!snapshot.exists()) return;
-
-    const logs = snapshot.val();
-    const sortedKeys = Object.keys(logs).sort((a, b) => logs[b].timestamp - logs[a].timestamp);
-
-    sortedKeys.forEach(key => {
-      const item = logs[key];
-      const li = document.createElement("li");
-      let date = new Date(item.timestamp).toLocaleString();
-      li.textContent = `[${date}] ${item.caster} wirkte '${item.zauber}' auf ${item.target} (typ: ${item.typ}, wert: ${item.wert})`;
-      publicLogsList.appendChild(li);
+    let logs = snapshot.val();
+    let keys = Object.keys(logs).sort((a,b) => logs[b].timestamp - logs[a].timestamp);
+    keys.forEach(k => {
+      let l = logs[k];
+      let tr = document.createElement("tr");
+      let tdDatum = document.createElement("td");
+      tdDatum.textContent = new Date(l.timestamp).toLocaleString();
+      let tdBenutzer = document.createElement("td");
+      tdBenutzer.textContent = l.caster;
+      let tdZiel = document.createElement("td");
+      tdZiel.textContent = l.target;
+      let tdFäh = document.createElement("td");
+      tdFäh.textContent = `${l.zauber} (Typ: ${l.typ}, Wert: ${l.wert})`;
+      tr.appendChild(tdDatum);
+      tr.appendChild(tdBenutzer);
+      tr.appendChild(tdZiel);
+      tr.appendChild(tdFäh);
+      body.appendChild(tr);
     });
   });
 }
 
-/** ADMIN: Logs anzeigen & löschen */
-window.adminZeigeLogs = async function() {
-  const adminLogsContainer = document.getElementById("admin-logs-container");
-  const adminLogsList = document.getElementById("admin-logs-list");
-  if (!adminLogsContainer || !adminLogsList) return;
+/* =============== QUESTS =============== */
 
-  // Toggle
-  adminLogsContainer.style.display = (adminLogsContainer.style.display === "none") ? "block" : "none";
+async function ladeQuests(uid) {
+  const qContainer = document.getElementById("quest-container");
+  if (!qContainer) return;
 
-  if (adminLogsContainer.style.display === "block") {
-    // Einmalig Logs laden
-    const snapshot = await get(ref(db, "publicLogs"));
-    adminLogsList.innerHTML = "";
-    if (!snapshot.exists()) return;
-
-    const logs = snapshot.val();
-    Object.keys(logs).forEach(key => {
-      const li = document.createElement("li");
-      const date = new Date(logs[key].timestamp).toLocaleString();
-      li.textContent = `[${date}] ${logs[key].caster} -> ${logs[key].target}: ${logs[key].zauber}`;
-
-      // Löschen-Button
-      const btn = document.createElement("button");
-      btn.textContent = "Löschen";
-      btn.style.marginLeft = "10px";
-      btn.onclick = () => {
-        if (confirm("Diesen Log-Eintrag wirklich löschen?")) {
-          update(ref(db, `publicLogs/${key}`), null);
-        }
-      };
-      li.appendChild(btn);
-
-      adminLogsList.appendChild(li);
-    });
+  const snap = await get(ref(db, "quests"));
+  if (!snap.exists()) {
+    qContainer.innerHTML = "<p>Keine Quests vorhanden.</p>";
+    return;
   }
-};
+  let quests = snap.val();
+  qContainer.innerHTML = "";
 
-window.adminNeuenBenutzerAnlegen = function() {
-  alert("Hier könntest du einen kleinen Dialog implementieren, um neue Benutzer einzuladen, etc.");
-};
-
-/* ===========================
-   5. AVATAR-EINSTELLUNGEN
-=========================== */
-
-/** Öffnet Avatar-Auswahl */
-window.zeigeAvatarEinstellungen = function () {
-  document.getElementById("avatar-section").style.display = "block";
-  const avatarAuswahl = document.getElementById("avatar-auswahl");
-  if (!avatarAuswahl) return;
-
-  avatarAuswahl.innerHTML = "";
-  // Zehn verschiedene Avatare
-  const verfügbareAvatare = [
-    "avatars/avatar1.png",
-    "avatars/avatar2.png",
-    "avatars/avatar3.png",
-    "avatars/avatar4.png",
-    "avatars/avatar5.png",
-    "avatars/avatar6.png",
-    "avatars/avatar7.png",
-    "avatars/avatar8.png",
-    "avatars/avatar9.png",
-    "avatars/avatar10.png"
-  ];
-
-  verfügbareAvatare.forEach(url => {
-    const opt = document.createElement("option");
-    opt.value = url;
-    opt.textContent = url.split("/").pop();
-    avatarAuswahl.appendChild(opt);
+  Object.keys(quests).forEach(qid => {
+    let quest = quests[qid];
+    let doneCount = quest.doneBy ? Object.keys(quest.doneBy).length : 0;
+    let div = document.createElement("div");
+    div.className = "quest-box";
+    div.innerHTML = `
+      <div>
+        <strong>${quest.name}</strong> 
+        <small>(${quest.xpPerUnit} XP pro Einheit)</small><br>
+        Erledigt: ${doneCount}/${quest.totalUnits}
+      </div>
+    `;
+    if (doneCount < quest.totalUnits) {
+      let btn = document.createElement("button");
+      btn.textContent = "Erledigt";
+      btn.onclick = () => questErledigen(qid, uid);
+      div.appendChild(btn);
+    } else {
+      let span = document.createElement("span");
+      span.style.color = "lime";
+      span.textContent = "Bereits abgeschlossen!";
+      div.appendChild(span);
+    }
+    qContainer.appendChild(div);
   });
-};
+}
 
-/** Speichert den gewählten Avatar in der DB */
-window.avatarSpeichern = async function () {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const avatarAuswahl = document.getElementById("avatar-auswahl");
-  if (!avatarAuswahl) return;
-
-  const selectedURL = avatarAuswahl.value;
-  await update(ref(db, `benutzer/${user.uid}`), {
-    avatarURL: selectedURL
-  });
-
-  // UI aktualisieren
-  const avatarAnzeige = document.getElementById("avatar-anzeige");
-  if (avatarAnzeige) {
-    avatarAnzeige.src = selectedURL;
+async function questErledigen(qid, uid) {
+  const qSnap = await get(ref(db, `quests/${qid}`));
+  if (!qSnap.exists()) return;
+  let quest = qSnap.val();
+  if (quest.doneBy && quest.doneBy[uid]) {
+    alert("Schon erledigt.");
+    return;
   }
+  const userSnap = await get(ref(db, `benutzer/${uid}`));
+  if (!userSnap.exists()) return;
+  let userData = userSnap.val();
 
-  document.getElementById("avatar-section").style.display = "none";
-};
-
-/* ===========================
-   6. ON AUTH STATE CHANGED
-=========================== */
-
-/** Wird auf jeder Seite aufgerufen, sobald sich Auth-Zustand ändert */
-onAuthStateChanged(auth, (user) => {
-  // Auf dashboard.html -> lade Benutzerdaten
-  if (user && window.location.href.includes("dashboard.html")) {
-    ladeBenutzerdaten();
+  let newXP = (userData.xp||0) + quest.xpPerUnit;
+  let newLevel = userData.level||1;
+  while (newXP >= 1000) {
+    newXP -= 1000;
+    newLevel++;
   }
-  // Kein User und wir sind auf dashboard.html -> redirect
-  else if (!user && window.location.href.includes("dashboard.html")) {
-    window.location.href = "index.html";
-  }
-});
+  let updates = {};
+  updates[`benutzer/${uid}/xp`] = newXP;
+  updates[`benutzer/${uid}/level`] = newLevel;
+  updates[`quests/${qid}/doneBy/${uid}`] = 1;
+  await update(ref(db), updates);
+  alert("Quest erledigt! XP gutgeschrieben.");
+  ladeQuests(uid);
+}
