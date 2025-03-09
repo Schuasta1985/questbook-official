@@ -13,16 +13,16 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
-// 🔑 Deine Firebase-Daten
+// 🔑 Deine Firebase-Daten (Questbook-138c8)
 const firebaseConfig = {
-  apiKey: "DEIN_API_KEY",
-  authDomain: "DEIN_PROJECT.firebaseapp.com",
-  databaseURL: "https://DEIN_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "DEIN_PROJECT",
-  storageBucket: "DEIN_PROJECT.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:xxxxxx",
-  measurementId: "G-XXXXXX"
+  apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
+  authDomain: "questbook-138c8.firebaseapp.com",
+  databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "questbook-138c8",
+  storageBucket: "questbook-138c8.appspot.com",
+  messagingSenderId: "625259298286",
+  appId: "1:625259298286:web:bf60483c258cd311bea2ff",
+  measurementId: "G-H6F2TB6PY7"
 };
 
 // 🔥 Firebase initialisieren
@@ -37,14 +37,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerBtn = document.getElementById("register-btn");
   if (loginBtn) {
     loginBtn.onclick = () => {
-      if (document.getElementById("login-form")) document.getElementById("login-form").style.display = "block";
-      if (document.getElementById("register-form")) document.getElementById("register-form").style.display = "none";
+      if (document.getElementById("login-form")) {
+        document.getElementById("login-form").style.display = "block";
+      }
+      if (document.getElementById("register-form")) {
+        document.getElementById("register-form").style.display = "none";
+      }
     };
   }
   if (registerBtn) {
     registerBtn.onclick = () => {
-      if (document.getElementById("login-form")) document.getElementById("login-form").style.display = "none";
-      if (document.getElementById("register-form")) document.getElementById("register-form").style.display = "block";
+      if (document.getElementById("login-form")) {
+        document.getElementById("login-form").style.display = "none";
+      }
+      if (document.getElementById("register-form")) {
+        document.getElementById("register-form").style.display = "block";
+      }
     };
   }
 });
@@ -81,6 +89,7 @@ window.familieErstellen = async function() {
   try {
     const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
     const uid      = userCred.user.uid;
+    // Falls kein Familienname => normaler User
     if (!famName) {
       await set(ref(db, `benutzer/${uid}`), {
         email: adminEmail,
@@ -93,12 +102,14 @@ window.familieErstellen = async function() {
         mp: 100
       });
     } else {
+      // Familie anlegen
       const famID = Date.now().toString();
       await set(ref(db, `familien/${famID}`), {
         name: famName,
         admin: adminEmail,
         mitglieder: { [uid]: true }
       });
+      // Benutzer mit isAdmin
       await set(ref(db, `benutzer/${uid}`), {
         email: adminEmail,
         familie: famID,
@@ -127,7 +138,6 @@ window.ausloggen = async function() {
 };
 
 /* =============== AUTH-STATE =============== */
-
 onAuthStateChanged(auth, async (user) => {
   if (user && window.location.href.includes("dashboard.html")) {
     await ladeBenutzerdaten();
@@ -137,7 +147,6 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 /* =============== TÄGLICHE REGENERATION =============== */
-
 async function checkeTäglicheRegeneration(uid) {
   const heute = new Date().toISOString().split('T')[0];
   const benRef = ref(db, `benutzer/${uid}`);
@@ -163,7 +172,6 @@ async function checkeTäglicheRegeneration(uid) {
 }
 
 /* =============== DASHBOARD-FUNKTIONEN =============== */
-
 async function ladeBenutzerdaten() {
   const user = auth.currentUser;
   if (!user) return;
@@ -172,8 +180,10 @@ async function ladeBenutzerdaten() {
   if (!snap.exists()) return;
   const userData = snap.val();
 
+  // Tägliche Aufladung
   await checkeTäglicheRegeneration(user.uid);
 
+  // Familie / Admin anzeigen
   if (userData.familie) {
     const famSnap = await get(ref(db, `familien/${userData.familie}`));
     if (famSnap.exists()) {
@@ -183,14 +193,17 @@ async function ladeBenutzerdaten() {
       if (famNameElem) famNameElem.textContent = famData.name;
       if (adminElem)   adminElem.textContent   = famData.admin;
     }
+    // Zeige alle Familienmitglieder
     await zeigeFamilienMitglieder(userData.familie);
   } else {
     const famNameElem = document.getElementById("familien-name");
     const adminElem   = document.getElementById("admin-email");
     if (famNameElem) famNameElem.textContent = "Keine";
     if (adminElem)   adminElem.textContent   = userData.isAdmin ? userData.email : "-";
+    // Zeige alle Nutzer, falls keine Familie
     await zeigeAlleNutzer();
   }
+
   ladeZauberListe();
   ladeZielListe();
   ladeLogsInTabelle();
@@ -291,7 +304,7 @@ async function ladeZielListe() {
     if (!famSnap.exists()) return;
     const memObj = famSnap.val();
     for (let uid in memObj) {
-      if (uid === user.uid) continue;
+      if (uid === user.uid) continue; // nicht auf sich selbst
       const benSnap = await get(ref(db, `benutzer/${uid}`));
       if (!benSnap.exists()) continue;
       const benData = benSnap.val();
@@ -311,8 +324,8 @@ window.zauberWirkenHandler = async function() {
     return;
   }
   let zauber = {};
-  if (zauberVal === "z1") zauber = { typ:"heilen", wert:20, name:"Heilzauber" };
-  if (zauberVal === "z2") zauber = { typ:"schaden",wert:30, name:"Feuerball" };
+  if (zauberVal === "z1") zauber = { typ:"heilen",  wert:20, name:"Heilzauber" };
+  if (zauberVal === "z2") zauber = { typ:"schaden", wert:30, name:"Feuerball" };
   await wirkeZauber(zielVal, zauber);
 };
 
@@ -330,20 +343,24 @@ async function wirkeZauber(zielID, zauber) {
   let updates = {};
   if (zauber.typ === "heilen") {
     let maxHP  = 100 + Math.floor((ziel.level-1)/10)*100;
-    let neueHP = Math.min(maxHP, (ziel.hp||100) + zauber.wert);
+    let neueHP = Math.min(maxHP, (ziel.hp || 100) + zauber.wert);
     updates[`benutzer/${zielID}/hp`] = neueHP;
   } else if (zauber.typ === "schaden") {
-    let neueHP = Math.max(0, (ziel.hp||100) - zauber.wert);
+    let neueHP = Math.max(0, (ziel.hp || 100) - zauber.wert);
     updates[`benutzer/${zielID}/hp`] = neueHP;
+    // Tot?
     if (neueHP <= 0) {
-      let neuesLevel = Math.max(1, (ziel.level||1)-1);
-      let maxHP = 100 + Math.floor((neuesLevel-1)/10)*100;
+      let neuesLevel = Math.max(1, (ziel.level || 1) - 1);
+      let respawnHP  = 100 + Math.floor((neuesLevel-1)/10)*100;
       updates[`benutzer/${zielID}/level`] = neuesLevel;
-      updates[`benutzer/${zielID}/hp`]    = maxHP;
+      updates[`benutzer/${zielID}/hp`]    = respawnHP;
     }
   }
+
+  // DB updaten
   await update(ref(db), updates);
 
+  // In publicLogs protokollieren
   await push(ref(db, "publicLogs"), {
     timestamp: Date.now(),
     caster: user.uid,
@@ -356,15 +373,16 @@ async function wirkeZauber(zielID, zauber) {
 }
 
 /* =============== LOGS =============== */
-
 function ladeLogsInTabelle() {
   const body = document.getElementById("log-table-body");
   if (!body) return;
   onValue(ref(db, "publicLogs"), (snapshot) => {
     body.innerHTML = "";
     if (!snapshot.exists()) return;
+
     let logs = snapshot.val();
     let keys = Object.keys(logs).sort((a,b) => logs[b].timestamp - logs[a].timestamp);
+
     keys.forEach(k => {
       let l = logs[k];
       let tr = document.createElement("tr");
@@ -386,7 +404,6 @@ function ladeLogsInTabelle() {
 }
 
 /* =============== QUESTS =============== */
-
 async function ladeQuests(uid) {
   const qContainer = document.getElementById("quest-container");
   if (!qContainer) return;
@@ -431,23 +448,27 @@ async function questErledigen(qid, uid) {
   if (!qSnap.exists()) return;
   let quest = qSnap.val();
   if (quest.doneBy && quest.doneBy[uid]) {
-    alert("Schon erledigt.");
+    alert("Schon erledigt!");
     return;
   }
+
   const userSnap = await get(ref(db, `benutzer/${uid}`));
   if (!userSnap.exists()) return;
   let userData = userSnap.val();
 
   let newXP = (userData.xp||0) + quest.xpPerUnit;
   let newLevel = userData.level||1;
+  // Level-Up-Regel: 1 Level pro 1000 XP
   while (newXP >= 1000) {
     newXP -= 1000;
     newLevel++;
   }
+
   let updates = {};
   updates[`benutzer/${uid}/xp`] = newXP;
   updates[`benutzer/${uid}/level`] = newLevel;
   updates[`quests/${qid}/doneBy/${uid}`] = 1;
+
   await update(ref(db), updates);
   alert("Quest erledigt! XP gutgeschrieben.");
   ladeQuests(uid);
