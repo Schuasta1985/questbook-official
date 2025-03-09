@@ -9,7 +9,7 @@ const firebaseConfig = {
     authDomain: "questbook-138c8.firebaseapp.com",
     databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "questbook-138c8",
-    storageBucket: "questbook-138c8.firebasestorage.app",
+    storageBucket: "questbook-138c8.appspot.com",
     messagingSenderId: "625259298286",
     appId: "1:625259298286:web:bf60483c258cd311bea2ff",
     measurementId: "G-H6F2TB6PY7"
@@ -33,7 +33,7 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// 🔑 Benutzer ausloggen (Logout-Button fixen)
+// 🔑 Benutzer ausloggen
 window.ausloggen = function () {
     signOut(auth).then(() => {
         window.location.href = "index.html";
@@ -60,10 +60,10 @@ function ladeAvatar() {
     get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
         if (snapshot.exists()) {
             let avatarName = snapshot.val();
-            let avatarPfad = `https://schuasta1985.github.io/questbook-official/avatars/${avatarName}.png`;
+            let avatarPfad = `avatars/${avatarName}`;
             document.getElementById("avatar-anzeige").src = avatarPfad;
-            document.getElementById("einstellungen-icon").style.display = "block"; // ⚙️-Icon anzeigen
-            document.getElementById("avatar-section").style.display = "none"; // Avatar-Auswahl verstecken
+            document.getElementById("einstellungen-icon").style.display = "block"; 
+            document.getElementById("avatar-section").style.display = "none"; 
         } else {
             ladeAvatarDropdown();
         }
@@ -72,13 +72,12 @@ function ladeAvatar() {
     });
 }
 
-
 // 🎭 Avatar-Dropdown befüllen
 function ladeAvatarDropdown() {
     const avatarSelect = document.getElementById("avatar-auswahl");
     if (!avatarSelect) return;
 
-    avatarSelect.innerHTML = ""; // Dropdown leeren
+    avatarSelect.innerHTML = ""; 
 
     let avatarList = [
         "avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png",
@@ -89,27 +88,25 @@ function ladeAvatarDropdown() {
     avatarList.forEach(filename => {
         let option = document.createElement("option");
         option.value = filename;
-        option.textContent = filename.replace(".png", ""); // Name ohne ".png"
+        option.textContent = filename.replace(".png", ""); 
         avatarSelect.appendChild(option);
     });
 
-    // Falls ein Avatar bereits gespeichert ist, Dropdown vorauswählen
     get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
         if (snapshot.exists()) {
             avatarSelect.value = snapshot.val();
         }
     });
 
-    // Live-Vorschau des Avatars bei Auswahl
     avatarSelect.addEventListener("change", function () {
         let selectedAvatar = avatarSelect.value;
         if (selectedAvatar) {
-            document.getElementById("avatar-anzeige").src = `https://schuasta1985.github.io/questbook-official/avatars/${selectedAvatar}`;
+            document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
         }
     });
 }
 
-// 💾 Avatar speichern (Fix: Avatar wird sofort aktualisiert + Auswahl verschwindet)
+// 💾 Avatar speichern
 window.avatarSpeichern = function () {
     let selectedAvatar = document.getElementById("avatar-auswahl").value;
     if (!selectedAvatar) return;
@@ -117,17 +114,16 @@ window.avatarSpeichern = function () {
     update(ref(db, `benutzer/${currentUser.uid}`), {
         avatar: selectedAvatar
     }).then(() => {
-        let avatarPfad = `https://schuasta1985.github.io/questbook-official/avatars/${selectedAvatar}`;
+        let avatarPfad = `avatars/${selectedAvatar}`;
         document.getElementById("avatar-anzeige").src = avatarPfad;
-        document.getElementById("avatar-section").style.display = "none"; // Auswahl ausblenden
-        document.getElementById("einstellungen-icon").style.display = "block"; // ⚙️-Icon anzeigen
+        document.getElementById("avatar-section").style.display = "none"; 
+        document.getElementById("einstellungen-icon").style.display = "block"; 
     }).catch(error => {
         console.error("Fehler beim Speichern des Avatars:", error);
     });
 };
 
-
-// ⚙️ Avatar ändern (zeigt Avatar-Auswahl)
+// ⚙️ Avatar ändern
 window.zeigeAvatarEinstellungen = function () {
     document.getElementById("avatar-section").style.display = "block";
 };
@@ -136,4 +132,3 @@ window.zeigeAvatarEinstellungen = function () {
 window.onload = function () {
     if (currentUser) ladeBenutzerdaten();
 };
-
