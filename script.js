@@ -31,7 +31,6 @@ const db = getDatabase(app);
 const auth = getAuth();
 
 /* =============== LOGIN & REGISTRIERUNG =============== */
-
 document.addEventListener("DOMContentLoaded", () => {
   const loginBtn    = document.getElementById("login-btn");
   const registerBtn = document.getElementById("register-btn");
@@ -204,12 +203,21 @@ async function ladeBenutzerdaten() {
     await zeigeAlleNutzer();
   }
 
+  // Avatar aus DB anzeigen (falls vorhanden)
+  if (userData.avatarURL) {
+    const avatarImg = document.getElementById("avatar-anzeige");
+    if (avatarImg) {
+      avatarImg.src = userData.avatarURL;
+    }
+  }
+
   ladeZauberListe();
   ladeZielListe();
   ladeLogsInTabelle();
   ladeQuests(user.uid);
 }
 
+/** Familienmitglieder in Kartenform */
 async function zeigeFamilienMitglieder(famID) {
   const famMembersSnap = await get(ref(db, `familien/${famID}/mitglieder`));
   if (!famMembersSnap.exists()) return;
@@ -270,6 +278,7 @@ async function zeigeAlleNutzer() {
   }
 }
 
+/* ZAUBER-LISTE & ANGRIFF */
 function ladeZauberListe() {
   const zauberSelect = document.getElementById("zauber-auswahl");
   if (!zauberSelect) return;
@@ -473,3 +482,60 @@ async function questErledigen(qid, uid) {
   alert("Quest erledigt! XP gutgeschrieben.");
   ladeQuests(uid);
 }
+
+/* =============== AVATAR-WECHSEL =============== */
+/** Öffnet den Bereich zum Avatar-Wechsel */
+window.zeigeAvatarEinstellungen = function() {
+  const avatarSection = document.getElementById("avatar-section");
+  if (!avatarSection) return;
+  avatarSection.style.display = "block";
+
+  // Beispiel: 10 Avatare
+  const avatarList = [
+    "avatars/avatar1.png",
+    "avatars/avatar2.png",
+    "avatars/avatar3.png",
+    "avatars/avatar4.png",
+    "avatars/avatar5.png",
+    "avatars/avatar6.png",
+    "avatars/avatar7.png",
+    "avatars/avatar8.png",
+    "avatars/avatar9.png",
+    "avatars/avatar10.png"
+  ];
+
+  const selectElem = document.getElementById("avatar-auswahl");
+  if (!selectElem) return;
+  selectElem.innerHTML = "";
+
+  avatarList.forEach((url) => {
+    let opt = document.createElement("option");
+    opt.value = url;
+    opt.textContent = url.split("/").pop();
+    selectElem.appendChild(opt);
+  });
+};
+
+/** Avatar speichern => DB updaten & Bild ändern */
+window.avatarSpeichern = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const selectElem = document.getElementById("avatar-auswahl");
+  if (!selectElem) return;
+
+  const chosenURL = selectElem.value || "avatars/avatar1.png";
+  // In DB eintragen
+  await update(ref(db, `benutzer/${user.uid}`), {
+    avatarURL: chosenURL
+  });
+
+  // Im UI aktualisieren
+  const avatarImg = document.getElementById("avatar-anzeige");
+  if (avatarImg) {
+    avatarImg.src = chosenURL;
+  }
+
+  document.getElementById("avatar-section").style.display = "none";
+  alert("Avatar geändert!");
+};
