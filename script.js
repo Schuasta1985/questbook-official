@@ -117,7 +117,10 @@ window.zeigeAvatarEinstellungen = function () {
 // 🎭 Avatar-Dropdown befüllen & live aktualisieren
 window.ladeAvatarDropdown = function () {
     const avatarSelect = document.getElementById("avatar-auswahl");
-    if (!avatarSelect) return;
+    if (!avatarSelect) {
+        console.error("Avatar-Dropdown nicht gefunden!"); // Debugging
+        return;
+    }
 
     avatarSelect.innerHTML = ""; // Dropdown leeren
 
@@ -151,24 +154,30 @@ window.ladeAvatarDropdown = function () {
         }
     });
 };
-
 // 💾 Avatar speichern (schließt das Fenster nach dem Speichern)
 window.avatarSpeichern = function () {
     let selectedAvatar = document.getElementById("avatar-auswahl").value;
-    if (!selectedAvatar) return;
+    if (!selectedAvatar) {
+        alert("Bitte einen Avatar auswählen!");
+        return;
+    }
 
     set(ref(db, `benutzer/${auth.currentUser.uid}/avatar`), selectedAvatar)
         .then(() => {
-            document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
+            let avatarPfad = `avatars/${selectedAvatar}`;
+            document.getElementById("avatar-anzeige").src = avatarPfad;
             document.getElementById("avatar-section").style.display = "none"; // 🔥 Avatar-Auswahl ausblenden
         })
         .catch(error => console.error("Fehler beim Speichern des Avatars:", error));
 };
 
-// 🌟 **Lade Benutzerdaten + Avatar-Liste beim Start**
+// 🌟 Warten bis die Seite vollständig geladen ist, dann Skript ausführen
 window.onload = function () {
-    if (auth.currentUser) {
-        ladeBenutzerdaten();
-        ladeAvatarDropdown(); // 🔥 Avatar-Auswahl laden
-    }
+    setTimeout(() => {
+        if (auth.currentUser) {
+            ladeBenutzerdaten();
+            ladeAvatarDropdown();
+        }
+    }, 500); // 500ms Verzögerung, um sicherzustellen, dass alles geladen ist
 };
+
