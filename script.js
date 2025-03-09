@@ -20,7 +20,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth();
 
-// 🌟 EVENT-LISTENER BEIM LADEN DER SEITE
+// ✅ EVENT LISTENER FÜR BUTTONS
 document.addEventListener("DOMContentLoaded", function () {
     let loginBtn = document.getElementById("login-btn");
     let registerBtn = document.getElementById("register-btn");
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (avatarSaveBtn) avatarSaveBtn.onclick = avatarSpeichern;
 });
 
-// ✅ LOGIN & REGISTRIERUNG
+// ✅ LOGIN & REGISTRIERUNG ANZEIGEN
 function zeigeLoginForm() {
     document.getElementById("login-form").style.display = "block";
     document.getElementById("register-form").style.display = "none";
@@ -42,56 +42,57 @@ function zeigeRegistrierungForm() {
     document.getElementById("register-form").style.display = "block";
 }
 
-window.benutzerEinloggen = function () {
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
+// ✅ FAMILIE GRÜNDEN
+window.familieErstellen = function () {
+    const familienName = document.getElementById("family-name").value;
+    const adminEmail = document.getElementById("admin-email").value;
+    const adminPassword = document.getElementById("admin-password").value;
 
-    if (!email || !password) {
-        alert("Bitte E-Mail und Passwort eingeben!");
+    if (!familienName || !adminEmail || !adminPassword) {
+        alert("Bitte alle Felder ausfüllen!");
         return;
     }
 
-    signInWithEmailAndPassword(auth, email, password)
+    createUserWithEmailAndPassword(auth, adminEmail, adminPassword)
+        .then(userCredential => {
+            const adminUID = userCredential.user.uid;
+            const familienID = Date.now().toString();
+
+            const familienDaten = {
+                name: familienName,
+                admin: adminEmail,
+                mitglieder: { [adminUID]: true }
+            };
+
+            return set(ref(db, `familien/${familienID}`), familienDaten).then(() => {
+                return set(ref(db, `benutzer/${adminUID}`), {
+                    email: adminEmail,
+                    familie: familienID
+                });
+            });
+        })
         .then(() => {
-            alert("Erfolgreich eingeloggt!");
+            alert("Familie erfolgreich erstellt!");
             window.location.href = "dashboard.html";
         })
         .catch(error => {
             alert(error.message);
         });
-}
+};
+
+// ✅ BENUTZER LOGIN / LOGOUT
+window.benutzerEinloggen = function () {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then(() => window.location.href = "dashboard.html")
+        .catch(error => alert(error.message));
+};
 
 window.ausloggen = function () {
-    signOut(auth).then(() => {
-        window.location.href = "index.html";
-    }).catch(error => {
-        console.error("Fehler beim Logout:", error);
-    });
-};
-
-// ✅ AVATAR-EINSTELLUNGEN
-window.zeigeAvatarEinstellungen = function () {
-    document.getElementById("avatar-section").style.display = "block";
-};
-
-window.avatarSpeichern = function () {
-    let selectedAvatar = document.getElementById("avatar-auswahl").value;
-    if (!selectedAvatar) {
-        alert("Bitte einen Avatar auswählen!");
-        return;
-    }
-
-    const user = auth.currentUser;
-    if (user) {
-        set(ref(db, `benutzer/${user.uid}/avatar`), selectedAvatar)
-            .then(() => {
-                document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
-                document.getElementById("avatar-section").style.display = "none";
-            })
-            .catch(error => {
-                alert("Fehler beim Speichern.");
-            });
-    }
+    signOut(auth).then(() => window.location.href = "index.html")
+        .catch(error => console.error("Fehler beim Logout:", error));
 };
 
 // ✅ BENUTZERDATEN LADEN
@@ -120,8 +121,8 @@ window.wirkeZauber = async function (zielID, zauberID) {
 
     const zauber = zauberSnapshot.val();
     const ziel = zielSnapshot.val();
-
     let updates = {};
+
     if (zauber.typ === "heilen") {
         let maxHP = 100 + Math.floor((ziel.level - 1) / 10) * 100;
         updates[`benutzer/${zielID}/hp`] = Math.min(maxHP, ziel.hp + zauber.wert);
@@ -133,7 +134,7 @@ window.wirkeZauber = async function (zielID, zauberID) {
     await checkeSpielerTod(zielID, user.uid, zauber.name);
 };
 
-// ✅ TOD-MECHANIK
+// ✅ SPIELER-TOD CHECKEN
 async function checkeSpielerTod(zielID, angreiferID, zauberName) {
     const zielSnapshot = await get(ref(db, `benutzer/${zielID}`));
     if (!zielSnapshot.exists()) return;
@@ -161,6 +162,7 @@ async function regeneriereHPundMP() {
         const user = snapshot.val()[uid];
         let maxHP = 100 + Math.floor((user.level - 1) / 10) * 100;
         let maxMP = 100 + Math.floor((user.level - 1) / 10) * 50;
+
         if (user.hp < maxHP) updates[`benutzer/${uid}/hp`] = Math.min(maxHP, user.hp + Math.floor(maxHP * 0.1));
         if (!user.lastMPUpdate) updates[`benutzer/${uid}/mp`] = maxMP;
     });
@@ -168,8 +170,18 @@ async function regeneriereHPundMP() {
     await update(ref(db), updates);
 }
 
-// ✅ AUTOMATISCHE REGENERATION TÄGLICH UM 00:00
+// ✅ AUTOMATISCHE REGENERATION
 setInterval(async () => {
     const jetzt = new Date();
     if (jetzt.getHours() === 0 && jetzt.getMinutes() === 0) await regeneriereHPundMP();
 }, 60000);
+
+// ✅ WENN BENUTZER EINLOGGT, ALLES LADEN
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        console.log("Benutzer erkannt:", user.email);
+        await ladeBenutzerdaten();
+    } else {
+        console.log("Kein Benutzer angemeldet.");
+    }
+});
