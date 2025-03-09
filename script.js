@@ -20,6 +20,17 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth();
 
+// ⚙️ Avatar ändern (öffnet Avatar-Auswahl)
+window.zeigeAvatarEinstellungen = function () {
+    let avatarElement = document.getElementById("avatar-anzeige");
+    if (!avatarElement || !avatarElement.src) {
+        alert("Kein Avatar gefunden!");
+        return;
+    }
+    document.getElementById("avatar-section").style.display = "block";
+};
+
+
 // ✅ EVENT LISTENER FÜR BUTTONS
 document.addEventListener("DOMContentLoaded", function () {
     let loginBtn = document.getElementById("login-btn");
