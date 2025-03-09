@@ -101,7 +101,7 @@ window.familieErstellen = function () {
           email: adminEmail,
           familie: null,
           isAdmin: false,
-          name: adminEmail.split("@")[0], // z.B. "alex" bei "alex@test.de"
+          name: adminEmail.split("@")[0],
           level: 1,
           xp: 0,
           hp: 100,
@@ -122,7 +122,7 @@ window.familieErstellen = function () {
             return set(ref(db, `benutzer/${adminUID}`), {
               email: adminEmail,
               familie: familienID,
-              isAdmin: true,  // Gründer der Familie = Admin
+              isAdmin: true,
               name: adminEmail.split("@")[0],
               level: 1,
               xp: 0,
@@ -153,7 +153,49 @@ window.ausloggen = function () {
 };
 
 /* ===========================
-   2. DASHBOARD-FUNKTIONEN
+   2. TÄGLICHE REGENERATION
+   => Nur einmal pro Tag
+=========================== */
+async function checkeTäglicheRegeneration(userUID) {
+  // "YYYY-MM-DD"
+  const heute = new Date().toISOString().split('T')[0];
+
+  // Benutzerdaten holen
+  const benutzerRef = ref(db, `benutzer/${userUID}`);
+  const snapshot = await get(benutzerRef);
+  if (!snapshot.exists()) return;
+
+  const userData = snapshot.val();
+
+  // Schon heute regeneriert?
+  if (userData.lastDailyRegen === heute) {
+    console.log("Heute bereits aufgeladen:", userUID);
+    return;
+  }
+
+  // Regenerations-Logik
+  let level = userData.level || 1;
+  let currentHP = userData.hp ?? 100;
+  let currentMP = userData.mp ?? 100;
+
+  let maxHP = 100 + Math.floor((level - 1) / 10) * 100;
+  let maxMP = 100 + Math.floor((level - 1) / 10) * 50;
+
+  // Beispiel: +10% vom Maximum
+  let neueHP = Math.min(maxHP, currentHP + Math.floor(maxHP * 0.1));
+  let neueMP = Math.min(maxMP, currentMP + Math.floor(maxMP * 0.1));
+
+  await update(benutzerRef, {
+    hp: neueHP,
+    mp: neueMP,
+    lastDailyRegen: heute
+  });
+
+  console.log("Tägliche Regeneration durchgeführt für:", userUID);
+}
+
+/* ===========================
+   3. DASHBOARD-FUNKTIONEN
 =========================== */
 
 /** Lädt Benutzerdaten aus DB und füllt Profil/Avatar usw. */
@@ -187,11 +229,12 @@ async function ladeBenutzerdaten() {
     avatarElem.src = userData.avatarURL;
   }
 
-  // Listen füllen
+  // TÄGLICHE REGENERATION nur 1x pro Tag
+  await checkeTäglicheRegeneration(user.uid);
+
+  // Danach: Ziel-/Zauberlisten laden + Logs
   ladeSpielerliste();
   ladeZauberliste();
-
-  // Logs anzeigen
   ladePublicLogs();
 }
 
@@ -220,8 +263,8 @@ async function ladeZauberliste() {
 
   // Du könntest das auch dynamisch aus DB ("zauber/") laden
   const zauberArten = [
-    { id: "z1", name: "Heilzauber", typ: "heilen", wert: 20 },
-    { id: "z2", name: "Feuerball",  typ: "schaden", wert: 30 }
+    { id: "z1", name: "Heilzauber",  typ: "heilen", wert: 20 },
+    { id: "z2", name: "Feuerball",   typ: "schaden", wert: 30 }
   ];
 
   selectZauber.innerHTML = "";
@@ -303,7 +346,7 @@ async function wirkeZauber(zielID, zauber) {
 }
 
 /* ===========================
-   3. LOGS (Public + Admin)
+   4. LOGS (Public + Admin)
 =========================== */
 
 /** Lädt die öffentlichen Logs in #public-logs-list */
@@ -365,13 +408,12 @@ window.adminZeigeLogs = async function() {
   }
 };
 
-/** Example Admin-Funktion */
 window.adminNeuenBenutzerAnlegen = function() {
   alert("Hier könntest du einen kleinen Dialog implementieren, um neue Benutzer einzuladen, etc.");
 };
 
 /* ===========================
-   4. AVATAR-EINSTELLUNGEN
+   5. AVATAR-EINSTELLUNGEN
 =========================== */
 
 /** Öffnet Avatar-Auswahl */
@@ -381,11 +423,18 @@ window.zeigeAvatarEinstellungen = function () {
   if (!avatarAuswahl) return;
 
   avatarAuswahl.innerHTML = "";
-  // Beispiel-Avatare
+  // Zehn verschiedene Avatare
   const verfügbareAvatare = [
     "avatars/avatar1.png",
     "avatars/avatar2.png",
-    "avatars/avatar3.png"
+    "avatars/avatar3.png",
+    "avatars/avatar4.png",
+    "avatars/avatar5.png",
+    "avatars/avatar6.png",
+    "avatars/avatar7.png",
+    "avatars/avatar8.png",
+    "avatars/avatar9.png",
+    "avatars/avatar10.png"
   ];
 
   verfügbareAvatare.forEach(url => {
@@ -417,40 +466,6 @@ window.avatarSpeichern = async function () {
 
   document.getElementById("avatar-section").style.display = "none";
 };
-
-/* ===========================
-   5. TÄGLICHE REGENERATION
-=========================== */
-
-/** Füllt täglich HP/MP aller Spieler wieder auf */
-async function regeneriereHPundMP() {
-  const snapshot = await get(ref(db, "benutzer"));
-  if (!snapshot.exists()) return;
-
-  const benutzer = snapshot.val();
-  let updates = {};
-
-  for (let uid in benutzer) {
-    const userData = benutzer[uid];
-    let maxHP = 100 + Math.floor((userData.level - 1) / 10) * 100;
-    let maxMP = 100 + Math.floor((userData.level - 1) / 10) * 50;
-
-    let neueHP = Math.min(maxHP, (userData.hp || 100) + Math.floor(maxHP * 0.1));
-    let neueMP = Math.min(maxMP, (userData.mp || 100) + Math.floor(maxMP * 0.1));
-
-    updates[`benutzer/${uid}/hp`] = neueHP;
-    updates[`benutzer/${uid}/mp`] = neueMP;
-  }
-  await update(ref(db), updates);
-}
-
-/** Clientseitiger Timer: Tägliches Update um 00:00 (sofern Seite offen ist) */
-setInterval(async () => {
-  const jetzt = new Date();
-  if (jetzt.getHours() === 0 && jetzt.getMinutes() === 0) {
-    await regeneriereHPundMP();
-  }
-}, 60_000);
 
 /* ===========================
    6. ON AUTH STATE CHANGED
