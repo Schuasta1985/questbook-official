@@ -135,21 +135,5 @@ window.zeigeAvatarEinstellungen = function () {
 // **Seite laden & Daten abrufen**
 window.onload = function () {
     if (currentUser) ladeBenutzerdaten();
-
-    // Logout-Button fixen
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-        logoutBtn.style.position = "fixed";
-        logoutBtn.style.bottom = "10px";
-        logoutBtn.style.right = "10px";
-        logoutBtn.style.padding = "5px 10px";
-        logoutBtn.style.fontSize = "12px";
-        logoutBtn.style.background = "#444";
-        logoutBtn.style.color = "white";
-        logoutBtn.style.border = "none";
-        logoutBtn.style.cursor = "pointer";
-        logoutBtn.style.borderRadius = "5px";
-        logoutBtn.addEventListener("click", ausloggen);
-    }
 };
 
