@@ -225,3 +225,22 @@ header, main, footer {
   background-color: #FFD700;
   color: black;
 }
+/* Spieler-Karten-Bereich */
+.player-card {
+  display: inline-block; /* oder flex, je nach Layout */
+  background: rgba(0, 0, 0, 0.6);
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  vertical-align: top;
+}
+
+/* Avatar innerhalb der Karten skalieren */
+.player-card img {
+  max-width: 150px; /* Größe anpassen, z.B. 150px oder 100px */
+  height: auto;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+}
+
