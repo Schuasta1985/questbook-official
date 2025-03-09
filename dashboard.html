@@ -10,37 +10,56 @@
 
 <header>
   <h1>Willkommen im Quest-Buch</h1>
-  <p id="familien-info">Familie: <span id="familien-name">-</span> | Admin: <span id="admin-email">-</span></p>
-</header>
-  <!-- Avatar-Bereich (z.B. oben im Dashboard) -->
-<div id="avatar-container">
-  <img id="avatar-anzeige" src="avatars/avatar1.png" alt="Dein Avatar">
+  <p id="familien-info">
+    Familie: <span id="familien-name">-</span> |
+    Admin: <span id="admin-email">-</span>
+  </p>
+  <!-- Avatar-Einstellungs-Symbol kann z.B. oben rechts sein -->
   <button id="einstellungen-icon" onclick="zeigeAvatarEinstellungen()">⚙️</button>
-</div>
-
-<!-- Avatar-Einstellungen-Auswahl -->
-<section id="avatar-section" style="display: none;">
-  <h2>Avatar ändern</h2>
-  <select id="avatar-auswahl"></select>
-  <button onclick="avatarSpeichern()">Speichern</button>
-</section>
-
+</header>
 
 <main>
-  <!-- Übersicht aller Spieler in der Familie (Karten-Layout) -->
-  <section id="player-cards-container"></section>
+  <!-- AVATAR / PROFIL-INFORMATIONEN (z.B. zentriert) -->
+  <div id="avatar-display">
+    <img id="avatar-anzeige" src="avatars/avatar1.png" alt="Avatar" />
+    <h2 id="benutzer-name">(Username)</h2>
+  </div>
 
-  <!-- Angriff (Zauber) nur, wenn ein anderes Familienmitglied ausgewählt wird -->
-  <section id="angriff-section">
+  <!-- Avatar-Auswahl- und Namensänderungs-Fenster -->
+  <section id="avatar-section" style="display: none;">
+    <h2>Profil bearbeiten</h2>
+    
+    <!-- Vorschau-Bild -->
+    <img id="avatar-preview" src="avatars/avatar1.png" alt="Avatar-Vorschau" style="max-width: 120px;">
+    
+    <!-- Dropdown für Avatare -->
+    <select id="avatar-auswahl"></select>
+    
+    <!-- Name ändern -->
+    <input type="text" id="namen-input" placeholder="Neuer Name">
+    
+    <button onclick="avatarSpeichern()">Speichern</button>
+    <button onclick="avatarAbbrechen()">Abbrechen</button>
+  </section>
+
+  <!-- SPIELER-KARTEN (Familien-Mitglieder) -->
+  <section id="player-cards-container">
+    <!-- Hier füllen wir dynamisch .player-card-Elemente -->
+  </section>
+
+  <!-- ZAUBER & ANGRIFFS-BEREICH -->
+  <section id="actions-section">
     <h2>Zauber / Angriff</h2>
     <label for="zauber-ziel">Ziel:</label>
     <select id="zauber-ziel"></select>
+    
     <label for="zauber-auswahl">Zauber:</label>
     <select id="zauber-auswahl"></select>
+    
     <button onclick="zauberWirkenHandler()">Wirken</button>
   </section>
 
-  <!-- Logs als Tabelle -->
+  <!-- LOG-TABELLE -->
   <section id="log-section">
     <h2>Aktionen der Spezialfähigkeiten</h2>
     <table id="log-table">
@@ -56,14 +75,14 @@
     </table>
   </section>
 
-  <!-- Quests -->
+  <!-- TÄGLICHE QUESTS -->
   <section id="quest-section">
     <h2>Tägliche Quests</h2>
     <div id="quest-container"></div>
   </section>
-
 </main>
 
 <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
+
 </body>
 </html>
