@@ -2,88 +2,55 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Questbook Dashboard</title>
+  <title>Quest-Buch Dashboard</title>
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="script.js"></script>
 </head>
 <body>
 
 <header>
-  <h1>Willkommen im Questbook (Public)</h1>
+  <h1>Willkommen im Quest-Buch</h1>
+  <p id="familien-info">Familie: <span id="familien-name">-</span> | Admin: <span id="admin-email">-</span></p>
 </header>
 
 <main>
-  <!-- SPIELERPROFIL -->
-  <section id="benutzer-info">
-    <h2>👤 Spielerprofil</h2>
-    <p><strong>Name:</strong> <span id="benutzer-name">Lädt...</span></p>
-    <p><strong>Level:</strong> <span id="benutzer-level">1</span></p>
-    <p><strong>XP:</strong> <span id="benutzer-xp">0</span></p>
-    
-    <div id="avatar-container">
-      <img id="avatar-anzeige" src="avatars/avatar1.png" alt="Dein Avatar">
-      <button id="einstellungen-icon" onclick="zeigeAvatarEinstellungen()">⚙️</button>
-    </div>
-  </section>
+  <!-- Übersicht aller Spieler in der Familie (Karten-Layout) -->
+  <section id="player-cards-container"></section>
 
-  <!-- AVATAR-AUSWAHL -->
-  <section id="avatar-section" style="display: none;">
-    <h2>🎭 Wähle deinen Avatar</h2>
-    <select id="avatar-auswahl"></select>
-    <button onclick="avatarSpeichern()">Speichern</button>
-  </section>
-
-  <!-- ZAUBER & AKTIONEN (für alle Spieler) -->
-  <section id="actions-section">
-    <h2>🔮 Zauber wirken</h2>
-    <label for="zauber-ziel">Zielspieler:</label>
-    <select id="zauber-ziel">
-      <!-- Wird per JS gefüllt -->
-    </select>
-
+  <!-- Angriff (Zauber) nur, wenn ein anderes Familienmitglied ausgewählt wird -->
+  <section id="angriff-section">
+    <h2>Zauber / Angriff</h2>
+    <label for="zauber-ziel">Ziel:</label>
+    <select id="zauber-ziel"></select>
     <label for="zauber-auswahl">Zauber:</label>
-    <select id="zauber-auswahl">
-      <!-- Wird per JS gefüllt (z.B. Heilen, Schaden etc.) -->
-    </select>
-
-    <button onclick="zauberWirkenHandler()">Zauber anwenden</button>
+    <select id="zauber-auswahl"></select>
+    <button onclick="zauberWirkenHandler()">Wirken</button>
   </section>
 
-  <!-- ÖFFENTLICHES LOG (für alle sichtbar) -->
-  <section id="public-logs-section">
-    <h2>📜 Ereignis-Log</h2>
-    <ul id="public-logs-list">
-      <!-- Per JS gefüllt -->
-    </ul>
+  <!-- Logs als Tabelle -->
+  <section id="log-section">
+    <h2>Aktionen der Spezialfähigkeiten</h2>
+    <table id="log-table">
+      <thead>
+        <tr>
+          <th>Zeitpunkt</th>
+          <th>Benutzer</th>
+          <th>Ziel</th>
+          <th>Fähigkeit</th>
+        </tr>
+      </thead>
+      <tbody id="log-table-body"></tbody>
+    </table>
   </section>
 
-  <!-- ADMIN-BEREICH (nur sichtbar, wenn isAdmin=true) -->
-  <section id="admin-section" style="display: none;">
-    <h2>🛡️ Adminbereich</h2>
-    <button onclick="adminZeigeLogs()">Logs anzeigen</button>
-    <div id="admin-logs-container" style="display: none;">
-      <h3>Alle Logs</h3>
-      <ul id="admin-logs-list">
-        <!-- Per JS gefüllt -->
-      </ul>
-    </div>
-    <button onclick="adminNeuenBenutzerAnlegen()">Neuen Benutzer anlegen</button>
-    <!-- etc. -->
+  <!-- Quests -->
+  <section id="quest-section">
+    <h2>Tägliche Quests</h2>
+    <div id="quest-container"></div>
   </section>
 
 </main>
 
-<!-- LOGOUT und SPENDEN-BUTTON -->
 <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
-
-<div id="support-section">
-  <p>Unterstütze die Questbook-Entwicklung:</p>
-  <button onclick="window.open('https://paypal.me/DEINLINK', '_blank')">Jetzt spenden</button>
-</div>
-
-<footer>
-  <p>&copy; 2025 Questbook</p>
-</footer>
 </body>
 </html>
