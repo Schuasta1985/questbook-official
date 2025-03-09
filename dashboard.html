@@ -14,40 +14,35 @@
     Familie: <span id="familien-name">-</span> |
     Admin: <span id="admin-email">-</span>
   </p>
-  <!-- Avatar-Einstellungs-Symbol kann z.B. oben rechts sein -->
+  <!-- Avatar-Einstellungs-Symbol -->
   <button id="einstellungen-icon" onclick="zeigeAvatarEinstellungen()">⚙️</button>
 </header>
 
 <main>
-  <!-- AVATAR / PROFIL-INFORMATIONEN (z.B. zentriert) -->
+  <!-- AVATAR / PROFIL -->
   <div id="avatar-display">
     <img id="avatar-anzeige" src="avatars/avatar1.png" alt="Avatar" />
     <h2 id="benutzer-name">(Username)</h2>
   </div>
 
-  <!-- Avatar-Auswahl- und Namensänderungs-Fenster -->
+  <!-- AVATAR-EINSTELLUNGS-FENSTER -->
   <section id="avatar-section" style="display: none;">
     <h2>Profil bearbeiten</h2>
     
-    <!-- Vorschau-Bild -->
     <img id="avatar-preview" src="avatars/avatar1.png" alt="Avatar-Vorschau" style="max-width: 120px;">
-    
-    <!-- Dropdown für Avatare -->
+    <br>
     <select id="avatar-auswahl"></select>
-    
-    <!-- Name ändern -->
+    <br><br>
     <input type="text" id="namen-input" placeholder="Neuer Name">
-    
+    <br><br>
     <button onclick="avatarSpeichern()">Speichern</button>
     <button onclick="avatarAbbrechen()">Abbrechen</button>
   </section>
 
-  <!-- SPIELER-KARTEN (Familien-Mitglieder) -->
-  <section id="player-cards-container">
-    <!-- Hier füllen wir dynamisch .player-card-Elemente -->
-  </section>
+  <!-- SPIELER-KARTEN -->
+  <section id="player-cards-container"></section>
 
-  <!-- ZAUBER & ANGRIFFS-BEREICH -->
+  <!-- ZAUBER & ANGRIFF -->
   <section id="actions-section">
     <h2>Zauber / Angriff</h2>
     <label for="zauber-ziel">Ziel:</label>
@@ -59,7 +54,7 @@
     <button onclick="zauberWirkenHandler()">Wirken</button>
   </section>
 
-  <!-- LOG-TABELLE -->
+  <!-- LOGS ALS TABELLE -->
   <section id="log-section">
     <h2>Aktionen der Spezialfähigkeiten</h2>
     <table id="log-table">
@@ -80,6 +75,7 @@
     <h2>Tägliche Quests</h2>
     <div id="quest-container"></div>
   </section>
+
 </main>
 
 <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
