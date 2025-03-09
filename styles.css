@@ -65,7 +65,6 @@ body {
     border-radius: 10px;
 }
 
-/* Einstellungs-Symbol (⚙️ neben Avatar) */
 #einstellungen-icon {
     position: absolute;
     top: 10px;
@@ -75,11 +74,13 @@ body {
     cursor: pointer;
     font-size: 24px;
     color: #FFD700;
+    z-index: 1000; /* 🔥 Stellt sicher, dass der Button über allem liegt */
 }
 
 #einstellungen-icon:hover {
     color: white;
 }
+
 
 /* Avatar-Auswahl */
 #avatar-section {
