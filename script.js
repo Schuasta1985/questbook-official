@@ -1,7 +1,7 @@
 // Importiere Firebase-Funktionen
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getDatabase, ref, set, get, update, child } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 // Firebase-Konfiguration
 const firebaseConfig = {
@@ -33,8 +33,8 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// 🔑 Benutzer ausloggen
-window.ausloggen = function() {
+// 🔑 Benutzer ausloggen (Logout-Button fixen)
+window.ausloggen = function () {
     signOut(auth).then(() => {
         window.location.href = "index.html";
     }).catch(error => {
@@ -60,7 +60,7 @@ function ladeAvatar() {
     get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
         if (snapshot.exists()) {
             let avatarName = snapshot.val();
-            document.getElementById("avatar-anzeige").src = `avatars/${avatarName}`;
+            document.getElementById("avatar-anzeige").src = `https://schuasta1985.github.io/questbook-official/avatars/${avatarName}`;
             document.getElementById("einstellungen-icon").style.display = "block"; // ⚙️-Icon anzeigen
             document.getElementById("avatar-section").style.display = "none"; // Avatar-Auswahl verstecken
         } else {
@@ -100,12 +100,12 @@ function ladeAvatarDropdown() {
     avatarSelect.addEventListener("change", function () {
         let selectedAvatar = avatarSelect.value;
         if (selectedAvatar) {
-            document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
+            document.getElementById("avatar-anzeige").src = `https://schuasta1985.github.io/questbook-official/avatars/${selectedAvatar}`;
         }
     });
 }
 
-// 💾 Avatar speichern
+// 💾 Avatar speichern (Fix: Avatar wird sofort aktualisiert + Auswahl verschwindet)
 window.avatarSpeichern = function () {
     let selectedAvatar = document.getElementById("avatar-auswahl").value;
     if (!selectedAvatar) return;
@@ -113,7 +113,7 @@ window.avatarSpeichern = function () {
     update(ref(db, `benutzer/${currentUser.uid}`), {
         avatar: selectedAvatar
     }).then(() => {
-        document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
+        document.getElementById("avatar-anzeige").src = `https://schuasta1985.github.io/questbook-official/avatars/${selectedAvatar}`;
         document.getElementById("avatar-section").style.display = "none"; // Auswahl ausblenden
         document.getElementById("einstellungen-icon").style.display = "block"; // ⚙️-Icon anzeigen
     }).catch(error => {
@@ -129,4 +129,10 @@ window.zeigeAvatarEinstellungen = function () {
 // **Seite laden & Daten abrufen**
 window.onload = function () {
     if (currentUser) ladeBenutzerdaten();
+
+    // Logout-Button fixen
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", ausloggen);
+    }
 };
