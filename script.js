@@ -38,7 +38,7 @@ function zeigeRegistrierungForm() {
 }
 
 // 🔥 Familie gründen
-function familieErstellen() {
+window.familieErstellen = function () {
     const familienName = document.getElementById("family-name").value;
     const adminEmail = document.getElementById("admin-email").value;
     const adminPassword = document.getElementById("admin-password").value;
@@ -75,8 +75,8 @@ function familieErstellen() {
         });
 }
 
-// 🔑 Benutzer einloggen
-function benutzerEinloggen() {
+// 🔑 Benutzer einloggen (JETZT GLOBAL!)
+window.benutzerEinloggen = function () {
     const email = document.getElementById("login-email").value;
     const password = document.getElementById("login-password").value;
 
@@ -95,7 +95,7 @@ function benutzerEinloggen() {
         });
 }
 
-// 🔑 Benutzer ausloggen
+// 🔑 Benutzer ausloggen (JETZT GLOBAL!)
 window.ausloggen = function () {
     signOut(auth).then(() => {
         window.location.href = "index.html";
