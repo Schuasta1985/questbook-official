@@ -108,10 +108,11 @@ body {
     width: 200px;
     text-align: center;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    transition: background 0.3s ease-in-out;
 }
 
 #logout-btn:hover {
     background-color: #FFD700;
     color: black;
-    transform: scale(1.05);
 }
+
