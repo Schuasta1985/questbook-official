@@ -1,6 +1,6 @@
 // Importiere Firebase-Funktionen
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 // Firebase-Konfiguration
@@ -78,7 +78,7 @@ window.familieErstellen = function () {
         .catch(error => {
             alert(error.message);
         });
-}
+};
 
 // 🔑 Benutzer einloggen
 window.benutzerEinloggen = function () {
@@ -98,7 +98,7 @@ window.benutzerEinloggen = function () {
         .catch(error => {
             alert(error.message);
         });
-}
+};
 
 // 🔑 Benutzer ausloggen
 window.ausloggen = function () {
@@ -109,116 +109,68 @@ window.ausloggen = function () {
     });
 };
 
-// ⚙️ Avatar ändern (öffnet Avatar-Auswahl)
-window.zeigeAvatarEinstellungen = function () {
-    let avatarElement = document.getElementById("avatar-anzeige");
-    if (!avatarElement || !avatarElement.src) {
-        alert("Kein Avatar gefunden!");
-        return;
-    }
-    document.getElementById("avatar-section").style.display = "block";
-};
-
-// 🎭 Avatar-Dropdown befüllen & live aktualisieren
-window.ladeAvatarDropdown = function () {
-    const avatarSelect = document.getElementById("avatar-auswahl");
-    if (!avatarSelect) {
-        console.error("Avatar-Dropdown nicht gefunden!");
-        return;
-    }
-
-    avatarSelect.innerHTML = ""; // Dropdown leeren
-
-    let avatarList = [
-        "avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png",
-        "avatar5.png", "avatar6.png", "avatar7.png", "avatar8.png",
-        "avatar9.png", "avatar10.png"
-    ];
-
-    avatarList.forEach(filename => {
-        let option = document.createElement("option");
-        option.value = filename;
-        option.textContent = filename.replace(".png", ""); // Name ohne ".png"
-        avatarSelect.appendChild(option);
-    });
-
-    // Setze den aktuellen Avatar als vorausgewählt
-    const user = auth.currentUser;
-    if (user) {
-        get(ref(db, `benutzer/${user.uid}/avatar`)).then(snapshot => {
-            if (snapshot.exists()) {
-                let gespeicherterAvatar = snapshot.val();
-                avatarSelect.value = gespeicherterAvatar;
-                document.getElementById("avatar-anzeige").src = `avatars/${gespeicherterAvatar}`;
-            } else {
-                console.log("Kein Avatar gespeichert.");
-            }
-        }).catch(error => {
-            console.error("Fehler beim Laden des Avatars:", error);
-        });
-    }
-
-    // Avatar-Vorschau bei Auswahl ändern
-    avatarSelect.addEventListener("change", function () {
-        let selectedAvatar = avatarSelect.value;
-        if (selectedAvatar) {
-            document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
-        }
-    });
-};
-
-// 💾 Avatar speichern (sofort aktualisieren)
-window.avatarSpeichern = function () {
-    let selectedAvatar = document.getElementById("avatar-auswahl").value;
-    if (!selectedAvatar) {
-        alert("Bitte einen Avatar auswählen!");
-        return;
-    }
-
-    const user = auth.currentUser;
-    if (user) {
-        set(ref(db, `benutzer/${user.uid}/avatar`), selectedAvatar)
-            .then(() => {
-                console.log("Avatar erfolgreich gespeichert:", selectedAvatar);
-                document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
-                document.getElementById("avatar-section").style.display = "none"; // 🔥 Auswahl schließen
-            })
-            .catch(error => {
-                console.error("Fehler beim Speichern des Avatars:", error);
-                alert("Fehler beim Speichern. Siehe Konsole.");
-            });
-    }
-};
-
-// 🏡 Benutzerdaten & Avatar laden
-window.ladeBenutzerdaten = function () {
-    const user = auth.currentUser;
-    if (!user) {
-        console.error("Kein Benutzer eingeloggt!");
-        return;
-    }
-
-    get(ref(db, `benutzer/${user.uid}`)).then(snapshot => {
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            document.getElementById("benutzer-name").textContent = userData.name || "Unbekannt";
-            document.getElementById("benutzer-level").textContent = userData.level || "1";
-            document.getElementById("benutzer-xp").textContent = userData.xp || "0";
-            ladeAvatarDropdown();
-        } else {
-            console.log("Benutzerdaten nicht gefunden.");
-        }
-    }).catch(error => {
-        console.error("Fehler beim Laden der Benutzerdaten:", error);
-    });
-};
-
-// 🌟 Warten bis Firebase den aktuellen Benutzer kennt, dann starten
-onAuthStateChanged(auth, (user) => {
+// 🌟 Benutzerstatus überwachen & notwendige Daten laden
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         console.log("Benutzer erkannt:", user.email);
-        ladeBenutzerdaten();
+        await zeigeTodesNachricht();
+        await ladeBenutzerdaten();
     } else {
         console.log("Kein Benutzer angemeldet.");
     }
 });
+
+// ⚠️ Nachricht bei Tod anzeigen
+async function zeigeTodesNachricht() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const snapshot = await get(ref(db, `benutzer/${user.uid}/gestorben`));
+    if (snapshot.exists()) {
+        const todDaten = snapshot.val();
+        alert(`Du bist gestorben! Ursache: ${todDaten.grund}. Angreifer: ${todDaten.durch}`);
+
+        // Lösche die Nachricht nach dem Anzeigen
+        await update(ref(db, `benutzer/${user.uid}`), { gestorben: null });
+    }
+}
+
+// 🔄 Automatische HP- und MP-Regeneration
+async function regeneriereHPundMP() {
+    const snapshot = await get(ref(db, "benutzer"));
+    if (!snapshot.exists()) return;
+
+    const jetzt = new Date();
+    const heutigesDatum = `${jetzt.getFullYear()}-${jetzt.getMonth() + 1}-${jetzt.getDate()}`;
+
+    let updates = {};
+    Object.keys(snapshot.val()).forEach(uid => {
+        const user = snapshot.val()[uid];
+
+        let maxHP = 100 + Math.floor((user.level - 1) / 10) * 100;
+        let maxMP = 100 + Math.floor((user.level - 1) / 10) * 50;
+
+        if (user.hp < maxHP) {
+            updates[`benutzer/${uid}/hp`] = Math.min(maxHP, user.hp + Math.floor(maxHP * 0.1));
+        }
+
+        if (!user.lastMPUpdate || user.lastMPUpdate !== heutigesDatum) {
+            updates[`benutzer/${uid}/mp`] = maxMP;
+            updates[`benutzer/${uid}/lastMPUpdate`] = heutigesDatum;
+        }
+    });
+
+    if (Object.keys(updates).length > 0) {
+        await update(ref(db), updates);
+        console.log("HP & MP für alle Spieler regeneriert.");
+    }
+}
+
+// 🌙 HP & MP-Regeneration täglich um 00:00
+setInterval(async () => {
+    const jetzt = new Date();
+    if (jetzt.getHours() === 0 && jetzt.getMinutes() === 0) {
+        await regeneriereHPundMP();
+    }
+}, 60000);
+
