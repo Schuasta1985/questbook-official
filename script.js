@@ -60,14 +60,19 @@ function ladeAvatar() {
     get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
         if (snapshot.exists()) {
             let avatarName = snapshot.val();
-            document.getElementById("avatar-anzeige").src = `https://schuasta1985.github.io/questbook-official/avatars/${avatarName}`;
+            let avatarPfad = `https://schuasta1985.github.io/questbook-official/avatars/${avatarName}`;
+
+            document.getElementById("avatar-anzeige").src = avatarPfad;
             document.getElementById("einstellungen-icon").style.display = "block"; // ⚙️-Icon anzeigen
             document.getElementById("avatar-section").style.display = "none"; // Avatar-Auswahl verstecken
         } else {
             ladeAvatarDropdown();
         }
+    }).catch(error => {
+        console.error("Fehler beim Laden des Avatars:", error);
     });
 }
+
 
 // 🎭 Avatar-Dropdown befüllen
 function ladeAvatarDropdown() {
@@ -113,13 +118,15 @@ window.avatarSpeichern = function () {
     update(ref(db, `benutzer/${currentUser.uid}`), {
         avatar: selectedAvatar
     }).then(() => {
-        document.getElementById("avatar-anzeige").src = `https://schuasta1985.github.io/questbook-official/avatars/${selectedAvatar}`;
+        let avatarPfad = `https://schuasta1985.github.io/questbook-official/avatars/${selectedAvatar}`;
+        document.getElementById("avatar-anzeige").src = avatarPfad;
         document.getElementById("avatar-section").style.display = "none"; // Auswahl ausblenden
         document.getElementById("einstellungen-icon").style.display = "block"; // ⚙️-Icon anzeigen
     }).catch(error => {
         console.error("Fehler beim Speichern des Avatars:", error);
     });
 };
+
 
 // ⚙️ Avatar ändern (zeigt Avatar-Auswahl)
 window.zeigeAvatarEinstellungen = function () {
@@ -133,6 +140,17 @@ window.onload = function () {
     // Logout-Button fixen
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
+        logoutBtn.style.position = "fixed";
+        logoutBtn.style.bottom = "10px";
+        logoutBtn.style.right = "10px";
+        logoutBtn.style.padding = "5px 10px";
+        logoutBtn.style.fontSize = "12px";
+        logoutBtn.style.background = "#444";
+        logoutBtn.style.color = "white";
+        logoutBtn.style.border = "none";
+        logoutBtn.style.cursor = "pointer";
+        logoutBtn.style.borderRadius = "5px";
         logoutBtn.addEventListener("click", ausloggen);
     }
 };
+
