@@ -153,3 +153,34 @@ footer {
     background-color: #FFD700;
     color: black;
 }
+#avatar-container {
+    text-align: center;
+    margin-top: 20px;
+    position: relative;
+}
+
+#avatar-anzeige {
+    max-width: 180px;
+    display: block;
+    margin: 0 auto;
+    background: none;
+}
+
+#einstellungen-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #FFD700;
+}
+
+#avatar-section {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    width: 200px;
+    margin: 10px auto;
+}
