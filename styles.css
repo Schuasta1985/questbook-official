@@ -78,18 +78,21 @@ footer {
     color: #FFD700;
     font-size: 0.9rem;
 }
+
+/* ✅ Avatar-Anzeige unter dem Spielerprofil */
 #avatar-container {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 #avatar-anzeige {
-    max-width: 150px;
+    max-width: 200px;
     display: block;
     margin: 0 auto;
-    background: none;
+    background: none; /* Avatar ohne Hintergrund */
 }
 
+/* ✅ HP/MP-Balken korrekt unter Avatar */
 .hp-bar, .mp-bar {
     width: 150px;
     height: 10px;
@@ -114,4 +117,39 @@ footer {
     background: blue;
 }
 
+/* ✅ Avatar-Auswahl sauber ausrichten */
+#avatar-auswahl {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    width: 250px;
+}
 
+/* ✅ Dropdown-Menü für Avatare */
+#avatar-select {
+    width: 100%;
+    padding: 5px;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #FFD700;
+    border: 1px solid #FFD700;
+}
+
+/* ✅ Kleineren Logout-Button nach unten rechts */
+#logout-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #FFD700;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#logout-btn:hover {
+    background-color: #FFD700;
+    color: black;
+}
