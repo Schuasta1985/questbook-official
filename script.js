@@ -21,7 +21,7 @@ const db = getDatabase(app);
 const auth = getAuth();
 
 // 🌟 Event-Listener für Buttons nach Laden der Seite zuweisen
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("login-btn").onclick = zeigeLoginForm;
     document.getElementById("register-btn").onclick = zeigeRegistrierungForm;
 });
@@ -75,7 +75,7 @@ window.familieErstellen = function () {
         });
 }
 
-// 🔑 Benutzer einloggen (JETZT GLOBAL!)
+// 🔑 Benutzer einloggen
 window.benutzerEinloggen = function () {
     const email = document.getElementById("login-email").value;
     const password = document.getElementById("login-password").value;
@@ -95,7 +95,7 @@ window.benutzerEinloggen = function () {
         });
 }
 
-// 🔑 Benutzer ausloggen (JETZT GLOBAL!)
+// 🔑 Benutzer ausloggen
 window.ausloggen = function () {
     signOut(auth).then(() => {
         window.location.href = "index.html";
@@ -114,6 +114,44 @@ window.zeigeAvatarEinstellungen = function () {
     document.getElementById("avatar-section").style.display = "block";
 };
 
+// 🎭 Avatar-Dropdown befüllen & live aktualisieren
+window.ladeAvatarDropdown = function () {
+    const avatarSelect = document.getElementById("avatar-auswahl");
+    if (!avatarSelect) return;
+
+    avatarSelect.innerHTML = ""; // Dropdown leeren
+
+    let avatarList = [
+        "avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png",
+        "avatar5.png", "avatar6.png", "avatar7.png", "avatar8.png",
+        "avatar9.png", "avatar10.png"
+    ];
+
+    avatarList.forEach(filename => {
+        let option = document.createElement("option");
+        option.value = filename;
+        option.textContent = filename.replace(".png", ""); // Name ohne ".png"
+        avatarSelect.appendChild(option);
+    });
+
+    // Setze den aktuellen Avatar als vorausgewählt
+    get(ref(db, `benutzer/${auth.currentUser.uid}/avatar`)).then(snapshot => {
+        if (snapshot.exists()) {
+            avatarSelect.value = snapshot.val();
+        }
+    }).catch(error => {
+        console.error("Fehler beim Laden des Avatars:", error);
+    });
+
+    // Avatar-Vorschau bei Auswahl ändern
+    avatarSelect.addEventListener("change", function () {
+        let selectedAvatar = avatarSelect.value;
+        if (selectedAvatar) {
+            document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
+        }
+    });
+};
+
 // 💾 Avatar speichern (schließt das Fenster nach dem Speichern)
 window.avatarSpeichern = function () {
     let selectedAvatar = document.getElementById("avatar-auswahl").value;
@@ -125,4 +163,12 @@ window.avatarSpeichern = function () {
             document.getElementById("avatar-section").style.display = "none"; // 🔥 Avatar-Auswahl ausblenden
         })
         .catch(error => console.error("Fehler beim Speichern des Avatars:", error));
+};
+
+// 🌟 **Lade Benutzerdaten + Avatar-Liste beim Start**
+window.onload = function () {
+    if (auth.currentUser) {
+        ladeBenutzerdaten();
+        ladeAvatarDropdown(); // 🔥 Avatar-Auswahl laden
+    }
 };
