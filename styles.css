@@ -1,143 +1,124 @@
-/* Allgemeine Stile */
+/* === Grundlegendes Layout === */
 body {
-    background-image: url('hintergrund.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    color: #FFD700;
-    font-family: 'Arial', sans-serif;
-    text-align: center;
+  background-image: url('hintergrund.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: #FFD700;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
 }
 
-/* Login & Registrierung */
+header, main, footer {
+  margin: 0 auto;
+  padding: 10px;
+}
+
+/* === Login & Registrierung === */
 #auth-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-    max-width: 350px;
-    margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+  max-width: 350px;
+  margin: auto;
 }
 
 .auth-form {
-    display: none;
-    width: 100%;
+  display: none;
+  width: 100%;
 }
 
-/* EINLOGGEN & REGISTRIEREN BUTTONS */
 #auth-selection button {
-    background-color: #808000;
-    color: #FFD700;
-    border: none;
-    padding: 12px 20px;
-    font-weight: 600;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 200px;
-    margin: 5px;
-    text-align: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+  background-color: #808000;
+  color: #FFD700;
+  border: none;
+  padding: 12px 20px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 200px;
+  margin: 5px;
+  text-align: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 #auth-selection button:hover {
-    background-color: #FFD700;
-    color: black;
-    transform: scale(1.05);
+  background-color: #FFD700;
+  color: black;
+  transform: scale(1.05);
 }
 
-/* Avatar-Anzeige */
+/* === Avatar-Anzeige === */
 #avatar-container {
-    text-align: center;
-    margin-top: 10px;
-    position: relative;
+  text-align: center;
+  margin-top: 10px;
+  position: relative;
 }
 
 #avatar-anzeige {
-    max-width: 300px;
-    display: block;
-    margin: 0 auto;
-    border-radius: 10px;
+  max-width: 300px;
+  display: block;
+  margin: 0 auto;
+  border-radius: 10px;
 }
 
 #einstellungen-icon {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 24px;
-    color: #FFD700;
-    z-index: 1000; /* 🔥 Stellt sicher, dass der Button über allem liegt */
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #FFD700;
 }
 
 #einstellungen-icon:hover {
-    color: white;
+  color: white;
 }
-
 
 /* Avatar-Auswahl */
 #avatar-section {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 15px;
-    border-radius: 10px;
-    width: 250px;
-    margin: 10px auto;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 10px;
+  width: 250px;
+  margin: 10px auto;
 }
 
-/* Logout-Button (fixiert & stabil) */
+/* === Logout-Button === */
 #logout-btn {
-    position: fixed;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 20px;
-    font-size: 16px;
-    background-color: #808000;
-    color: #FFD700;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    width: 200px;
-    text-align: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-    transition: background 0.3s ease-in-out;
+  position: fixed;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: #808000;
+  color: #FFD700;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 200px;
+  text-align: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease-in-out;
 }
 
 #logout-btn:hover {
-    background-color: #FFD700;
-    color: black;
-}
-#spielerprofil {
-    text-align: center;
-    background: #222;
-    padding: 20px;
-    color: yellow;
+  background-color: #FFD700;
+  color: black;
 }
 
-#zauber-fähigkeiten {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-#zauber-container, #fähigkeiten-container {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 15px;
-    text-align: center;
-}
-
-/* Bestehender Code bleibt ... */
-
-/* Zauber & Aktionen */
+/* === Zauber & Aktionen === */
 #actions-section {
   background: rgba(0, 0, 0, 0.7);
   margin: 20px auto;
@@ -146,7 +127,7 @@ body {
   border-radius: 10px;
 }
 
-/* Öffentliches Log */
+/* === Öffentliches Log === */
 #public-logs-section {
   background: rgba(0, 0, 0, 0.6);
   margin: 20px auto;
@@ -168,7 +149,7 @@ body {
   border-bottom: 1px solid #FFD700;
 }
 
-/* Admin-Bereich */
+/* === Admin-Bereich === */
 #admin-section {
   background: rgba(255, 0, 0, 0.2);
   margin: 20px auto;
@@ -197,7 +178,24 @@ body {
   border-bottom: 1px solid #FFD700;
 }
 
-/* Support/Spendenbereich */
+/* Löschen-Button bei Admin-Logs */
+#admin-logs-list button {
+  background: #C00;
+  color: #FFD700;
+  border: none;
+  padding: 5px;
+  margin-left: 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+#admin-logs-list button:hover {
+  background-color: #FFD700;
+  color: #C00;
+}
+
+/* === PayPal-/Spenden-Bereich === */
 #support-section {
   position: fixed;
   bottom: 70px; /* etwas über dem Logout-Button */
@@ -227,22 +225,3 @@ body {
   background-color: #FFD700;
   color: black;
 }
-
-/* Admin-Löschen-Button in Logs */
-#admin-logs-list button {
-  background: #C00;
-  color: #FFD700;
-  border: none;
-  padding: 5px;
-  margin-left: 10px;
-  cursor: pointer;
-  border-radius: 3px;
-  font-weight: bold;
-}
-
-#admin-logs-list button:hover {
-  background-color: #FFD700;
-  color: #C00;
-}
-
-
