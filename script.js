@@ -337,15 +337,36 @@ function ladeZauberListe() {
   if (!zauberSelect) return;
   zauberSelect.innerHTML = "";
 
+  // Hier kannst du beliebig viele Zauber definieren
   const zauber = [
-    { id: "z1", name: "Heilzauber",  typ: "heilen", wert: 20 },
-    { id: "z2", name: "Feuerball",   typ: "schaden", wert: 30 }
+    { 
+      id: "z1", 
+      name: "Heilzauber",  
+      typ: "heilen", 
+      wert: 20,         // z. B. +20 HP
+      kostenMP: 10      // z. B. 10 MP
+    },
+    { 
+      id: "z2", 
+      name: "Feuerball", 
+      typ: "schaden", 
+      wert: 30,         // 30 Schaden
+      kostenMP: 15      // 15 MP
+    },
+    {
+      id: "z3",
+      name: "Frostblitz",
+      typ: "schaden",
+      wert: 20,
+      kostenMP: 8
+    }
+    // usw.
   ];
 
   zauber.forEach(z => {
     const opt = document.createElement("option");
     opt.value = z.id;
-    opt.textContent = z.name;
+    opt.textContent = `${z.name} (Kosten: ${z.kostenMP} MP)`;
     zauberSelect.appendChild(opt);
   });
 }
@@ -395,6 +416,21 @@ async function wirkeZauber(zielID, zauber) {
   const user = auth.currentUser;
   if (!user) return;
 
+  // Hole caster (Benutzer)
+  const casterSnap = await get(ref(db, `benutzer/${user.uid}`));
+  if (!casterSnap.exists()) {
+    alert("Deine Daten nicht gefunden!");
+    return;
+  }
+  const caster = casterSnap.val();
+
+  // Prüfe, ob caster genug MP hat
+  if (zauber.kostenMP && (caster.mp || 0) < zauber.kostenMP) {
+    alert("Nicht genug MP!");
+    return;
+  }
+
+  // Ziel ...
   const zielSnap = await get(ref(db, `benutzer/${zielID}`));
   if (!zielSnap.exists()) {
     alert("Ziel nicht gefunden!");
@@ -403,6 +439,12 @@ async function wirkeZauber(zielID, zauber) {
   const ziel = zielSnap.val();
 
   let updates = {};
+
+  // Caster MP abziehen
+  if (zauber.kostenMP) {
+    updates[`benutzer/${user.uid}/mp`] = Math.max(0, (caster.mp||0) - zauber.kostenMP);
+  }
+
   if (zauber.typ === "heilen") {
     let maxHP  = 100 + Math.floor((ziel.level-1)/10)*100;
     let neueHP = Math.min(maxHP, (ziel.hp || 100) + zauber.wert);
@@ -420,17 +462,19 @@ async function wirkeZauber(zielID, zauber) {
 
   await update(ref(db), updates);
 
-  // In publicLogs protokollieren
+  // Logging
   await push(ref(db, "publicLogs"), {
     timestamp: Date.now(),
     caster: user.uid,
     target: zielID,
     zauber: zauber.name,
     typ: zauber.typ,
-    wert: zauber.wert
+    wert: zauber.wert,
+    kosten: zauber.kostenMP || 0
   });
-  alert(`Zauber '${zauber.name}' ausgeführt!`);
+  alert(`Zauber '${zauber.name}' ausgeführt! (Kosten: ${zauber.kostenMP||0} MP)`);
 }
+
 
 /* =============== LOGS =============== */
 function ladeLogsInTabelle() {
