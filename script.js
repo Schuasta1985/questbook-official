@@ -1,7 +1,8 @@
-// 🔥 Firebase-Funktionen importieren
+// 🔥 ALLE Import-Anweisungen oben:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import {
-  getDatabase, ref, set, get, update, push, onValue
+  getDatabase, ref, set, get, update, push, onValue,
+  query, orderByChild, equalTo
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 import {
   getAuth,
@@ -77,18 +78,23 @@ window.googleLogin = async function() {
   }
 };
 
+// NEUE familieErstellen, inkl. query
 window.familieErstellen = async function() {
-  const famName     = document.getElementById("family-name").value;
-  const adminEmail  = document.getElementById("admin-email").value;
-  const adminPass   = document.getElementById("admin-password").value;
+  const famName    = document.getElementById("family-name").value.trim();
+  const adminEmail = document.getElementById("admin-email").value.trim();
+  const adminPass  = document.getElementById("admin-password").value.trim();
+
   if (!adminEmail || !adminPass) {
     alert("E-Mail und Passwort erforderlich!");
     return;
   }
+
   try {
+    // 1) User anlegen
     const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
     const uid      = userCred.user.uid;
-    // Falls kein Familienname => normaler User
+
+    // 2) Falls kein famName: Einfach ohne Familie
     if (!famName) {
       await set(ref(db, `benutzer/${uid}`), {
         email: adminEmail,
@@ -100,15 +106,47 @@ window.familieErstellen = async function() {
         hp: 100,
         mp: 100
       });
+      alert("Registrierung erfolgreich (ohne Familie)!");
+      window.location.href = "dashboard.html";
+      return;
+    }
+
+    // 3) Prüfen, ob es diese Familie (famName) schon gibt
+    const familiesRef = ref(db, "familien");
+    const qRef = query(familiesRef, orderByChild("name"), equalTo(famName));
+    const snap = await get(qRef);
+
+    if (snap.exists()) {
+      // Familie existiert => Neuer User wird Mitglied
+      const familiesData = snap.val();
+      const famKey = Object.keys(familiesData)[0]; 
+      // 3a) benutzer/ anlegen
+      await set(ref(db, `benutzer/${uid}`), {
+        email: adminEmail,
+        familie: famKey,
+        isAdmin: false,
+        name: adminEmail.split("@")[0],
+        level: 1,
+        xp: 0,
+        hp: 100,
+        mp: 100
+      });
+      // 3b) Familie-Mitgliederliste updaten
+      await update(ref(db, `familien/${famKey}/mitglieder`), {
+        [uid]: true
+      });
+
+      alert(`Registrierung erfolgreich! Du bist jetzt Mitglied der Familie "${famName}".`);
+      window.location.href = "dashboard.html";
+
     } else {
-      // Familie anlegen
+      // 4) Familie existiert nicht => neu anlegen, user = Admin
       const famID = Date.now().toString();
       await set(ref(db, `familien/${famID}`), {
         name: famName,
         admin: adminEmail,
         mitglieder: { [uid]: true }
       });
-      // Benutzer mit isAdmin
       await set(ref(db, `benutzer/${uid}`), {
         email: adminEmail,
         familie: famID,
@@ -119,10 +157,11 @@ window.familieErstellen = async function() {
         hp: 100,
         mp: 100
       });
+
+      alert(`Neue Familie "${famName}" erstellt! Du bist Admin.`);
+      window.location.href = "dashboard.html";
     }
-    alert("Registrierung erfolgreich!");
-    window.location.href = "dashboard.html";
-  } catch(e) {
+  } catch (e) {
     alert(e.message);
   }
 };
