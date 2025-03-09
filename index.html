@@ -5,150 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <title>Quest-Buch Login</title>
-    <script type="module">
-        // Firebase SDK importieren
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-
-        // Firebase-Konfiguration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
-            authDomain: "questbook-138c8.firebaseapp.com",
-            databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "questbook-138c8",
-            storageBucket: "questbook-138c8.firebasestorage.app",
-            messagingSenderId: "625259298286",
-            appId: "1:625259298286:web:bf60483c258cd311bea2ff",
-            measurementId: "G-H6F2TB6PY7"
-        };
-
-        // Firebase initialisieren
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth();
-
-        // 🌟 Anzeigen der Formulare
-        window.zeigeLoginForm = function() {
-            document.getElementById("login-form").style.display = "block";
-            document.getElementById("register-form").style.display = "none";
-        };
-
-        window.zeigeRegistrierungForm = function() {
-            document.getElementById("login-form").style.display = "none";
-            document.getElementById("register-form").style.display = "block";
-        };
-
-        window.zeigeFamilienErstellung = function() {
-            document.getElementById("new-family-section").style.display = "block";
-            document.getElementById("join-family-section").style.display = "none";
-        };
-
-        window.zeigeFamilienBeitritt = function() {
-            document.getElementById("new-family-section").style.display = "none";
-            document.getElementById("join-family-section").style.display = "block";
-        };
-
-        // 🔥 Familie gründen & speichern
-        window.familieErstellen = function() {
-            const familienName = document.getElementById("family-name").value;
-            const adminEmail = document.getElementById("admin-email").value;
-            const adminPassword = document.getElementById("admin-password").value;
-            const mitglieder = document.getElementById("family-members").value.split(",");
-
-            if (!familienName || !adminEmail || !adminPassword) {
-                alert("Bitte alle Felder ausfüllen!");
-                return;
-            }
-
-            createUserWithEmailAndPassword(auth, adminEmail, adminPassword)
-                .then(userCredential => {
-                    const adminUID = userCredential.user.uid;
-                    const familienID = Date.now().toString();
-
-                    const familienDaten = {
-                        name: familienName,
-                        admin: adminEmail,
-                        mitglieder: {}
-                    };
-
-                    mitglieder.forEach(email => {
-                        familienDaten.mitglieder[email.trim()] = true;
-                    });
-                    familienDaten.mitglieder[adminEmail] = true;
-
-                    set(ref(db, `familien/${familienID}`), familienDaten)
-                        .then(() => {
-                            set(ref(db, `benutzer/${adminUID}`), {
-                                email: adminEmail,
-                                familie: familienID
-                            }).then(() => {
-                                alert("Familie erfolgreich erstellt!");
-                                window.location.href = "dashboard.html";
-                            });
-                        });
-                })
-                .catch(error => {
-                    alert(error.message);
-                });
-        };
-
-        // 🏡 Einer Familie beitreten
-        window.familieBeitreten = function() {
-            const email = document.getElementById("join-email").value;
-            const password = document.getElementById("join-password").value;
-
-            signInWithEmailAndPassword(auth, email, password)
-                .then(userCredential => {
-                    const userUID = userCredential.user.uid;
-
-                    get(ref(db, "familien")).then(snapshot => {
-                        let gefunden = false;
-                        snapshot.forEach(fam => {
-                            const familie = fam.val();
-                            if (familie.mitglieder[email]) {
-                                gefunden = true;
-                                set(ref(db, `benutzer/${userUID}`), {
-                                    email: email,
-                                    familie: fam.key
-                                }).then(() => {
-                                    alert("Familienbeitritt erfolgreich!");
-                                    window.location.href = "dashboard.html";
-                                });
-                            }
-                        });
-
-                        if (!gefunden) {
-                            alert("Diese E-Mail gehört keiner Familie.");
-                        }
-                    });
-                })
-                .catch(error => {
-                    alert(error.message);
-                });
-        };
-
-        // 🔑 Benutzer-Login
-        window.benutzerEinloggen = function() {
-            const email = document.getElementById("login-email").value;
-            const password = document.getElementById("login-password").value;
-
-            signInWithEmailAndPassword(auth, email, password)
-                .then(() => {
-                    alert("Erfolgreich eingeloggt!");
-                    window.location.href = "dashboard.html";
-                })
-                .catch(error => {
-                    alert(error.message);
-                });
-        };
-
-    </script>
+    <script type="module" src="script.js"></script>
 </head>
 <body>
 
     <div id="auth-container">
-        <h2>Willkommen im Quest-Buch</h2>
+        <h1>Willkommen im Quest-Buch</h1>
         
         <!-- Auswahl: Einloggen oder Registrieren -->
         <div id="auth-selection">
@@ -157,7 +19,7 @@
         </div>
 
         <!-- Login-Formular -->
-        <div id="login-form" style="display: none;">
+        <div id="login-form" class="auth-form">
             <h3>Einloggen</h3>
             <input type="email" id="login-email" placeholder="E-Mail">
             <input type="password" id="login-password" placeholder="Passwort">
@@ -165,31 +27,12 @@
         </div>
 
         <!-- Registrierungs-Formular -->
-        <div id="register-form" style="display: none;">
+        <div id="register-form" class="auth-form" style="display: none;">
             <h3>Registrieren</h3>
-            
-            <label>
-                <input type="radio" name="register-type" value="new" onclick="zeigeFamilienErstellung()" checked> Neue Familie gründen
-            </label>
-            <label>
-                <input type="radio" name="register-type" value="join" onclick="zeigeFamilienBeitritt()"> Einer bestehenden Familie beitreten
-            </label>
-
-            <!-- Neue Familie erstellen -->
-            <div id="new-family-section">
-                <input type="text" id="family-name" placeholder="Familienname">
-                <input type="email" id="admin-email" placeholder="Deine E-Mail (Admin)">
-                <input type="password" id="admin-password" placeholder="Passwort">
-                <textarea id="family-members" placeholder="Mitglieder-E-Mails (Komma getrennt)"></textarea>
-                <button onclick="familieErstellen()">Familie gründen</button>
-            </div>
-
-            <!-- Einer bestehenden Familie beitreten -->
-            <div id="join-family-section" style="display: none;">
-                <input type="email" id="join-email" placeholder="Deine E-Mail">
-                <input type="password" id="join-password" placeholder="Passwort">
-                <button onclick="familieBeitreten()">Beitreten</button>
-            </div>
+            <input type="text" id="family-name" placeholder="Familienname">
+            <input type="email" id="admin-email" placeholder="Deine E-Mail">
+            <input type="password" id="admin-password" placeholder="Passwort">
+            <button onclick="familieErstellen()">Familie gründen</button>
         </div>
     </div>
 
