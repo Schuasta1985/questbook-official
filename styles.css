@@ -1,169 +1,56 @@
-/* Allgemeine Stile für die gesamte Seite */
+/* Allgemeine Stile */
 body {
-    background-image: url('hintergrund.jpg'); /* Hintergrundbild */
-    background-size: cover; /* Bild auf gesamte Seite skalieren */
-    background-position: center; /* Bild mittig ausrichten */
-    background-attachment: fixed; /* Bild bleibt beim Scrollen fest */
-    background-repeat: no-repeat; /* Kein Wiederholen */
-    color: #FFD700; /* Goldene Schrift */
+    background-image: url('hintergrund.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: #FFD700;
     font-family: 'Arial', sans-serif;
-    text-align: center; /* Zentriert alle Texte */
+    text-align: center;
 }
 
-/* Zentriere den Hauptinhalt */
-main {
+/* Login & Registrierung */
+#auth-container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    height: 80vh; /* Nutzt fast die ganze Bildschirmhöhe */
-}
-
-/* Header-Titel */
-h1 {
-    font-size: 3rem;
-    font-weight: 600;
-    color: #F5F5DC;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
-    margin-bottom: 30px;
-}
-
-/* Container für Login und Registrierung */
-#login-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    justify-content: center;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.7);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-    width: 300px;
-    align-items: center;
+    max-width: 350px;
+    margin: auto;
 }
 
-/* Buttons */
-button {
-    background-color: #808000; /* Olivgrün */
-    color: #FFD700; /* Goldton */
-    border: none;
-    padding: 10px 15px;
-    font-weight: 600;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 80%;
+.auth-form {
+    display: none;
+    width: 100%;
 }
 
-button:hover {
-    background-color: #FFD700;
-    color: black;
-    transform: scale(1.05);
-}
-
-/* Formular-Eingaben */
-input {
+.auth-form input {
     width: 80%;
     padding: 8px;
+    margin: 5px 0;
     border-radius: 5px;
-    border: 1px solid #FFD700;
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
-    text-align: center;
 }
 
-/* Footer */
-footer {
-    position: absolute;
-    bottom: 10px;
-    width: 100%;
-    color: #FFD700;
-    font-size: 0.9rem;
-}
-
-/* ✅ Avatar-Anzeige unter dem Spielerprofil */
+/* Avatar */
 #avatar-container {
     text-align: center;
     margin-top: 10px;
-}
-
-#avatar-anzeige {
-    max-width: 200px;
-    display: block;
-    margin: 0 auto;
-    background: none; /* Avatar ohne Hintergrund */
-}
-
-/* ✅ HP/MP-Balken korrekt unter Avatar */
-.hp-bar, .mp-bar {
-    width: 150px;
-    height: 10px;
-    background: #333;
-    margin: 5px auto;
-    border-radius: 5px;
     position: relative;
 }
 
-#hp-progress, #mp-progress {
-    height: 100%;
-    border-radius: 5px;
-}
-
-#hp-progress {
-    width: 70%; /* Später durch HP-Werte ersetzen */
-    background: red;
-}
-
-#mp-progress {
-    width: 50%; /* Später durch MP-Werte ersetzen */
-    background: blue;
-}
-
-/* ✅ Avatar-Auswahl sauber ausrichten */
-#avatar-auswahl {
-    margin-top: 10px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.5);
+#avatar-anzeige {
+    max-width: 150px;
     border-radius: 10px;
-    width: 250px;
-}
-
-/* ✅ Dropdown-Menü für Avatare */
-#avatar-select {
-    width: 100%;
-    padding: 5px;
-    border-radius: 5px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #FFD700;
-    border: 1px solid #FFD700;
-}
-
-#logout-btn {
-    position: fixed;
-    bottom: 15px;
-    right: 15px;
-    padding: 5px 10px;
-    font-size: 14px;
-    background: #222;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-#logout-btn:hover {
-    background: #555;
-}
-
-
-#avatar-container {
-    text-align: center;
-    margin-top: 20px;
-    position: relative;
-}
-
-#avatar-anzeige {
-    max-width: 180px;
     display: block;
     margin: 0 auto;
-    background: none;
 }
 
 #einstellungen-icon {
@@ -177,10 +64,47 @@ footer {
     color: #FFD700;
 }
 
+/* Avatar-Auswahl */
 #avatar-section {
     background: rgba(0, 0, 0, 0.8);
     padding: 15px;
     border-radius: 10px;
-    width: 200px;
+    width: 250px;
     margin: 10px auto;
+}
+
+/* Logout */
+#logout-btn {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    padding: 10px;
+    font-size: 14px;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#logout-btn:hover {
+    background: #555;
+}
+
+/* Buttons */
+button {
+    background-color: #808000;
+    color: #FFD700;
+    border: none;
+    padding: 10px 15px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 80%;
+}
+
+button:hover {
+    background-color: #FFD700;
+    color: black;
+    transform: scale(1.05);
 }
