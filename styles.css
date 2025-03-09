@@ -30,13 +30,25 @@ body {
     width: 100%;
 }
 
-.auth-form input {
-    width: 80%;
-    padding: 8px;
-    margin: 5px 0;
+/* EINLOGGEN & REGISTRIEREN BUTTONS */
+#auth-selection button {
+    background-color: #808000;
+    color: #FFD700;
+    border: none;
+    padding: 12px 20px;
+    font-weight: 600;
     border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
+    cursor: pointer;
+    width: 200px;
+    margin: 5px;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+#auth-selection button:hover {
+    background-color: #FFD700;
+    color: black;
+    transform: scale(1.05);
 }
 
 /* Avatar-Anzeige */
@@ -47,17 +59,17 @@ body {
 }
 
 #avatar-anzeige {
-    max-width: 300px;  /* DOPPELTE GRÖSSE */
+    max-width: 300px;
     display: block;
     margin: 0 auto;
     border-radius: 10px;
 }
 
-/* Einstellungs-Symbol (neben Spielerprofil) */
+/* Einstellungs-Symbol (⚙️ neben Avatar) */
 #einstellungen-icon {
     position: absolute;
     top: 10px;
-    right: -50px;
+    right: 10px;
     background: none;
     border: none;
     cursor: pointer;
@@ -78,7 +90,7 @@ body {
     margin: 10px auto;
 }
 
-/* Logout-Button (angepasst an Login-Button) */
+/* Logout-Button (fixiert & stabil) */
 #logout-btn {
     position: fixed;
     bottom: 15px;
