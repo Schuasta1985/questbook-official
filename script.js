@@ -118,7 +118,7 @@ window.zeigeAvatarEinstellungen = function () {
 window.ladeAvatarDropdown = function () {
     const avatarSelect = document.getElementById("avatar-auswahl");
     if (!avatarSelect) {
-        console.error("Avatar-Dropdown nicht gefunden!"); // Debugging
+        console.error("Avatar-Dropdown nicht gefunden!");
         return;
     }
 
@@ -138,9 +138,15 @@ window.ladeAvatarDropdown = function () {
     });
 
     // Setze den aktuellen Avatar als vorausgewählt
-    get(ref(db, `benutzer/${auth.currentUser.uid}/avatar`)).then(snapshot => {
+    const avatarRef = ref(db, `benutzer/${auth.currentUser.uid}/avatar`);
+    
+    get(avatarRef).then(snapshot => {
         if (snapshot.exists()) {
-            avatarSelect.value = snapshot.val();
+            let gespeicherterAvatar = snapshot.val();
+            avatarSelect.value = gespeicherterAvatar;
+            document.getElementById("avatar-anzeige").src = `avatars/${gespeicherterAvatar}`;
+        } else {
+            console.log("Kein Avatar gespeichert.");
         }
     }).catch(error => {
         console.error("Fehler beim Laden des Avatars:", error);
@@ -154,7 +160,8 @@ window.ladeAvatarDropdown = function () {
         }
     });
 };
-// 💾 Avatar speichern (schließt das Fenster nach dem Speichern)
+
+// 💾 Avatar speichern (sofort aktualisieren)
 window.avatarSpeichern = function () {
     let selectedAvatar = document.getElementById("avatar-auswahl").value;
     if (!selectedAvatar) {
@@ -162,13 +169,19 @@ window.avatarSpeichern = function () {
         return;
     }
 
-    set(ref(db, `benutzer/${auth.currentUser.uid}/avatar`), selectedAvatar)
+    const avatarRef = ref(db, `benutzer/${auth.currentUser.uid}/avatar`);
+
+    set(avatarRef, selectedAvatar)
         .then(() => {
+            console.log("Avatar erfolgreich gespeichert:", selectedAvatar);
             let avatarPfad = `avatars/${selectedAvatar}`;
             document.getElementById("avatar-anzeige").src = avatarPfad;
-            document.getElementById("avatar-section").style.display = "none"; // 🔥 Avatar-Auswahl ausblenden
+            document.getElementById("avatar-section").style.display = "none"; // 🔥 Auswahl schließen
         })
-        .catch(error => console.error("Fehler beim Speichern des Avatars:", error));
+        .catch(error => {
+            console.error("Fehler beim Speichern des Avatars:", error);
+            alert("Fehler beim Speichern. Siehe Konsole.");
+        });
 };
 
 // 🌟 Warten bis die Seite vollständig geladen ist, dann Skript ausführen
