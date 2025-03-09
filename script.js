@@ -35,6 +35,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
         ladeFamilie(user.uid);
+        ladeAvatare();  // 🚀 Avatar wird erst geladen, wenn `currentUser` existiert
     } else {
         window.location.href = "index.html"; // Zurück zum Login, falls nicht eingeloggt
     }
@@ -47,8 +48,7 @@ window.einloggen = function() {
 
     signInWithEmailAndPassword(auth, email, passwort)
         .then(() => {
-            alert("Login erfolgreich!");
-            window.location.href = "dashboard.html";
+            window.location.href = "dashboard.html"; // Kein Alert mehr
         })
         .catch(error => {
             console.error("Fehler beim Login:", error);
@@ -76,7 +76,6 @@ function ladeFamilie(userId) {
                 if (familySnapshot.exists()) {
                     const familyData = familySnapshot.val();
                     isAdmin = familyData.admin === sanitizeEmail(currentUser.email);
-                    ladeAvatare(); // Avatar nachladen
                 }
             });
         }
@@ -85,7 +84,9 @@ function ladeFamilie(userId) {
 
 // 📷 Avatare automatisch erkennen & Dropdown befüllen
 function ladeAvatare() {
-    const avatarSelect = document.getElementById("avatar-auswahl");
+    const avatarSelect = document.getElementById("avatar-select");
+    if (!avatarSelect) return;  // 🔴 Verhindert Fehler, falls Element nicht existiert
+
     avatarSelect.innerHTML = ""; // Dropdown leeren
 
     // Standardoption hinzufügen
@@ -116,6 +117,7 @@ function ladeAvatare() {
         if (snapshot.exists()) {
             let avatarName = snapshot.val();
             document.getElementById("avatar-anzeige").src = `avatars/${avatarName}`;
+            avatarSelect.value = avatarName;  // 🚀 Avatar auch im Dropdown vorausgewählt
         }
     });
 
@@ -130,23 +132,18 @@ function ladeAvatare() {
 
 // 🖼 Avatar speichern
 window.avatarSpeichern = function () {
-    let selectedAvatar = document.getElementById("avatar-auswahl").value;
-    if (!selectedAvatar) {
-        alert("Bitte wähle einen Avatar aus!");
-        return;
-    }
+    let selectedAvatar = document.getElementById("avatar-select").value;
+    if (!selectedAvatar) return; // Kein Alert mehr, falls keiner gewählt
 
     // Avatar in Firebase speichern
     update(ref(db, `benutzer/${currentUser.uid}`), {
         avatar: selectedAvatar
     }).then(() => {
-        alert("Avatar erfolgreich gespeichert!");
         document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
     }).catch(error => {
         console.error("Fehler beim Speichern des Avatars:", error);
     });
 };
-
 
 // 🏆 Quests verwalten
 window.questAbschließen = function(questID, xpWert) {
@@ -157,7 +154,6 @@ window.questAbschließen = function(questID, xpWert) {
         erledigt: true,
         abgeschlossenVon: currentUser.email
     }).then(() => {
-        alert("Quest abgeschlossen!");
         ladeQuests();
     });
 };
@@ -185,5 +181,5 @@ function ladeQuests() {
 // **Starte das Spiel nach dem Laden**
 window.onload = function () {
     ladeQuests();
-    ladeAvatare();
+    if (currentUser) ladeAvatare(); // 🚀 Avatar nur laden, wenn User existiert
 };
