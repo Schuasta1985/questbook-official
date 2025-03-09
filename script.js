@@ -60,8 +60,7 @@ function ladeAvatar() {
     get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
         if (snapshot.exists()) {
             let avatarName = snapshot.val();
-            let avatarPfad = `https://schuasta1985.github.io/questbook-official/avatars/${avatarName}`;
-
+            let avatarPfad = `https://schuasta1985.github.io/questbook-official/avatars/${avatarName}.png`;
             document.getElementById("avatar-anzeige").src = avatarPfad;
             document.getElementById("einstellungen-icon").style.display = "block"; // ⚙️-Icon anzeigen
             document.getElementById("avatar-section").style.display = "none"; // Avatar-Auswahl verstecken
