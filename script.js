@@ -184,13 +184,37 @@ window.avatarSpeichern = function () {
         });
 };
 
-// 🌟 Warten bis die Seite vollständig geladen ist, dann Skript ausführen
-window.onload = function () {
-    setTimeout(() => {
-        if (auth.currentUser) {
-            ladeBenutzerdaten();
+// 🏡 Benutzerdaten & Avatar laden
+window.ladeBenutzerdaten = function () {
+    if (!auth.currentUser) {
+        console.error("Kein Benutzer eingeloggt!");
+        return;
+    }
+
+    get(ref(db, `benutzer/${auth.currentUser.uid}`)).then(snapshot => {
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            document.getElementById("benutzer-name").textContent = userData.name || "Unbekannt";
+            document.getElementById("benutzer-level").textContent = userData.level || "1";
+            document.getElementById("benutzer-xp").textContent = userData.xp || "0";
             ladeAvatarDropdown();
+        } else {
+            console.log("Benutzerdaten nicht gefunden.");
         }
-    }, 500); // 500ms Verzögerung, um sicherzustellen, dass alles geladen ist
+    }).catch(error => {
+        console.error("Fehler beim Laden der Benutzerdaten:", error);
+    });
 };
+
+
+// 🌟 Warten bis Firebase den aktuellen Benutzer kennt, dann starten
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        console.log("Benutzer erkannt:", user.email);
+        ladeBenutzerdaten();
+        ladeAvatarDropdown();
+    } else {
+        console.log("Kein Benutzer angemeldet.");
+    }
+});
 
