@@ -39,7 +39,7 @@ body {
     color: white;
 }
 
-/* Avatar */
+/* Avatar-Anzeige */
 #avatar-container {
     text-align: center;
     margin-top: 10px;
@@ -47,21 +47,26 @@ body {
 }
 
 #avatar-anzeige {
-    max-width: 150px;
-    border-radius: 10px;
+    max-width: 300px;  /* DOPPELTE GRÖSSE */
     display: block;
     margin: 0 auto;
+    border-radius: 10px;
 }
 
+/* Einstellungs-Symbol (neben Spielerprofil) */
 #einstellungen-icon {
     position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: transparent;
+    top: 10px;
+    right: -50px;
+    background: none;
     border: none;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 24px;
     color: #FFD700;
+}
+
+#einstellungen-icon:hover {
+    color: white;
 }
 
 /* Avatar-Auswahl */
@@ -73,37 +78,26 @@ body {
     margin: 10px auto;
 }
 
-/* Logout */
+/* Logout-Button (angepasst an Login-Button) */
 #logout-btn {
     position: fixed;
     bottom: 15px;
-    right: 15px;
-    padding: 10px;
-    font-size: 14px;
-    background: #222;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#logout-btn:hover {
-    background: #555;
-}
-
-/* Buttons */
-button {
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 16px;
     background-color: #808000;
     color: #FFD700;
     border: none;
-    padding: 10px 15px;
-    font-weight: 600;
     border-radius: 5px;
+    font-weight: bold;
     cursor: pointer;
-    width: 80%;
+    width: 200px;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-button:hover {
+#logout-btn:hover {
     background-color: #FFD700;
     color: black;
     transform: scale(1.05);
