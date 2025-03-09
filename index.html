@@ -2,40 +2,43 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quest-Buch Login</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<div id="auth-container">
-  <h1>Willkommen im Quest-Buch</h1>
-  
+<header>
+  <h1>Herzlich Willkommen im Quest-Buch</h1>
+</header>
+
+<main id="auth-container">
+  <!-- Buttons im Stil von Bild 3 -->
   <div id="auth-selection">
-    <button id="login-btn">Einloggen</button>
-    <button id="register-btn">Registrieren</button>
+    <button id="login-btn" class="auth-button">Einloggen</button>
+    <button id="register-btn" class="auth-button">Registrieren</button>
   </div>
 
-  <!-- LOGIN -->
-  <div id="login-form" class="auth-form" style="display:none;">
+  <!-- Login-Formular -->
+  <div id="login-form" class="auth-form" style="display: none;">
     <h3>Einloggen</h3>
     <input type="email" id="login-email" placeholder="E-Mail">
     <input type="password" id="login-password" placeholder="Passwort">
-    <button onclick="benutzerEinloggen()">Anmelden</button>
+    <button onclick="benutzerEinloggen()" class="auth-button">Anmelden</button>
     
     <p>Oder per Google:</p>
-    <button onclick="googleLogin()">Google Login</button>
+    <button onclick="googleLogin()" class="auth-button">Google Login</button>
   </div>
 
-  <!-- REGISTRIERUNG -->
-  <div id="register-form" class="auth-form" style="display:none;">
-    <h3>Registrieren</h3>
+  <!-- Registrierungs-Formular -->
+  <div id="register-form" class="auth-form" style="display: none;">
+    <h3>Registrieren / Familie gründen</h3>
     <input type="text" id="family-name" placeholder="(Optional) Familienname">
     <input type="email" id="admin-email" placeholder="E-Mail">
     <input type="password" id="admin-password" placeholder="Passwort">
-    <button onclick="familieErstellen()">Registrieren / Familie gründen</button>
+    <button onclick="familieErstellen()" class="auth-button">Registrieren</button>
   </div>
-</div>
+
+</main>
 
 <script type="module" src="script.js"></script>
 </body>
