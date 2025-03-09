@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Quest-Buch Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quest-Buch Login</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <div id="auth-container">
-        <h1>Willkommen im Quest-Buch</h1>
-        
-        <!-- Auswahl: Einloggen oder Registrieren -->
-        <div id="auth-selection">
-            <button id="login-btn">Einloggen</button>
-            <button id="register-btn">Registrieren</button>
-        </div>
+<div id="auth-container">
+  <h1>Willkommen im Quest-Buch (Public)</h1>
+  
+  <!-- Auswahl: Einloggen oder Registrieren -->
+  <div id="auth-selection">
+      <button id="login-btn">Einloggen</button>
+      <button id="register-btn">Registrieren</button>
+  </div>
 
-        <!-- Login-Formular -->
-        <div id="login-form" class="auth-form" style="display: none;">
-            <h3>Einloggen</h3>
-            <input type="email" id="login-email" placeholder="E-Mail">
-            <input type="password" id="login-password" placeholder="Passwort">
-            <button onclick="benutzerEinloggen()">Anmelden</button>
-        </div>
+  <!-- Login-Formular -->
+  <div id="login-form" class="auth-form" style="display: none;">
+    <h3>Einloggen</h3>
+    <input type="email" id="login-email" placeholder="E-Mail">
+    <input type="password" id="login-password" placeholder="Passwort">
+    <button onclick="benutzerEinloggen()">Anmelden</button>
+    
+    <!-- Optional: Google-Login -->
+    <p>Oder per Google:</p>
+    <button onclick="googleLogin()">Google Login</button>
+  </div>
 
-        <!-- Registrierungs-Formular -->
-        <div id="register-form" class="auth-form" style="display: none;">
-            <h3>Registrieren</h3>
-            <input type="text" id="family-name" placeholder="Familienname">
-            <input type="email" id="admin-email" placeholder="Deine E-Mail">
-            <input type="password" id="admin-password" placeholder="Passwort">
-            <button onclick="familieErstellen()">Familie gründen</button>
-        </div>
-    </div>
+  <!-- Registrierungs-Formular -->
+  <div id="register-form" class="auth-form" style="display: none;">
+    <h3>Registrieren</h3>
+    <!-- Familienname optional -->
+    <input type="text" id="family-name" placeholder="(Optional) Familienname">
+    <input type="email" id="admin-email" placeholder="E-Mail">
+    <input type="password" id="admin-password" placeholder="Passwort">
+    <button onclick="familieErstellen()">Registrieren / Familie gründen</button>
+    
+    <!-- Falls du eine reine Registrierung ohne Familie willst, kannst du z. B. einen separaten Button machen:
+    <button onclick="benutzerRegistrieren()">Nur registrieren (ohne Familie)</button>
+    -->
+  </div>
+</div>
 
-    <script type="module" src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
