@@ -58,8 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.benutzerEinloggen = async function() {
-  const email = document.getElementById("login-email").value;
-  const pw    = document.getElementById("login-password").value;
+  const email = document.getElementById("login-email")?.value;
+  const pw    = document.getElementById("login-password")?.value;
   try {
     await signInWithEmailAndPassword(auth, email, pw);
     window.location.href = "dashboard.html";
@@ -78,7 +78,7 @@ window.googleLogin = async function() {
   }
 };
 
-// NEUE familieErstellen, inkl. query
+/** Familie erstellen / Registrieren */
 window.familieErstellen = async function() {
   const famName    = document.getElementById("family-name").value.trim();
   const adminEmail = document.getElementById("admin-email").value.trim();
@@ -242,18 +242,28 @@ async function ladeBenutzerdaten() {
     await zeigeAlleNutzer();
   }
 
-  // Avatar aus DB anzeigen (falls vorhanden)
-  if (userData.avatarURL) {
-    const avatarImg = document.getElementById("avatar-anzeige");
-    if (avatarImg) {
-      avatarImg.src = userData.avatarURL;
-    }
-  }
+  // Avatar / Name anzeigen
+  const avatarImg = document.getElementById("avatar-anzeige");
+  const nameElem  = document.getElementById("benutzer-name");
+  if (avatarImg) avatarImg.src = userData.avatarURL || "avatars/avatar1.png";
+  if (nameElem)  nameElem.textContent = userData.name || userData.email;
 
   ladeZauberListe();
   ladeZielListe();
   ladeLogsInTabelle();
   ladeQuests(user.uid);
+}
+
+/** Balken-Funktion für HP/MP */
+function getBarHTML(current, max, type="hp") {
+  const perc = Math.round((current / max) * 100);
+  // z. B. "hp" oder "mp"
+  return `
+    <div class="bar-outer">
+      <div class="bar-inner ${type}" style="width: ${perc}%;"></div>
+    </div>
+    <span class="bar-text">${current} / ${max} ${type.toUpperCase()}</span>
+  `;
 }
 
 /** Familienmitglieder in Kartenform */
@@ -271,18 +281,21 @@ async function zeigeFamilienMitglieder(famID) {
     if (!benSnap.exists()) continue;
     const benData = benSnap.val();
 
-    let card = document.createElement("div");
-    card.className = "player-card";
-
     let maxHP = 100 + Math.floor((benData.level-1)/10)*100;
     let maxMP = 100 + Math.floor((benData.level-1)/10)*50;
 
+    // Balken
+    const hpBar = getBarHTML(benData.hp || 0, maxHP, "hp");
+    const mpBar = getBarHTML(benData.mp || 0, maxMP, "mp");
+
+    let card = document.createElement("div");
+    card.className = "player-card";
     card.innerHTML = `
       <img src="${benData.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
       <h3>${benData.name}</h3>
-      <p>Level: ${benData.level || 1}</p>
-      <p>${benData.hp || 100} / ${maxHP} HP</p>
-      <p>${benData.mp || 100} / ${maxMP} MP</p>
+      <div class="player-level">Level: ${benData.level || 1}</div>
+      <div>${hpBar}</div>
+      <div>${mpBar}</div>
     `;
     container.appendChild(card);
   }
@@ -299,19 +312,20 @@ async function zeigeAlleNutzer() {
   const users = snap.val();
   for (let uid in users) {
     const benData = users[uid];
+    let maxHP = 100 + Math.floor((benData.level-1)/10)*100;
+    let maxMP = 100 + Math.floor((benData.level-1)/10)*50;
+    
+    const hpBar = getBarHTML(benData.hp || 0, maxHP, "hp");
+    const mpBar = getBarHTML(benData.mp || 0, maxMP, "mp");
 
     let card = document.createElement("div");
     card.className = "player-card";
-
-    let maxHP = 100 + Math.floor((benData.level-1)/10)*100;
-    let maxMP = 100 + Math.floor((benData.level-1)/10)*50;
-
     card.innerHTML = `
       <img src="${benData.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
       <h3>${benData.name}</h3>
-      <p>Level: ${benData.level || 1}</p>
-      <p>${benData.hp || 100} / ${maxHP} HP</p>
-      <p>${benData.mp || 100} / ${maxMP} MP</p>
+      <div class="player-level">Level: ${benData.level || 1}</div>
+      <div>${hpBar}</div>
+      <div>${mpBar}</div>
     `;
     container.appendChild(card);
   }
@@ -396,7 +410,6 @@ async function wirkeZauber(zielID, zauber) {
   } else if (zauber.typ === "schaden") {
     let neueHP = Math.max(0, (ziel.hp || 100) - zauber.wert);
     updates[`benutzer/${zielID}/hp`] = neueHP;
-    // Tot?
     if (neueHP <= 0) {
       let neuesLevel = Math.max(1, (ziel.level || 1) - 1);
       let respawnHP  = 100 + Math.floor((neuesLevel-1)/10)*100;
@@ -405,7 +418,6 @@ async function wirkeZauber(zielID, zauber) {
     }
   }
 
-  // DB updaten
   await update(ref(db), updates);
 
   // In publicLogs protokollieren
@@ -471,7 +483,7 @@ async function ladeQuests(uid) {
     div.className = "quest-box";
     div.innerHTML = `
       <div>
-        <strong>${quest.name}</strong> 
+        <strong>${quest.name}</strong>
         <small>(${quest.xpPerUnit} XP pro Einheit)</small><br>
         Erledigt: ${doneCount}/${quest.totalUnits}
       </div>
@@ -522,14 +534,30 @@ async function questErledigen(qid, uid) {
   ladeQuests(uid);
 }
 
-/* =============== AVATAR-WECHSEL =============== */
-/** Öffnet den Bereich zum Avatar-Wechsel */
-window.zeigeAvatarEinstellungen = function() {
+/* =============== AVATAR & NAME ÄNDERN =============== */
+window.zeigeAvatarEinstellungen = async function() {
   const avatarSection = document.getElementById("avatar-section");
   if (!avatarSection) return;
   avatarSection.style.display = "block";
 
-  // Beispiel: 10 Avatare
+  // Hole aktuellen User
+  const user = auth.currentUser;
+  if (!user) return;
+  const snap = await get(ref(db, `benutzer/${user.uid}`));
+  if (!snap.exists()) return;
+  const userData = snap.val();
+
+  // Input Felder
+  const previewImg = document.getElementById("avatar-preview");
+  const nameInput  = document.getElementById("namen-input");
+  const selectElem = document.getElementById("avatar-auswahl");
+  if (!previewImg || !nameInput || !selectElem) return;
+
+  // Bisheriger Name, Avatar
+  nameInput.value = userData.name || "";
+  previewImg.src   = userData.avatarURL || "avatars/avatar1.png";
+
+  // Avatare-Liste
   const avatarList = [
     "avatars/avatar1.png",
     "avatars/avatar2.png",
@@ -542,39 +570,55 @@ window.zeigeAvatarEinstellungen = function() {
     "avatars/avatar9.png",
     "avatars/avatar10.png"
   ];
-
-  const selectElem = document.getElementById("avatar-auswahl");
-  if (!selectElem) return;
   selectElem.innerHTML = "";
-
   avatarList.forEach((url) => {
     let opt = document.createElement("option");
     opt.value = url;
     opt.textContent = url.split("/").pop();
     selectElem.appendChild(opt);
   });
+  // Vorauswahl
+  selectElem.value = userData.avatarURL || "avatars/avatar1.png";
+
+  // Live-Vorschau
+  selectElem.onchange = () => {
+    previewImg.src = selectElem.value;
+  };
 };
 
-/** Avatar speichern => DB updaten & Bild ändern */
 window.avatarSpeichern = async function() {
   const user = auth.currentUser;
   if (!user) return;
 
-  const selectElem = document.getElementById("avatar-auswahl");
-  if (!selectElem) return;
+  const nameInput   = document.getElementById("namen-input");
+  const selectElem  = document.getElementById("avatar-auswahl");
+  const previewImg  = document.getElementById("avatar-preview");
+  const avatarSection = document.getElementById("avatar-section");
+  const avatarImg   = document.getElementById("avatar-anzeige");
 
+  if (!nameInput || !selectElem || !previewImg || !avatarSection || !avatarImg) return;
+
+  const newName  = nameInput.value.trim() || "Unbekannt";
   const chosenURL = selectElem.value || "avatars/avatar1.png";
-  // In DB eintragen
+
+  // DB aktualisieren
   await update(ref(db, `benutzer/${user.uid}`), {
+    name: newName,
     avatarURL: chosenURL
   });
 
-  // Im UI aktualisieren
-  const avatarImg = document.getElementById("avatar-anzeige");
-  if (avatarImg) {
-    avatarImg.src = chosenURL;
+  // UI aktualisieren
+  avatarImg.src = chosenURL;
+  const mainNameElem = document.getElementById("benutzer-name");
+  if (mainNameElem) {
+    mainNameElem.textContent = newName;
   }
 
-  document.getElementById("avatar-section").style.display = "none";
-  alert("Avatar geändert!");
+  avatarSection.style.display = "none";
+  alert("Profil aktualisiert!");
+};
+
+window.avatarAbbrechen = function() {
+  const avatarSection = document.getElementById("avatar-section");
+  if (avatarSection) avatarSection.style.display = "none";
 };
