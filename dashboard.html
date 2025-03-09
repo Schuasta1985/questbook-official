@@ -13,38 +13,28 @@
     </header>
 
     <main>
-        <section id="benutzer-info">
-            <h2>👤 Spielerprofil</h2>
-            <p><strong>Name:</strong> <span id="benutzer-name">Lädt...</span></p>
-            <p><strong>Level:</strong> <span id="benutzer-level">1</span></p>
-            <p><strong>XP:</strong> <span id="benutzer-xp">0</span></p>
-            <div class="progress-bar">
-                <div id="xp-progress" class="progress"></div>
-            </div>
-        </section>
+       <!-- Spielerprofil -->
+       <section id="benutzer-info">
+           <h2>👤 Spielerprofil</h2>
+           <p><strong>Name:</strong> <span id="benutzer-name">Lädt...</span></p>
+           <p><strong>Level:</strong> <span id="benutzer-level">1</span></p>
+           <p><strong>XP:</strong> <span id="benutzer-xp">0</span></p>
+           
+           <div id="avatar-container">
+               <img id="avatar-anzeige" src="avatars/avatar1.png" alt="Dein Avatar">
+               <button id="einstellungen-icon" onclick="zeigeAvatarEinstellungen()" style="display: none;">⚙️</button>
+           </div>
+       </section>
 
-        <!-- Avatar Anzeige -->
-        <section id="avatar-section">
-            <img id="avatar-anzeige" src="avatars/avatar1.webp" alt="Dein Avatar">
-            <div id="hp-mp-container">
-                <div id="hp-bar"></div>
-                <div id="mp-bar"></div>
-            </div>
-        </section>
-
-        <!-- Avatar Auswahl -->
-        <section id="avatar-auswahl">
-            <h2>🎭 Wähle deinen Avatar</h2>
-            <select id="avatar-select"></select>
-            <button onclick="avatarSpeichern()">Speichern</button>
-        </section>
-
-        <section id="quests">
-            <h2>📜 Aktuelle Quests</h2>
-            <ul id="quest-liste">Lädt...</ul>
-        </section>
+       <!-- Avatar-Auswahl (versteckt nach Speichern) -->
+       <section id="avatar-section" style="display: none;">
+           <h2>🎭 Wähle deinen Avatar</h2>
+           <select id="avatar-auswahl"></select>
+           <button onclick="avatarSpeichern()">Speichern</button>
+       </section>
     </main>
 
+    <!-- Logout-Button -->
     <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
 
     <footer>
