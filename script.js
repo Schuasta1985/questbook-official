@@ -1,7 +1,7 @@
 // Importiere Firebase-Funktionen
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 // Firebase-Konfiguration
 const firebaseConfig = {
@@ -22,8 +22,13 @@ const auth = getAuth();
 
 // 🌟 Event-Listener für Buttons nach Laden der Seite zuweisen
 document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("login-btn").onclick = zeigeLoginForm;
-    document.getElementById("register-btn").onclick = zeigeRegistrierungForm;
+    let loginBtn = document.getElementById("login-btn");
+    let registerBtn = document.getElementById("register-btn");
+    let avatarSaveBtn = document.getElementById("avatar-speichern");
+
+    if (loginBtn) loginBtn.onclick = zeigeLoginForm;
+    if (registerBtn) registerBtn.onclick = zeigeRegistrierungForm;
+    if (avatarSaveBtn) avatarSaveBtn.onclick = avatarSpeichern;
 });
 
 // 🌟 Login & Registrierung anzeigen
@@ -138,19 +143,20 @@ window.ladeAvatarDropdown = function () {
     });
 
     // Setze den aktuellen Avatar als vorausgewählt
-    const avatarRef = ref(db, `benutzer/${auth.currentUser.uid}/avatar`);
-    
-    get(avatarRef).then(snapshot => {
-        if (snapshot.exists()) {
-            let gespeicherterAvatar = snapshot.val();
-            avatarSelect.value = gespeicherterAvatar;
-            document.getElementById("avatar-anzeige").src = `avatars/${gespeicherterAvatar}`;
-        } else {
-            console.log("Kein Avatar gespeichert.");
-        }
-    }).catch(error => {
-        console.error("Fehler beim Laden des Avatars:", error);
-    });
+    const user = auth.currentUser;
+    if (user) {
+        get(ref(db, `benutzer/${user.uid}/avatar`)).then(snapshot => {
+            if (snapshot.exists()) {
+                let gespeicherterAvatar = snapshot.val();
+                avatarSelect.value = gespeicherterAvatar;
+                document.getElementById("avatar-anzeige").src = `avatars/${gespeicherterAvatar}`;
+            } else {
+                console.log("Kein Avatar gespeichert.");
+            }
+        }).catch(error => {
+            console.error("Fehler beim Laden des Avatars:", error);
+        });
+    }
 
     // Avatar-Vorschau bei Auswahl ändern
     avatarSelect.addEventListener("change", function () {
@@ -169,29 +175,30 @@ window.avatarSpeichern = function () {
         return;
     }
 
-    const avatarRef = ref(db, `benutzer/${auth.currentUser.uid}/avatar`);
-
-    set(avatarRef, selectedAvatar)
-        .then(() => {
-            console.log("Avatar erfolgreich gespeichert:", selectedAvatar);
-            let avatarPfad = `avatars/${selectedAvatar}`;
-            document.getElementById("avatar-anzeige").src = avatarPfad;
-            document.getElementById("avatar-section").style.display = "none"; // 🔥 Auswahl schließen
-        })
-        .catch(error => {
-            console.error("Fehler beim Speichern des Avatars:", error);
-            alert("Fehler beim Speichern. Siehe Konsole.");
-        });
+    const user = auth.currentUser;
+    if (user) {
+        set(ref(db, `benutzer/${user.uid}/avatar`), selectedAvatar)
+            .then(() => {
+                console.log("Avatar erfolgreich gespeichert:", selectedAvatar);
+                document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
+                document.getElementById("avatar-section").style.display = "none"; // 🔥 Auswahl schließen
+            })
+            .catch(error => {
+                console.error("Fehler beim Speichern des Avatars:", error);
+                alert("Fehler beim Speichern. Siehe Konsole.");
+            });
+    }
 };
 
 // 🏡 Benutzerdaten & Avatar laden
 window.ladeBenutzerdaten = function () {
-    if (!auth.currentUser) {
+    const user = auth.currentUser;
+    if (!user) {
         console.error("Kein Benutzer eingeloggt!");
         return;
     }
 
-    get(ref(db, `benutzer/${auth.currentUser.uid}`)).then(snapshot => {
+    get(ref(db, `benutzer/${user.uid}`)).then(snapshot => {
         if (snapshot.exists()) {
             const userData = snapshot.val();
             document.getElementById("benutzer-name").textContent = userData.name || "Unbekannt";
@@ -206,15 +213,12 @@ window.ladeBenutzerdaten = function () {
     });
 };
 
-
 // 🌟 Warten bis Firebase den aktuellen Benutzer kennt, dann starten
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log("Benutzer erkannt:", user.email);
         ladeBenutzerdaten();
-        ladeAvatarDropdown();
     } else {
         console.log("Kein Benutzer angemeldet.");
     }
 });
-
