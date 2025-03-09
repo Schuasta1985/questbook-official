@@ -1,7 +1,7 @@
 // Importiere Firebase-Funktionen
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 // Firebase-Konfiguration
 const firebaseConfig = {
@@ -20,18 +20,80 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth();
 
-// Globale Variablen
-let currentUser = null;
-
-// Benutzerstatus prüfen
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        ladeBenutzerdaten();
-    } else {
-        window.location.href = "index.html"; // Zurück zum Login, falls nicht eingeloggt
-    }
+// 🌟 Event-Listener für Buttons nach Laden der Seite zuweisen
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("login-btn").onclick = zeigeLoginForm;
+    document.getElementById("register-btn").onclick = zeigeRegistrierungForm;
 });
+
+// 🌟 Login & Registrierung anzeigen
+function zeigeLoginForm() {
+    document.getElementById("login-form").style.display = "block";
+    document.getElementById("register-form").style.display = "none";
+}
+
+function zeigeRegistrierungForm() {
+    document.getElementById("login-form").style.display = "none";
+    document.getElementById("register-form").style.display = "block";
+}
+
+// 🔥 Familie gründen
+function familieErstellen() {
+    const familienName = document.getElementById("family-name").value;
+    const adminEmail = document.getElementById("admin-email").value;
+    const adminPassword = document.getElementById("admin-password").value;
+
+    if (!familienName || !adminEmail || !adminPassword) {
+        alert("Bitte alle Felder ausfüllen!");
+        return;
+    }
+
+    createUserWithEmailAndPassword(auth, adminEmail, adminPassword)
+        .then(userCredential => {
+            const adminUID = userCredential.user.uid;
+            const familienID = Date.now().toString();
+
+            const familienDaten = {
+                name: familienName,
+                admin: adminEmail,
+                mitglieder: { [adminEmail]: true }
+            };
+
+            return set(ref(db, `familien/${familienID}`), familienDaten).then(() => {
+                return set(ref(db, `benutzer/${adminUID}`), {
+                    email: adminEmail,
+                    familie: familienID
+                });
+            });
+        })
+        .then(() => {
+            alert("Familie erfolgreich erstellt!");
+            window.location.href = "dashboard.html";
+        })
+        .catch(error => {
+            alert(error.message);
+        });
+}
+
+// 🔑 Benutzer einloggen
+function benutzerEinloggen() {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    if (!email || !password) {
+        alert("Bitte E-Mail und Passwort eingeben!");
+        return;
+    }
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+            alert("Erfolgreich eingeloggt!");
+            window.location.href = "dashboard.html";
+        })
+        .catch(error => {
+            alert(error.message);
+        });
+}
 
 // 🔑 Benutzer ausloggen
 window.ausloggen = function () {
@@ -40,95 +102,4 @@ window.ausloggen = function () {
     }).catch(error => {
         console.error("Fehler beim Logout:", error);
     });
-};
-
-// 🏡 Benutzerdaten & Avatar laden
-function ladeBenutzerdaten() {
-    get(ref(db, `benutzer/${currentUser.uid}`)).then(snapshot => {
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            document.getElementById("benutzer-name").textContent = userData.name || "Unbekannt";
-            document.getElementById("benutzer-level").textContent = userData.level || "1";
-            document.getElementById("benutzer-xp").textContent = userData.xp || "0";
-            ladeAvatar();
-        }
-    });
-}
-
-// 📷 Avatar laden und anzeigen
-function ladeAvatar() {
-    get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
-        if (snapshot.exists()) {
-            let avatarName = snapshot.val();
-            let avatarPfad = `avatars/${avatarName}`;
-            document.getElementById("avatar-anzeige").src = avatarPfad;
-            document.getElementById("einstellungen-icon").style.display = "block"; 
-            document.getElementById("avatar-section").style.display = "none"; 
-        } else {
-            ladeAvatarDropdown();
-        }
-    }).catch(error => {
-        console.error("Fehler beim Laden des Avatars:", error);
-    });
-}
-
-// 🎭 Avatar-Dropdown befüllen
-function ladeAvatarDropdown() {
-    const avatarSelect = document.getElementById("avatar-auswahl");
-    if (!avatarSelect) return;
-
-    avatarSelect.innerHTML = ""; 
-
-    let avatarList = [
-        "avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png",
-        "avatar5.png", "avatar6.png", "avatar7.png", "avatar8.png",
-        "avatar9.png", "avatar10.png"
-    ];
-
-    avatarList.forEach(filename => {
-        let option = document.createElement("option");
-        option.value = filename;
-        option.textContent = filename.replace(".png", ""); 
-        avatarSelect.appendChild(option);
-    });
-
-    get(ref(db, `benutzer/${currentUser.uid}/avatar`)).then(snapshot => {
-        if (snapshot.exists()) {
-            avatarSelect.value = snapshot.val();
-        }
-    });
-
-    avatarSelect.addEventListener("change", function () {
-        let selectedAvatar = avatarSelect.value;
-        if (selectedAvatar) {
-            document.getElementById("avatar-anzeige").src = `avatars/${selectedAvatar}`;
-        }
-    });
-}
-
-// 💾 Avatar speichern
-window.avatarSpeichern = function () {
-    let selectedAvatar = document.getElementById("avatar-auswahl").value;
-    if (!selectedAvatar) return;
-
-    update(ref(db, `benutzer/${currentUser.uid}`), {
-        avatar: selectedAvatar
-    }).then(() => {
-        let avatarPfad = `avatars/${selectedAvatar}`;
-        document.getElementById("avatar-anzeige").src = avatarPfad;
-        document.getElementById("avatar-section").style.display = "none"; 
-        document.getElementById("einstellungen-icon").style.display = "block"; 
-    }).catch(error => {
-        console.error("Fehler beim Speichern des Avatars:", error);
-    });
-};
-
-// ⚙️ Avatar ändern
-window.zeigeAvatarEinstellungen = function () {
-    document.getElementById("avatar-section").style.display = "block";
-};
-
-// **Seite laden & Daten abrufen**
-window.onload = function () {
-    if (currentUser) ladeBenutzerdaten();
 };
