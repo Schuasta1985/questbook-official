@@ -64,7 +64,7 @@ h1 {
 }
 
 #avatar-anzeige {
-  width: 200px;      /* oder was immer du möchtest */
+  width: 350px;      /* oder was immer du möchtest */
   height: 200px;     /* wenn du ein quadratisches Format willst */
   object-fit: cover; /* sorgt für sauberen Zuschnitt */
 }
@@ -176,7 +176,7 @@ h1 {
   box-shadow:0 0 10px rgba(0,0,0,0.5);
 }
 .player-card img {
-  max-width:90px; 
+  max-width:190px; 
   border-radius:8px;
 }
 .player-level {
