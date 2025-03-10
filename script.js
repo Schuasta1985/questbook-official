@@ -14,7 +14,7 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
-// 🔑 Deine Firebase-Daten (Questbook-138c8)
+// 🔑 Deine Firebase-Daten
 const firebaseConfig = {
   apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
   authDomain: "questbook-138c8.firebaseapp.com",
@@ -52,6 +52,32 @@ function checkLevelUp(userData) {
   return { newXP: xp, newLevel: lvl, leveledUp };
 }
 
+/** TÄGLICHE REGEN */
+async function checkeTäglicheRegen(uid) {
+  const today = new Date().toISOString().split("T")[0];
+  const snap  = await get(ref(db, "benutzer/" + uid));
+  if (!snap.exists()) return;
+
+  let uData = snap.val();
+  if (uData.lastDailyRegen === today) return;
+
+  let level = uData.level || 1;
+  let hp    = uData.hp    || 100;
+  let mp    = uData.mp    || 100;
+
+  let maxHP = 100 + Math.floor((level - 1) / 10) * 100;
+  let maxMP = 100 + Math.floor((level - 1) / 10) * 50;
+
+  let newHP = Math.min(maxHP, hp + Math.floor(maxHP * 0.1));
+  let newMP = Math.min(maxMP, mp + Math.floor(maxMP * 0.1));
+
+  await update(ref(db, "benutzer/" + uid), {
+    hp: newHP,
+    mp: newMP,
+    lastDailyRegen: today
+  });
+}
+
 /** Updatet XP-Balken + Text */
 function updateXPBar(userData) {
   let xp    = userData.xp    || 0;
@@ -84,6 +110,82 @@ function playLevelUpAnimation() {
   setTimeout(() => {
     elem.style.opacity = "0";
   }, 1500);
+}
+
+/**
+ * Zauber wirken (wird in popupZauberWirken/zauberWirkenHandler aufgerufen),
+ * war in deinem Code nur angedeutet, aber nicht definiert.
+ */
+async function wirkeZauber(zielID, zauberKey) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // caster
+  const cSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!cSnap.exists()) return;
+  let caster = cSnap.val();
+
+  // zauber
+  const zSnap = await get(ref(db, "zauber/" + zauberKey));
+  if (!zSnap.exists()) {
+    alert("Zauber existiert nicht!");
+    return;
+  }
+  let z = zSnap.val();
+
+  // ziel
+  const tSnap = await get(ref(db, "benutzer/" + zielID));
+  if (!tSnap.exists()) {
+    alert("Ziel nicht gefunden!");
+    return;
+  }
+  let ziel = tSnap.val();
+
+  // Prüfen, ob Caster genug MP hat
+  if ((caster.mp || 0) < (z.kostenMP || 0)) {
+    alert("Nicht genug MP!");
+    return;
+  }
+
+  // Effekt anwenden: HP beim Ziel verändern, MP beim Caster abziehen
+  let newCasterMP = (caster.mp || 0) - (z.kostenMP || 0);
+  let newZielHP   = (ziel.hp   || 0);
+
+  if (z.typ === "heilen") {
+    newZielHP += (z.wert || 0);
+    // max HP beachten
+    let maxHP = 100 + Math.floor(((ziel.level || 1) - 1) / 10) * 100;
+    if (newZielHP > maxHP) newZielHP = maxHP;
+  } else if (z.typ === "schaden") {
+    newZielHP -= (z.wert || 0);
+    if (newZielHP < 0) newZielHP = 0;
+  }
+
+  // Updates vorbereiten
+  let updates = {};
+  updates[`benutzer/${user.uid}/mp`]   = newCasterMP;
+  updates[`benutzer/${zielID}/hp`]    = newZielHP;
+
+  await update(ref(db), updates);
+
+  // Log-Eintrag
+  let casterName = caster.name || caster.email;
+  let zielName   = ziel.name  || ziel.email;
+
+  await push(ref(db, "publicLogs"), {
+    timestamp: Date.now(),
+    actionType: "zauber",
+    casterID:   user.uid,
+    targetID:   zielID,
+    casterName: casterName,
+    targetName: zielName,
+    zauber:     z.name,
+    typ:        z.typ,
+    wert:       z.wert,
+    kosten:     z.kostenMP
+  });
+
+  alert(`Zauber erfolgreich gewirkt: ${z.name} auf ${zielName}`);
 }
 
 // ================ AUTH STATE ================
@@ -243,7 +345,6 @@ async function ladeBenutzerdaten() {
 
   // falls leveledUp => animation
   if (leveledUp) {
-    // UI-Update
     playLevelUpAnimation();
   }
 
@@ -277,37 +378,11 @@ async function ladeBenutzerdaten() {
   ladeLogsInTabelle();
   ladeQuests(user.uid);
 
-  // Admin => show "Alle Logs löschen" ?
+  // Admin => show "Alle Logs löschen"?
   if (userData.isAdmin) {
     const logClearBtn = document.getElementById("btn-log-clear");
     if (logClearBtn) logClearBtn.style.display = "inline-block";
   }
-}
-
-/** TÄGLICHE REGEN */
-async function checkeTäglicheRegen(uid) {
-  const today = new Date().toISOString().split("T")[0];
-  const snap  = await get(ref(db, "benutzer/" + uid));
-  if (!snap.exists()) return;
-
-  let uData = snap.val();
-  if (uData.lastDailyRegen === today) return;
-
-  let level = uData.level || 1;
-  let hp    = uData.hp    || 100;
-  let mp    = uData.mp    || 100;
-
-  let maxHP = 100 + Math.floor((level - 1) / 10) * 100;
-  let maxMP = 100 + Math.floor((level - 1) / 10) * 50;
-
-  let newHP = Math.min(maxHP, hp + Math.floor(maxHP * 0.1));
-  let newMP = Math.min(maxMP, mp + Math.floor(maxMP * 0.1));
-
-  await update(ref(db, "benutzer/" + uid), {
-    hp: newHP,
-    mp: newMP,
-    lastDailyRegen: today
-  });
 }
 
 /* =============== SPIELER-KARTEN =============== */
@@ -451,8 +526,6 @@ window.zauberWirkenHandler = async function() {
   await wirkeZauber(target, zKey);
 };
 
-/** wirkeZauber => logs as actionType="zauber" + real name for log. done in code below. */
-
 // =============== ZAUBER-POPUP ===============
 window.zeigeZauberPopup = async function() {
   const pop = document.getElementById("popup-zauber");
@@ -582,11 +655,7 @@ window.popupSpezialWirken = async function() {
   closeSpezialPopup();
 };
 
-/** wirkeSpezial => Admin definierte "kommentar", "chance", "cooldown" => 
-    - Chance => random => success/fail
-    - Immer Kosten abziehen
-    - If success => user can't use again => block e.g. store lastUsed + cooldown? 
-*/
+/** Spezialfähigkeit analog zu deinem Code */
 async function wirkeSpezial(zielID, spKey) {
   const user = auth.currentUser;
   if (!user) return;
@@ -612,7 +681,7 @@ async function wirkeSpezial(zielID, spKey) {
     return;
   }
 
-  // Check cooldown => z.B. wir speichern caster.spezialUsed?.[spKey]= date
+  // Check cooldown
   let now = new Date();
   let casterSpecUsed = caster.spezialUsed || {};
   if (casterSpecUsed[spKey]) {
@@ -632,7 +701,7 @@ async function wirkeSpezial(zielID, spKey) {
   }
 
   // check chance => success/fail
-  let chance = (sp.chance || 100); 
+  let chance = (sp.chance || 100);
   let rolled = Math.random() * 100;
   let success = (rolled < chance);
 
@@ -644,7 +713,7 @@ async function wirkeSpezial(zielID, spKey) {
     // success => set lastUsed now
     casterSpecUsed[spKey] = now.getTime();
     updates[`benutzer/${user.uid}/spezialUsed`] = casterSpecUsed;
-  } 
+  }
 
   await update(ref(db), updates);
 
@@ -654,7 +723,7 @@ async function wirkeSpezial(zielID, spKey) {
     alert(`Fähigkeit erfolgreich! ${sp.kommentar || ''}`);
   }
 
-  // log => actionType="spezial", store realName
+  // log => actionType="spezial"
   let casterName = caster.name || caster.email;
   let zielName   = ziel.name  || ziel.email;
 
@@ -904,7 +973,7 @@ window.adminZauberAnlegen = async function() {
   const zTyp=  document.getElementById("zauber-typ").value;
   const zWert= parseInt(document.getElementById("zauber-wert").value,10);
   const zCost= parseInt(document.getElementById("zauber-kosten").value,10);
-  if(!zName|| isNaN(zWert)|| isNaN(zCost)){
+  if(!zName || isNaN(zWert) || isNaN(zCost)) {
     alert("Bitte Name, Typ, Wert, Kosten angeben!");
     return;
   }
