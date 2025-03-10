@@ -448,26 +448,26 @@ async function zeigeAlleNutzer() {
     let hpPerc = Math.round(((ud.hp || 0) / maxHP) * 100);
     let mpPerc = Math.round(((ud.mp || 0) / maxMP) * 100);
 
-    let card = document.createElement("div");
-    card.className = "player-card";
-    card.innerHTML = `
-      <img src="${ud.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
-      <h3>${ud.name}</h3>
-      <div class="player-level">Level: ${
-${ud.level || 1}</div>
-      <div>
-        <div class="bar-outer">
-          <div class="bar-inner hp" style="width:${hpPerc}%;"></div>
-        </div>
-        <span class="bar-text">${ud.hp || 0}/${maxHP} HP</span>
-      </div>
-      <div>
-        <div class="bar-outer">
-          <div class="bar-inner mp" style="width:${mpPerc}%;"></div>
-        </div>
-        <span class="bar-text">${ud.mp || 0}/${maxMP} MP</span>
-      </div>
-    `;
+let card = document.createElement("div");
+card.className = "player-card";
+card.innerHTML = `
+  <img src="${ud.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
+  <h3>${ud.name}</h3>
+  <div class="player-level">Level: ${ud.level || 1}</div>
+  <div>
+    <div class="bar-outer">
+      <div class="bar-inner hp" style="width:${hpPerc}%;"></div>
+    </div>
+    <span class="bar-text">${ud.hp || 0}/${maxHP} HP</span>
+  </div>
+  <div>
+    <div class="bar-outer">
+      <div class="bar-inner mp" style="width:${mpPerc}%;"></div>
+    </div>
+    <span class="bar-text">${ud.mp || 0}/${maxMP} MP</span>
+  </div>
+`;
+
     container.appendChild(card);
   }
 }
