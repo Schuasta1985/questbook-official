@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Quest-Buch Dashboard</title>
+  <title>Quest-Buch – Dashboard</title>
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="script.js"></script>
 </head>
@@ -34,6 +34,9 @@
     <button id="btn-spezial" class="action-button" onclick="zeigeSpezialPopup()">Spezial</button>
   </div>
 
+  <!-- LEVEL-UP ANIMATION -->
+  <div id="levelup-animation">LEVEL UP!</div>
+
   <!-- POPUP ZAUBER -->
   <div id="popup-zauber" class="popup-modal" style="display:none;">
     <div class="popup-content">
@@ -53,7 +56,6 @@
   <div id="popup-spezial" class="popup-modal" style="display:none;">
     <div class="popup-content">
       <h3>Spezialfähigkeiten</h3>
-      <!-- Einfache Liste? oder select? (Admin legt an "spezial/") -->
       <select id="spezial-liste-popup"></select>
       <br><br>
       <label>Ziel:</label>
@@ -81,6 +83,8 @@
       </thead>
       <tbody id="log-table-body"></tbody>
     </table>
+    <!-- ADMIN: ALLES LÖSCHEN -->
+    <button id="btn-log-clear" style="display:none;" onclick="adminLogsClear()">Alle Logs löschen</button>
   </section>
 
   <!-- TÄGLICHE QUESTS -->
@@ -103,12 +107,9 @@
   <!-- TAB: PROFIL -->
   <div class="tab-content" id="tab-profile">
     <h2>Profil bearbeiten</h2>
-    <img id="avatar-preview" src="avatars/avatar1.png" style="max-width:120px;">
-    <br><br>
-    <select id="avatar-auswahl"></select>
-    <br><br>
-    <input type="text" id="namen-input" placeholder="Neuer Name">
-    <br><br>
+    <img id="avatar-preview" src="avatars/avatar1.png" style="max-width:120px;"><br><br>
+    <select id="avatar-auswahl"></select><br><br>
+    <input type="text" id="namen-input" placeholder="Neuer Name"><br><br>
     <button onclick="avatarSpeichern()">Speichern</button>
     <button onclick="schliesseEinstellungen()">Abbrechen</button>
   </div>
@@ -150,6 +151,9 @@
     <div>
       <input type="text" id="spezial-name" placeholder="Name">
       <input type="number" id="spezial-kosten" placeholder="Kosten (Level)">
+      <input type="number" id="spezial-chance" placeholder="Chance in %">
+      <input type="number" id="spezial-cooldown" placeholder="Cooldown (Tage)">
+      <textarea id="spezial-kommentar" rows="2" placeholder="Kommentar (z.B. 'Ziel massiert Benutzer bis zum Umfallen')"></textarea>
       <button onclick="adminSpezialAnlegen()">Erstellen</button>
     </div>
     <ul id="admin-spezial-liste"></ul>
@@ -157,6 +161,7 @@
   </div>
 </section>
 
+<!-- Logout-Button -->
 <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
 <!-- Einstellungs-Icon -->
 <button id="einstellungen-icon" onclick="oeffneEinstellungen()">⚙️</button>
