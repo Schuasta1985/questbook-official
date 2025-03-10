@@ -62,11 +62,13 @@ h1 {
   position:relative;
   display:inline-block;
 }
+
 #avatar-anzeige {
-  max-width:150px;
-  border-radius:10px;
-  box-shadow:0 0 10px rgba(0,0,0,0.5);
+  width: 200px;      /* oder was immer du möchtest */
+  height: 200px;     /* wenn du ein quadratisches Format willst */
+  object-fit: cover; /* sorgt für sauberen Zuschnitt */
 }
+
 #benutzer-name {
   margin-top:10px;
   font-size:20px;
@@ -167,7 +169,7 @@ h1 {
 .player-card {
   background: rgba(0,0,0,0.6);
   border-radius:10px;
-  width:180px;
+  width:220px;
   padding:10px;
   text-align:center;
   color:#FFD700;
