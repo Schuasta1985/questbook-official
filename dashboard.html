@@ -75,6 +75,24 @@
     <h2>Tägliche Quests</h2>
     <div id="quest-container"></div>
   </section>
+  <section id="admin-zauber-section" style="display: none;">
+  <h2>Zauber verwalten (nur Admin)</h2>
+  
+  <div>
+    <input type="text" id="zauber-name" placeholder="Zaubername">
+    <select id="zauber-typ">
+      <option value="heilen">Heilen</option>
+      <option value="schaden">Schaden</option>
+    </select>
+    <input type="number" id="zauber-wert" placeholder="Wert (z.B. 20)">
+    <input type="number" id="zauber-kosten" placeholder="Kosten MP (z.B. 10)">
+    <button onclick="adminZauberAnlegen()">Neuen Zauber speichern</button>
+  </div>
+
+  <!-- Liste aller Zauber -->
+  <ul id="admin-zauber-liste"></ul>
+</section>
+
 
 </main>
 
