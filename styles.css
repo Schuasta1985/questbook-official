@@ -64,7 +64,7 @@ h1 {
 }
 
 #avatar-anzeige {
-  width: 350px;      /* oder was immer du möchtest */
+  width: 250px;      /* oder was immer du möchtest */
   height: 200px;     /* wenn du ein quadratisches Format willst */
   object-fit: cover; /* sorgt für sauberen Zuschnitt */
 }
