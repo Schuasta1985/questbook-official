@@ -9,100 +9,65 @@
 <body>
 
 <header>
-  <h1>Willkommen im Quest-Buch</h1>
+  <h1>Quest-Buch – Dashboard</h1>
   <p id="familien-info">
     Familie: <span id="familien-name">-</span> |
     Admin: <span id="admin-email">-</span>
   </p>
-  <!-- Einstellungs-Button, öffnet Popup mit Tabs -->
-  <button id="einstellungen-icon" onclick="oeffneEinstellungen()">⚙️</button>
 </header>
 
 <main>
-  <!-- Anzeige Avatar + Name -->
+
+  <!-- AVATAR & XP-BALKEN & BUTTONS -->
   <div id="avatar-display">
     <img id="avatar-anzeige" src="avatars/avatar1.png" alt="Avatar">
     <h2 id="benutzer-name">(Username)</h2>
+
+    <!-- XP-Balken (progress) -->
+    <div id="xp-bar-outer">
+      <div id="xp-bar-inner"></div>
+      <span id="xp-bar-text">Noch 100 XP bis zum nächsten Level</span>
+    </div>
+
+    <!-- Buttons: Zauber & Spezial (Popups öffnen) -->
+    <button id="btn-zauber" class="action-button" onclick="zeigeZauberPopup()">Zauber</button>
+    <button id="btn-spezial" class="action-button" onclick="zeigeSpezialPopup()">Spezial</button>
   </div>
 
-  <!-- EINSTELLUNGS-PANEL (mit Tabs) -->
-  <section id="einstellungen-section" style="display:none;">
-    <div class="tab-header">
-      <button class="tab-btn" data-tab="tab-profile">👤 Profil</button>
-      <button class="tab-btn" data-tab="tab-zauber" style="display:none;">🔮 Zauber</button>
-      <button class="tab-btn" data-tab="tab-quests" style="display:none;">📜 Quests</button>
-      <button class="tab-btn" data-tab="tab-spezial" style="display:none;">✨ Spezial</button>
+  <!-- POPUP ZAUBER -->
+  <div id="popup-zauber" class="popup-modal" style="display:none;">
+    <div class="popup-content">
+      <h3>Zauber wirken</h3>
+      <label>Ziel:</label>
+      <select id="zauber-ziel-popup"></select>
+      <br><br>
+      <label>Zauber:</label>
+      <select id="zauber-liste-popup"></select>
+      <br><br>
+      <button onclick="popupZauberWirken()">Wirken!</button>
+      <button onclick="closeZauberPopup()">Schließen</button>
     </div>
+  </div>
 
-    <!-- TAB: PROFIL -->
-    <div class="tab-content" id="tab-profile" style="display:none;">
-      <h2>Profil bearbeiten</h2>
-      <img id="avatar-preview" src="avatars/avatar1.png" style="max-width:120px;"><br>
-      <select id="avatar-auswahl"></select><br><br>
-      <input type="text" id="namen-input" placeholder="Neuer Name"><br><br>
-      <button onclick="avatarSpeichern()">Speichern</button>
-      <button onclick="schliesseEinstellungen()">Abbrechen</button>
+  <!-- POPUP SPEZIAL -->
+  <div id="popup-spezial" class="popup-modal" style="display:none;">
+    <div class="popup-content">
+      <h3>Spezialfähigkeiten</h3>
+      <!-- Einfache Liste? oder select? (Admin legt an "spezial/") -->
+      <select id="spezial-liste-popup"></select>
+      <br><br>
+      <label>Ziel:</label>
+      <select id="spezial-ziel-popup"></select>
+      <br><br>
+      <button onclick="popupSpezialWirken()">Anwenden</button>
+      <button onclick="closeSpezialPopup()">Schließen</button>
     </div>
+  </div>
 
-    <!-- TAB: ZAUBER (admin) -->
-    <div class="tab-content" id="tab-zauber" style="display:none;">
-      <h2>Zauber verwalten</h2>
-      <div>
-        <input type="text" id="zauber-name" placeholder="Zaubername">
-        <select id="zauber-typ">
-          <option value="heilen">Heilen</option>
-          <option value="schaden">Schaden</option>
-        </select>
-        <input type="number" id="zauber-wert" placeholder="Wert">
-        <input type="number" id="zauber-kosten" placeholder="Kosten (MP)">
-        <button onclick="adminZauberAnlegen()">Erstellen</button>
-      </div>
-      <ul id="admin-zauber-liste"></ul>
-      <button onclick="schliesseEinstellungen()">Schließen</button>
-    </div>
-
-    <!-- TAB: QUESTS (admin) -->
-    <div class="tab-content" id="tab-quests" style="display:none;">
-      <h2>Quests verwalten</h2>
-      <!-- admin gibt totalUnits an, wie oft die Quest insgesamt abgeschlossen werden kann -->
-      <div>
-        <input type="text" id="quest-name" placeholder="Quest-Name">
-        <input type="number" id="quest-xp" placeholder="XP pro Einheit">
-        <input type="number" id="quest-totalunits" placeholder="Max. Anzahl">
-        <button onclick="adminQuestAnlegen()">Erstellen</button>
-      </div>
-      <ul id="admin-quests-liste"></ul>
-      <button onclick="schliesseEinstellungen()">Schließen</button>
-    </div>
-
-    <!-- TAB: SPEZIAL (admin) -->
-    <div class="tab-content" id="tab-spezial" style="display:none;">
-      <h2>Spezialfähigkeiten</h2>
-      <div>
-        <input type="text" id="spezial-name" placeholder="Name">
-        <input type="number" id="spezial-kosten" placeholder="Kosten (Level)">
-        <button onclick="adminSpezialAnlegen()">Erstellen</button>
-      </div>
-      <ul id="admin-spezial-liste"></ul>
-      <button onclick="schliesseEinstellungen()">Schließen</button>
-    </div>
-  </section>
-
-  <!-- Karten aller Spieler -->
+  <!-- SPIELER-KARTEN -->
   <section id="player-cards-container"></section>
 
-  <!-- Zauber & Angriff -->
-  <section id="actions-section">
-    <h2>Zauber / Angriff</h2>
-    <label for="zauber-ziel">Ziel:</label>
-    <select id="zauber-ziel"></select>
-    
-    <label for="zauber-auswahl">Zauber:</label>
-    <select id="zauber-auswahl"></select>
-    <button onclick="zauberWirkenHandler()">Wirken</button>
-  </section>
-
-  <!-- LOGS -->
+  <!-- LOGS (nur zauber/spezial) -->
   <section id="log-section">
     <h2>Aktionen der Spezialfähigkeiten</h2>
     <table id="log-table">
@@ -118,14 +83,83 @@
     </table>
   </section>
 
-  <!-- Tägliche Quests -->
+  <!-- TÄGLICHE QUESTS -->
   <section id="quest-section">
     <h2>Tägliche Quests</h2>
     <div id="quest-container"></div>
   </section>
+
 </main>
 
+<!-- EINSTELLUNGS-BEREICH (TABS) -->
+<section id="einstellungen-section" style="display:none;">
+  <div class="tab-header">
+    <button class="tab-btn" data-tab="tab-profile">👤 Profil</button>
+    <button class="tab-btn" data-tab="tab-zauber" style="display:none;">🔮 Zauber</button>
+    <button class="tab-btn" data-tab="tab-quests" style="display:none;">📜 Quests</button>
+    <button class="tab-btn" data-tab="tab-spezial" style="display:none;">✨ Spezial</button>
+  </div>
+
+  <!-- TAB: PROFIL -->
+  <div class="tab-content" id="tab-profile">
+    <h2>Profil bearbeiten</h2>
+    <img id="avatar-preview" src="avatars/avatar1.png" style="max-width:120px;">
+    <br><br>
+    <select id="avatar-auswahl"></select>
+    <br><br>
+    <input type="text" id="namen-input" placeholder="Neuer Name">
+    <br><br>
+    <button onclick="avatarSpeichern()">Speichern</button>
+    <button onclick="schliesseEinstellungen()">Abbrechen</button>
+  </div>
+
+  <!-- TAB: ZAUBER (admin) -->
+  <div class="tab-content" id="tab-zauber">
+    <h2>Zauber verwalten</h2>
+    <div>
+      <input type="text" id="zauber-name" placeholder="Zaubername">
+      <select id="zauber-typ">
+        <option value="heilen">Heilen</option>
+        <option value="schaden">Schaden</option>
+      </select>
+      <input type="number" id="zauber-wert" placeholder="Wert">
+      <input type="number" id="zauber-kosten" placeholder="Kosten MP">
+      <button onclick="adminZauberAnlegen()">Erstellen</button>
+    </div>
+    <ul id="admin-zauber-liste"></ul>
+    <button onclick="schliesseEinstellungen()">Schließen</button>
+  </div>
+
+  <!-- TAB: QUESTS (admin) -->
+  <div class="tab-content" id="tab-quests">
+    <h2>Quests verwalten</h2>
+    <div>
+      <input type="text" id="quest-name" placeholder="Quest-Name">
+      <input type="number" id="quest-xp" placeholder="XP pro Einheit">
+      <input type="number" id="quest-totalunits" placeholder="Max. Anzahl">
+      <button onclick="adminQuestAnlegen()">Erstellen</button>
+    </div>
+    <button onclick="adminQuestsAlleLoeschen()" style="margin-top:10px;">Alle Quests löschen</button>
+    <ul id="admin-quests-liste"></ul>
+    <button onclick="schliesseEinstellungen()">Schließen</button>
+  </div>
+
+  <!-- TAB: SPEZIAL (admin) -->
+  <div class="tab-content" id="tab-spezial">
+    <h2>Spezialfähigkeiten</h2>
+    <div>
+      <input type="text" id="spezial-name" placeholder="Name">
+      <input type="number" id="spezial-kosten" placeholder="Kosten (Level)">
+      <button onclick="adminSpezialAnlegen()">Erstellen</button>
+    </div>
+    <ul id="admin-spezial-liste"></ul>
+    <button onclick="schliesseEinstellungen()">Schließen</button>
+  </div>
+</section>
+
 <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
+<!-- Einstellungs-Icon -->
+<button id="einstellungen-icon" onclick="oeffneEinstellungen()">⚙️</button>
 
 </body>
 </html>
