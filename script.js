@@ -267,22 +267,6 @@ async function ladeBenutzerdaten(){
   }
 }
 
-/** Animation bei Level-Up: #levelup-animation => scale(1) => fade out */
-function playLevelUpAnimation(){
-  const elem= document.getElementById("levelup-animation");
-  if(!elem) return;
-  elem.style.transform= "translate(-50%,-50%) scale(0)";
-  elem.style.opacity= "1";
-
-  setTimeout(()=>{
-    elem.style.transform= "translate(-50%,-50%) scale(1)";
-  },50);
-
-  setTimeout(()=>{
-    elem.style.opacity="0";
-  },1500);
-}
-
 /* =============== SPIELER-KARTEN =============== */
 async function zeigeFamilienMitglieder(famID){
   const fSnap= await get(ref(db,"familien/"+famID+"/mitglieder"));
