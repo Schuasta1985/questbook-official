@@ -410,3 +410,22 @@ h1 {
   font-weight: bold;
   color: #c0392b;
 }
+#donate-button {
+  position: fixed;        /* bleibt am Fensterrand beim Scrollen */
+  bottom: 20px;           /* Abstand von unten */
+  right: 20px;            /* Abstand von rechts */
+  background-color: #ffc439;  /* PayPal-typische gelbe Farbe */
+  color: #111;            /* dunkle Schrift */
+  padding: 10px 15px;     /* etwas Platz um den Text */
+  border-radius: 5px;     /* abgerundete Ecken */
+  text-decoration: none;  /* kein Unterstrich */
+  font-weight: bold;
+  font-size: 16px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* leichter Schatten */
+  z-index: 9999;          /* falls andere Elemente überdecken */
+}
+
+#donate-button:hover {
+  background-color: #ffb347; /* Hover-Farbe */
+}
+
