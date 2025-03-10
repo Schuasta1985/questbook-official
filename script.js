@@ -448,26 +448,25 @@ async function zeigeAlleNutzer() {
     let hpPerc = Math.round(((ud.hp || 0) / maxHP) * 100);
     let mpPerc = Math.round(((ud.mp || 0) / maxMP) * 100);
 
-let card = document.createElement("div");
-card.className = "player-card";
-card.innerHTML = `
-  <img src="${ud.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
-  <h3>${ud.name}</h3>
-  <div class="player-level">Level: ${ud.level || 1}</div>
-  <div>
-    <div class="bar-outer">
-      <div class="bar-inner hp" style="width:${hpPerc}%;"></div>
-    </div>
-    <span class="bar-text">${ud.hp || 0}/${maxHP} HP</span>
-  </div>
-  <div>
-    <div class="bar-outer">
-      <div class="bar-inner mp" style="width:${mpPerc}%;"></div>
-    </div>
-    <span class="bar-text">${ud.mp || 0}/${maxMP} MP</span>
-  </div>
-`;
-
+    let card = document.createElement("div");
+    card.className = "player-card";
+    card.innerHTML = `
+      <img src="${ud.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
+      <h3>${ud.name}</h3>
+      <div class="player-level">Level: ${ud.level || 1}</div>
+      <div>
+        <div class="bar-outer">
+          <div class="bar-inner hp" style="width:${hpPerc}%;"></div>
+        </div>
+        <span class="bar-text">${ud.hp || 0}/${maxHP} HP</span>
+      </div>
+      <div>
+        <div class="bar-outer">
+          <div class="bar-inner mp" style="width:${mpPerc}%;"></div>
+        </div>
+        <span class="bar-text">${ud.mp || 0}/${maxMP} MP</span>
+      </div>
+    `;
     container.appendChild(card);
   }
 }
@@ -1026,6 +1025,11 @@ async function adminQuestListeLaden(){
     ul.appendChild(li);
   });
 }
+
+/**
+ * Hier fügen wir NACH dem Anlegen zusätzlich 'ladeQuests(user.uid)' ein,
+ * damit die neue Quest sofort in den Täglichen Quests sichtbar ist.
+ */
 window.adminQuestAnlegen= async function(){
   const qName= document.getElementById("quest-name").value;
   const qXP=   parseInt(document.getElementById("quest-xp").value,10);
@@ -1042,8 +1046,17 @@ window.adminQuestAnlegen= async function(){
     doneCount:0
   });
   alert("Quest angelegt!");
+  
+  // 1) Admin-Liste aktualisieren
   adminQuestListeLaden();
+
+  // 2) Tägliche Quests sofort neu laden, damit sie direkt oben angezeigt werden
+  const user = auth.currentUser;
+  if (user) {
+    ladeQuests(user.uid);
+  }
 };
+
 async function adminQuestLoeschen(qKey){
   if(!confirm("Quest wirklich löschen?")) return;
   await update(ref(db,"quests/"+qKey), null);
