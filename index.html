@@ -2,44 +2,56 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Quest-Buch Login</title>
+  <title>Quest-Buch – Start</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header>
-  <h1>Herzlich Willkommen im Quest-Buch</h1>
+  <h1>Willkommen im öffentlichen Quest-Buch!</h1>
 </header>
 
 <main id="auth-container">
-  <!-- Buttons im Stil von Bild 3 -->
+
+  <!-- Infotext über das Spiel -->
+  <section id="game-info">
+    <h2>Was ist das Quest-Buch?</h2>
+    <p>
+      Das Quest-Buch ist ein familiäres Online-Rollenspiel, bei dem du gemeinsam mit deiner 
+      Familie oder Freunden tägliche Aufgaben (Quests) erledigst, Zauber wirkst und 
+      Spezialfähigkeiten einsetzen kannst. Durch fleißiges Abschließen von Aufgaben und 
+      Interaktionen steigst du im Level auf und verbesserst deinen Charakter!
+    </p>
+  </section>
+
+  <!-- Buttons für Login/Register -->
   <div id="auth-selection">
     <button id="login-btn" class="auth-button">Einloggen</button>
     <button id="register-btn" class="auth-button">Registrieren</button>
   </div>
 
   <!-- Login-Formular -->
-  <div id="login-form" class="auth-form" style="display: none;">
+  <div id="login-form" class="auth-form" style="display:none;">
     <h3>Einloggen</h3>
     <input type="email" id="login-email" placeholder="E-Mail">
     <input type="password" id="login-password" placeholder="Passwort">
-    <button onclick="benutzerEinloggen()" class="auth-button">Anmelden</button>
-    
+    <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
+
     <p>Oder per Google:</p>
-    <button onclick="googleLogin()" class="auth-button">Google Login</button>
+    <button class="auth-button" onclick="googleLogin()">Google Login</button>
   </div>
 
   <!-- Registrierungs-Formular -->
-  <div id="register-form" class="auth-form" style="display: none;">
+  <div id="register-form" class="auth-form" style="display:none;">
     <h3>Registrieren / Familie gründen</h3>
     <input type="text" id="family-name" placeholder="(Optional) Familienname">
     <input type="email" id="admin-email" placeholder="E-Mail">
     <input type="password" id="admin-password" placeholder="Passwort">
-    <button onclick="familieErstellen()" class="auth-button">Registrieren</button>
+    <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
   </div>
 
 </main>
 
-<script type="module" src="script.js"></script>
 </body>
+<script type="module" src="script.js"></script>
 </html>
