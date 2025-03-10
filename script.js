@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import {
   getDatabase, ref, set, get, update, push, onValue,
-  query, orderByChild, equalTo
+  query, orderByChild, equalTo, remove
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 import {
   getAuth,
@@ -113,8 +113,7 @@ function playLevelUpAnimation() {
 }
 
 /**
- * Zauber wirken (wird in popupZauberWirken/zauberWirkenHandler aufgerufen),
- * war in deinem Code nur angedeutet, aber nicht definiert.
+ * Zauber wirken
  */
 async function wirkeZauber(zielID, zauberKey) {
   const user = auth.currentUser;
@@ -184,6 +183,9 @@ async function wirkeZauber(zielID, zauberKey) {
     wert:       z.wert,
     kosten:     z.kostenMP
   });
+
+  // UI neu laden => aktualisiert HP/MP/Level
+  await ladeBenutzerdaten();
 
   alert(`Zauber erfolgreich gewirkt: ${z.name} auf ${zielName}`);
 }
@@ -378,7 +380,7 @@ async function ladeBenutzerdaten() {
   ladeLogsInTabelle();
   ladeQuests(user.uid);
 
-  // Admin => show "Alle Logs löschen"?
+  // Admin => show "Alle Logs löschen" ?
   if (userData.isAdmin) {
     const logClearBtn = document.getElementById("btn-log-clear");
     if (logClearBtn) logClearBtn.style.display = "inline-block";
@@ -451,7 +453,8 @@ async function zeigeAlleNutzer() {
     card.innerHTML = `
       <img src="${ud.avatarURL || 'avatars/avatar1.png'}" alt="Avatar">
       <h3>${ud.name}</h3>
-      <div class="player-level">Level: ${ud.level || 1}</div>
+      <div class="player-level">Level: ${
+${ud.level || 1}</div>
       <div>
         <div class="bar-outer">
           <div class="bar-inner hp" style="width:${hpPerc}%;"></div>
@@ -655,7 +658,7 @@ window.popupSpezialWirken = async function() {
   closeSpezialPopup();
 };
 
-/** Spezialfähigkeit analog zu deinem Code */
+/** Spezialfähigkeit analog */
 async function wirkeSpezial(zielID, spKey) {
   const user = auth.currentUser;
   if (!user) return;
@@ -716,6 +719,9 @@ async function wirkeSpezial(zielID, spKey) {
   }
 
   await update(ref(db), updates);
+
+  // UI neu laden => aktualisiert Level
+  await ladeBenutzerdaten();
 
   if (!success) {
     alert(`Fähigkeit fehlgeschlagen! Du verlierst trotzdem ${sp.kostenLevel || 0} Level.`);
@@ -790,7 +796,9 @@ function ladeLogsInTabelle() {
 // Admin => log CLEAR
 window.adminLogsClear = async function() {
   if (!confirm("Wirklich ALLE Logs löschen?")) return;
-  await update(ref(db, "publicLogs"), null);
+  // Du kannst update(..., null) oder remove(...) nehmen:
+  // await update(ref(db, "publicLogs"), null);
+  await remove(ref(db, "publicLogs"));
   alert("Alle Logs gelöscht!");
 };
 
@@ -890,9 +898,9 @@ async function questAbschliessen(qid, uid) {
   if (leveledUp) {
     playLevelUpAnimation();
   }
-  // KEIN Log => quest => skip
-  // reload
-  ladeQuests(uid);
+
+  // **Neu**: Gesamte UI aktualisieren => Kartenanzeige + Level
+  await ladeBenutzerdaten();
 }
 
 /* =============== EINSTELLUNGEN (TABS) =============== */
