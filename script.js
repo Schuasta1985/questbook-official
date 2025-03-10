@@ -30,530 +30,699 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 const auth= getAuth();
 
-/* ===========================
-   LEVEL/XP-Mechanik
-=========================== */
-/** 
- * Alle 10 Level steigt das XP-Cap um 100 
- * Level 1-9 => 100 XP, 10-19 => 200 XP, etc.
- */
-function xpNeededForLevel(level) {
-  let block = Math.floor((level-1)/10)+1; 
-  return 100 * block;
+/** Alle 10 Level +100 XP pro Stufe */
+function xpNeededForLevel(level){
+  let block= Math.floor((level-1)/10)+1; 
+  return 100* block;
 }
-/** Checken, ob user xp >= xpNeeded => level up */
-function checkLevelUp(userData) {
-  let xp  = userData.xp    || 0;
-  let lvl = userData.level || 1;
 
-  let xpNeed = xpNeededForLevel(lvl);
-  let changed = false;
-  while (xp >= xpNeed) {
+/** Level-up check => returns { newLevel, newXP, leveledUp:boolean } */
+function checkLevelUp(userData){
+  let xp  = userData.xp    ||0;
+  let lvl = userData.level ||1;
+
+  let xpNeed= xpNeededForLevel(lvl);
+  let leveledUp= false;
+  while(xp>= xpNeed){
     xp -= xpNeed;
     lvl++;
-    xpNeed = xpNeededForLevel(lvl);
-    changed = true;
+    xpNeed= xpNeededForLevel(lvl);
+    leveledUp= true;
   }
-  return { newXP: xp, newLevel: lvl };
-}
-/** Updatet XP-Balken (#xp-bar-inner,#xp-bar-text) */
-function updateXPBar(userData) {
-  let xp   = userData.xp    || 0;
-  let lvl  = userData.level || 1;
-  let xpNeed = xpNeededForLevel(lvl);
-
-  let xpBar  = document.getElementById("xp-bar-inner");
-  let xpText = document.getElementById("xp-bar-text");
-  if (!xpBar || !xpText) return;
-
-  let perc = Math.round((xp/xpNeed)*100);
-  xpBar.style.width = Math.min(100, perc)+"%";
-  let rest = xpNeed - xp;
-  xpText.textContent = `Noch ${rest} XP bis zum nächsten Level`;
+  return { newXP: xp, newLevel:lvl, leveledUp};
 }
 
-/* ===========================
-   LOGIN/REGISTRIERUNG
-=========================== */
-document.addEventListener("DOMContentLoaded", ()=> {
-  const loginBtn    = document.getElementById("login-btn");
-  const registerBtn = document.getElementById("register-btn");
-  if (loginBtn) {
-    loginBtn.onclick = ()=> {
-      if (document.getElementById("login-form"))  document.getElementById("login-form").style.display = "block";
-      if (document.getElementById("register-form")) document.getElementById("register-form").style.display = "none";
-    };
-  }
-  if (registerBtn) {
-    registerBtn.onclick = ()=> {
-      if (document.getElementById("login-form"))    document.getElementById("login-form").style.display = "none";
-      if (document.getElementById("register-form")) document.getElementById("register-form").style.display = "block";
-    };
-  }
-});
+/** Updatet XP-Balken + Text */
+function updateXPBar(userData){
+  let xp   = userData.xp   ||0;
+  let lvl  = userData.level||1;
+  let xpNeed= xpNeededForLevel(lvl);
 
-window.benutzerEinloggen = async function() {
-  const email = document.getElementById("login-email")?.value;
-  const pw    = document.getElementById("login-password")?.value;
-  try {
-    await signInWithEmailAndPassword(auth, email, pw);
-    window.location.href = "dashboard.html";
-  } catch(e) {
-    alert(e.message);
-  }
-};
+  let bar   = document.getElementById("xp-bar-inner");
+  let txt   = document.getElementById("xp-bar-text");
+  if(!bar||!txt) return;
 
-window.googleLogin = async function() {
-  const provider = new GoogleAuthProvider();
-  try {
-    await signInWithPopup(auth, provider);
-    window.location.href = "dashboard.html";
-  } catch(e) {
-    alert(e.message);
-  }
-};
+  let perc= Math.round( (xp/xpNeed)*100);
+  bar.style.width= Math.min(100, perc)+"%";
+  let rest= xpNeed- xp;
+  txt.textContent= `Noch ${rest} XP bis zum nächsten Level`;
+}
 
-window.familieErstellen = async function() {
-  const famName    = document.getElementById("family-name").value.trim();
-  const adminEmail = document.getElementById("admin-email").value.trim();
-  const adminPass  = document.getElementById("admin-password").value.trim();
-  if (!adminEmail || !adminPass) {
-    alert("E-Mail und Passwort erforderlich!");
-    return;
-  }
-  try {
-    // User anlegen
-    const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
-    const uid = userCred.user.uid;
+/** Zeigt kurz eine "LEVEL UP!"-Animation */
+function playLevelUpAnimation(){
+  const elem= document.getElementById("levelup-animation");
+  if(!elem) return;
+  // reset
+  elem.style.transform= "translate(-50%,-50%) scale(0)";
+  elem.style.opacity= "1";
 
-    if (!famName) {
-      // ohne Familie
-      await set(ref(db, "benutzer/"+uid), {
-        email: adminEmail,
-        familie: null,
-        isAdmin: false,
-        name: adminEmail.split("@")[0],
-        level: 1, xp:0, hp:100, mp:100
-      });
-      alert("Registrierung erfolgreich (ohne Familie)!");
-      window.location.href = "dashboard.html";
-      return;
-    } else {
-      // Familie-Check
-      const famQ = query(ref(db, "familien"), orderByChild("name"), equalTo(famName));
-      const snap = await get(famQ);
-      if (snap.exists()) {
-        // familie existiert => user=Mitglied
-        const data = snap.val();
-        const famKey = Object.keys(data)[0];
-        await set(ref(db, "benutzer/"+uid), {
-          email: adminEmail,
-          familie: famKey,
-          isAdmin: false,
-          name: adminEmail.split("@")[0],
-          level:1, xp:0, hp:100, mp:100
-        });
-        await update(ref(db, "familien/"+famKey+"/mitglieder"), {[uid]:true});
-        alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
-        window.location.href = "dashboard.html";
-      } else {
-        // neu => admin
-        const famID = Date.now().toString();
-        await set(ref(db, "familien/"+famID), {
-          name: famName,
-          admin: adminEmail,
-          mitglieder: { [uid]: true }
-        });
-        await set(ref(db, "benutzer/"+uid), {
-          email: adminEmail,
-          familie: famID,
-          isAdmin: true,
-          name: adminEmail.split("@")[0],
-          level:1, xp:0, hp:100, mp:100
-        });
-        alert(`Neue Familie '${famName}' erstellt! Du bist Admin.`);
-        window.location.href = "dashboard.html";
-      }
-    }
-  } catch(e) {
-    alert(e.message);
-  }
-};
+  setTimeout(()=>{
+    elem.style.transform= "translate(-50%,-50%) scale(1)";
+  },50);
 
-window.ausloggen = async function() {
-  try {
-    await signOut(auth);
-    window.location.href="index.html";
-  } catch(e) {
-    console.error(e);
-  }
-};
+  // Wegfaden nach 1.5s
+  setTimeout(()=>{
+    elem.style.opacity="0";
+  },1500);
+}
 
-/* ===========================
-   ON AUTH STATE
-=========================== */
-onAuthStateChanged(auth, (user)=> {
-  if (user && window.location.href.includes("dashboard.html")) {
+// ================ AUTH STATE ================
+onAuthStateChanged(auth, (user)=>{
+  if(user && window.location.href.includes("dashboard.html")){
     ladeBenutzerdaten();
   } else if(!user && window.location.href.includes("dashboard.html")){
     window.location.href="index.html";
   }
 });
 
-/* ===========================
-   TÄGLICHE REGENERATION
-=========================== */
-async function checkeTäglicheRegen(uid) {
-  const today = new Date().toISOString().split("T")[0];
-  const snap = await get(ref(db, "benutzer/"+uid));
-  if (!snap.exists()) return;
-  let uData = snap.val();
+// ================ LOGIN / REGISTER / LOGOUT ================
+document.addEventListener("DOMContentLoaded", ()=>{
+  const lBtn= document.getElementById("login-btn");
+  const rBtn= document.getElementById("register-btn");
+  if(lBtn){
+    lBtn.onclick= ()=>{
+      if(document.getElementById("login-form")) document.getElementById("login-form").style.display="block";
+      if(document.getElementById("register-form")) document.getElementById("register-form").style.display="none";
+    };
+  }
+  if(rBtn){
+    rBtn.onclick= ()=>{
+      if(document.getElementById("login-form")) document.getElementById("login-form").style.display="none";
+      if(document.getElementById("register-form")) document.getElementById("register-form").style.display="block";
+    };
+  }
+});
 
-  if (uData.lastDailyRegen===today) return;
+window.benutzerEinloggen= async function(){
+  const email= document.getElementById("login-email")?.value;
+  const pw   = document.getElementById("login-password")?.value;
+  try{
+    await signInWithEmailAndPassword(auth, email, pw);
+    window.location.href="dashboard.html";
+  }catch(e){ alert(e.message); }
+};
 
-  let level = uData.level||1;
-  let hp    = uData.hp   ||100;
-  let mp    = uData.mp   ||100;
+window.googleLogin= async function(){
+  const provider= new GoogleAuthProvider();
+  try{
+    await signInWithPopup(auth, provider);
+    window.location.href="dashboard.html";
+  }catch(e){ alert(e.message); }
+};
 
-  let maxHP = 100 + Math.floor((level-1)/10)*100;
-  let maxMP = 100 + Math.floor((level-1)/10)*50;
+window.familieErstellen= async function(){
+  const famName= document.getElementById("family-name").value.trim();
+  const adminEmail= document.getElementById("admin-email").value.trim();
+  const adminPass= document.getElementById("admin-password").value.trim();
+  if(!adminEmail||!adminPass){
+    alert("E-Mail und Passwort erforderlich!");
+    return;
+  }
+  try{
+    const userCred= await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
+    const uid= userCred.user.uid;
 
-  let newHP = Math.min(maxHP, hp+ Math.floor(maxHP*0.1));
-  let newMP = Math.min(maxMP, mp+ Math.floor(maxMP*0.1));
+    if(!famName){
+      // ohne Familie
+      await set(ref(db,"benutzer/"+uid),{
+        email: adminEmail,
+        familie:null,
+        isAdmin:false,
+        name: adminEmail.split("@")[0],
+        level:1, xp:0, hp:100, mp:100
+      });
+      alert("Registrierung erfolgreich (ohne Familie)!");
+      window.location.href="dashboard.html";
+      return;
+    } else {
+      // check familie
+      const famQ= query(ref(db,"familien"), orderByChild("name"), equalTo(famName));
+      const snap= await get(famQ);
+      if(snap.exists()){
+        // exist => mitglied
+        const data= snap.val();
+        const famKey= Object.keys(data)[0];
+        await set(ref(db,"benutzer/"+uid),{
+          email: adminEmail,
+          familie: famKey,
+          isAdmin:false,
+          name: adminEmail.split("@")[0],
+          level:1, xp:0, hp:100, mp:100
+        });
+        await update(ref(db,"familien/"+famKey+"/mitglieder"), {[uid]:true});
+        alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
+        window.location.href="dashboard.html";
+      } else {
+        // neu => admin
+        const famID= Date.now().toString();
+        await set(ref(db,"familien/"+famID), {
+          name:famName,
+          admin:adminEmail,
+          mitglieder:{ [uid]:true }
+        });
+        await set(ref(db,"benutzer/"+uid), {
+          email: adminEmail,
+          familie:famID,
+          isAdmin:true,
+          name: adminEmail.split("@")[0],
+          level:1, xp:0, hp:100, mp:100
+        });
+        alert(`Neue Familie '${famName}' erstellt! Du bist Admin.`);
+        window.location.href="dashboard.html";
+      }
+    }
+  }catch(e){ alert(e.message); }
+};
 
-  await update(ref(db, "benutzer/"+uid), {
-    hp: newHP,
-    mp: newMP,
-    lastDailyRegen: today
-  });
-}
+window.ausloggen= async function(){
+  try{
+    await signOut(auth);
+    window.location.href="index.html";
+  }catch(e){ console.error(e); }
+};
 
-/* ===========================
-   LADE BENUTZERDATEN
-=========================== */
-async function ladeBenutzerdaten() {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const snap = await get(ref(db, "benutzer/"+user.uid));
+// ================ LADE BENUTZERDATEN ================
+async function ladeBenutzerdaten(){
+  const user= auth.currentUser;
+  if(!user) return;
+  const snap= await get(ref(db,"benutzer/"+user.uid));
   if(!snap.exists()) return;
-  let userData = snap.val();
+  let userData= snap.val();
 
-  // Tägliche Regeneration
+  // Tägliche Regen
   await checkeTäglicheRegen(user.uid);
 
-  // Check Level
-  let result = checkLevelUp(userData);
-  if (result.newLevel!== userData.level || result.newXP!== userData.xp) {
+  // check levelUp
+  let { newXP, newLevel, leveledUp }= checkLevelUp(userData);
+  if(newLevel!== userData.level || newXP!== userData.xp){
+    // update DB
+    userData.level= newLevel;
+    userData.xp   = newXP;
     await update(ref(db,"benutzer/"+user.uid), {
-      level: result.newLevel,
-      xp: result.newXP
+      level:newLevel,
+      xp:newXP
     });
-    userData.level = result.newLevel;
-    userData.xp    = result.newXP;
   }
 
-  // Avatar, Name
-  document.getElementById("avatar-anzeige").src = userData.avatarURL || "avatars/avatar1.png";
-  document.getElementById("benutzer-name").textContent = userData.name || userData.email;
+  // falls leveledUp => animation
+  if(leveledUp){
+    // UI-Update
+    playLevelUpAnimation();
+  }
 
-  // XP-Bar
+  // avatar
+  const av= document.getElementById("avatar-anzeige");
+  if(av) av.src= userData.avatarURL||"avatars/avatar1.png";
+  const bn= document.getElementById("benutzer-name");
+  if(bn) bn.textContent= userData.name|| userData.email;
+
+  // xpBar
   updateXPBar(userData);
 
-  // Familie?
-  if (userData.familie) {
-    const famSnap = await get(ref(db, "familien/"+ userData.familie));
-    if(famSnap.exists()) {
-      let famData = famSnap.val();
-      document.getElementById("familien-name").textContent = famData.name;
-      document.getElementById("admin-email").textContent   = famData.admin;
+  // familie
+  if(userData.familie){
+    const famSnap= await get(ref(db,"familien/"+ userData.familie));
+    if(famSnap.exists()){
+      let fD= famSnap.val();
+      document.getElementById("familien-name").textContent= fD.name;
+      document.getElementById("admin-email").textContent= fD.admin;
     }
     await zeigeFamilienMitglieder(userData.familie);
   } else {
-    document.getElementById("familien-name").textContent = "Keine";
-    document.getElementById("admin-email").textContent    = userData.isAdmin?userData.email:"-";
+    document.getElementById("familien-name").textContent="Keine";
+    document.getElementById("admin-email").textContent= userData.isAdmin?userData.email:"-";
     await zeigeAlleNutzer();
   }
 
-  // Zauber, Ziel, Logs, Quests
+  // logs, quests, etc
   await ladeZauberListe();
   await ladeZielListe();
   ladeLogsInTabelle();
   ladeQuests(user.uid);
+
+  // Admin => show "Alle Logs löschen" ?
+  if(userData.isAdmin){
+    const logClearBtn= document.getElementById("btn-log-clear");
+    if(logClearBtn) logClearBtn.style.display="inline-block";
+  }
 }
 
-/* ===========================
-   SPIELER-KARTEN
-=========================== */
+/** Animation bei Level-Up: #levelup-animation => scale(1) => fade out */
+function playLevelUpAnimation(){
+  const elem= document.getElementById("levelup-animation");
+  if(!elem) return;
+  elem.style.transform= "translate(-50%,-50%) scale(0)";
+  elem.style.opacity= "1";
+
+  setTimeout(()=>{
+    elem.style.transform= "translate(-50%,-50%) scale(1)";
+  },50);
+
+  setTimeout(()=>{
+    elem.style.opacity="0";
+  },1500);
+}
+
+/* =============== SPIELER-KARTEN =============== */
 async function zeigeFamilienMitglieder(famID){
-  const fSnap = await get(ref(db,"familien/"+famID+"/mitglieder"));
+  const fSnap= await get(ref(db,"familien/"+famID+"/mitglieder"));
   if(!fSnap.exists()) return;
-  let memObj = fSnap.val();
-  const container = document.getElementById("player-cards-container");
+  let memObj= fSnap.val();
+
+  const container= document.getElementById("player-cards-container");
   if(!container) return;
   container.innerHTML="";
 
   for(let uid in memObj){
-    const uSnap = await get(ref(db,"benutzer/"+uid));
-    if(!uSnap.exists()) continue;
-    let uData = uSnap.val();
+    const bsnap= await get(ref(db,"benutzer/"+uid));
+    if(!bsnap.exists()) continue;
+    let bD= bsnap.val();
 
-    let maxHP = 100 + Math.floor((uData.level-1)/10)*100;
-    let maxMP = 100 + Math.floor((uData.level-1)/10)*50;
+    let maxHP= 100 + Math.floor((bD.level-1)/10)*100;
+    let maxMP= 100 + Math.floor((bD.level-1)/10)*50;
 
-    let hpPerc = Math.round((uData.hp||0)/maxHP*100);
-    let mpPerc = Math.round((uData.mp||0)/maxMP*100);
+    let hpPerc= Math.round((bD.hp||0)/maxHP*100);
+    let mpPerc= Math.round((bD.mp||0)/maxMP*100);
 
-    let card = document.createElement("div");
+    let card= document.createElement("div");
     card.className="player-card";
     card.innerHTML=`
-      <img src="${uData.avatarURL||'avatars/avatar1.png'}" alt="Avatar">
-      <h3>${uData.name}</h3>
-      <div class="player-level">Level: ${uData.level||1}</div>
+      <img src="${bD.avatarURL||'avatars/avatar1.png'}" alt="Avatar">
+      <h3>${bD.name}</h3>
+      <div class="player-level">Level: ${bD.level||1}</div>
       <div>
         <div class="bar-outer">
           <div class="bar-inner hp" style="width:${hpPerc}%;"></div>
         </div>
-        <span class="bar-text">${uData.hp||0}/${maxHP} HP</span>
+        <span class="bar-text">${bD.hp||0}/${maxHP} HP</span>
       </div>
       <div>
         <div class="bar-outer">
           <div class="bar-inner mp" style="width:${mpPerc}%;"></div>
         </div>
-        <span class="bar-text">${uData.mp||0}/${maxMP} MP</span>
+        <span class="bar-text">${bD.mp||0}/${maxMP} MP</span>
       </div>
     `;
     container.appendChild(card);
   }
 }
-
 async function zeigeAlleNutzer(){
-  const snap = await get(ref(db,"benutzer"));
+  const snap= await get(ref(db,"benutzer"));
   if(!snap.exists()) return;
   const container= document.getElementById("player-cards-container");
   if(!container) return;
   container.innerHTML="";
 
-  let allUsers = snap.val();
-  for(let uid in allUsers){
-    let uData= allUsers[uid];
+  let uObj= snap.val();
+  for(let uid in uObj){
+    let ud= uObj[uid];
 
-    let maxHP= 100 + Math.floor((uData.level-1)/10)*100;
-    let maxMP= 100 + Math.floor((uData.level-1)/10)*50;
+    let maxHP= 100 + Math.floor((ud.level-1)/10)*100;
+    let maxMP= 100 + Math.floor((ud.level-1)/10)*50;
 
-    let hpPerc= Math.round((uData.hp||0)/maxHP*100);
-    let mpPerc= Math.round((uData.mp||0)/maxMP*100);
+    let hpPerc= Math.round((ud.hp||0)/maxHP*100);
+    let mpPerc= Math.round((ud.mp||0)/maxMP*100);
 
     let card= document.createElement("div");
     card.className="player-card";
     card.innerHTML=`
-      <img src="${uData.avatarURL||'avatars/avatar1.png'}" alt="Avatar">
-      <h3>${uData.name}</h3>
-      <div class="player-level">Level: ${uData.level||1}</div>
+      <img src="${ud.avatarURL||'avatars/avatar1.png'}" alt="Avatar">
+      <h3>${ud.name}</h3>
+      <div class="player-level">Level: ${ud.level||1}</div>
       <div>
         <div class="bar-outer">
           <div class="bar-inner hp" style="width:${hpPerc}%;"></div>
         </div>
-        <span class="bar-text">${uData.hp||0}/${maxHP} HP</span>
+        <span class="bar-text">${ud.hp||0}/${maxHP} HP</span>
       </div>
       <div>
         <div class="bar-outer">
           <div class="bar-inner mp" style="width:${mpPerc}%;"></div>
         </div>
-        <span class="bar-text">${uData.mp||0}/${maxMP} MP</span>
+        <span class="bar-text">${ud.mp||0}/${maxMP} MP</span>
       </div>
     `;
     container.appendChild(card);
   }
 }
 
-/* ===========================
-   ZAUBER & ANGRIFF
-=========================== */
+/* =============== ZAUBER & ANGRIFF (Dropdown) =============== */
 async function ladeZauberListe(){
-  // Normales <select id="zauber-auswahl"> existiert
-  const sel = document.getElementById("zauber-auswahl");
+  const sel= document.getElementById("zauber-auswahl");
   if(!sel) return;
   sel.innerHTML="";
-
   const snap= await get(ref(db,"zauber"));
   if(!snap.exists()) return;
   let zObj= snap.val();
   Object.keys(zObj).forEach(k=>{
     let z= zObj[k];
     let opt= document.createElement("option");
-    opt.value= k;
-    opt.textContent=`${z.name} (Kosten:${z.kostenMP||0}MP)`;
+    opt.value=k;
+    opt.textContent= `${z.name} (kosten: ${z.kostenMP||0} MP)`;
     sel.appendChild(opt);
   });
 }
-
 async function ladeZielListe(){
   const user= auth.currentUser;
   if(!user) return;
-  const snap= await get(ref(db,"benutzer/"+user.uid));
-  if(!snap.exists()) return;
-  let uData= snap.val();
+  const bSnap= await get(ref(db,"benutzer/"+user.uid));
+  if(!bSnap.exists()) return;
+  let bD= bSnap.val();
 
   const sel= document.getElementById("zauber-ziel");
   if(!sel) return;
   sel.innerHTML="";
 
-  if(uData.familie){
-    const famSnap= await get(ref(db,"familien/"+uData.familie+"/mitglieder"));
-    if(!famSnap.exists()) return;
-    let memObj= famSnap.val();
-    for(let uid in memObj){
-      if(uid===user.uid) continue;
-      let bsnap= await get(ref(db,"benutzer/"+uid));
-      if(!bsnap.exists()) continue;
-      let bd= bsnap.val();
-
-      let opt= document.createElement("option");
-      opt.value= uid;
-      opt.textContent= bd.name;
-      sel.appendChild(opt);
+  if(bD.familie){
+    const famSnap= await get(ref(db,"familien/"+bD.familie+"/mitglieder"));
+    if(famSnap.exists()){
+      let mem= famSnap.val();
+      for(let uid in mem){
+        if(uid===user.uid) continue;
+        const xSnap= await get(ref(db,"benutzer/"+uid));
+        if(!xSnap.exists()) continue;
+        let xd= xSnap.val();
+        let opt= document.createElement("option");
+        opt.value= uid;
+        opt.textContent= xd.name;
+        sel.appendChild(opt);
+      }
     }
   }
 }
-
 window.zauberWirkenHandler= async function(){
-  const zielVal= document.getElementById("zauber-ziel").value;
-  const zauberKey= document.getElementById("zauber-auswahl").value;
-  if(!zielVal) {
-    alert("Kein Ziel gewählt!");
+  const zSel= document.getElementById("zauber-auswahl");
+  const tSel= document.getElementById("zauber-ziel");
+  if(!zSel||!tSel) return;
+  let zKey= zSel.value;
+  let target= tSel.value;
+  if(!target) {
+    alert("Kein Ziel gewählt");
     return;
   }
-  await wirkeZauber(zielVal, zauberKey);
+  await wirkeZauber(target, zKey);
 };
 
-/** wirkeZauber, Log nur => actionType="zauber" */
-async function wirkeZauber(zielID, zauberKey){
+/** wirkeZauber => logs as actionType="zauber" + real name for log. done in code below. */
+
+// =============== ZAUBER-POPUP ===============
+window.zeigeZauberPopup= async function(){
+  const pop= document.getElementById("popup-zauber");
+  if(!pop) return;
+  pop.style.display="flex";
+
+  // Ziel-liste + zauber-liste
+  const user= auth.currentUser;
+  if(!user) return;
+  // Clear
+  const selTarget= document.getElementById("zauber-ziel-popup");
+  const selZauber= document.getElementById("zauber-liste-popup");
+  if(!selTarget|| !selZauber) return;
+  selTarget.innerHTML="";
+  selZauber.innerHTML="";
+
+  // hole familie => mitglieder
+  const bSnap= await get(ref(db,"benutzer/"+user.uid));
+  if(!bSnap.exists()) return;
+  let bD= bSnap.val();
+  if(bD.familie){
+    const famSnap= await get(ref(db,"familien/"+bD.familie+"/mitglieder"));
+    if(famSnap.exists()){
+      let mem= famSnap.val();
+      for(let uid in mem){
+        if(uid===user.uid) continue;
+        const bn= await get(ref(db,"benutzer/"+uid));
+        if(!bn.exists()) continue;
+        let d= bn.val();
+        let opt= document.createElement("option");
+        opt.value= uid;
+        opt.textContent= d.name;
+        selTarget.appendChild(opt);
+      }
+    }
+  }
+  // Zauber-liste
+  const zSnap= await get(ref(db,"zauber"));
+  if(!zSnap.exists()) return;
+  let zObj= zSnap.val();
+  Object.keys(zObj).forEach(k=>{
+    let z= zObj[k];
+    let opt= document.createElement("option");
+    opt.value= k;
+    opt.textContent= `${z.name} (Kosten:${z.kostenMP||0}MP)`;
+    selZauber.appendChild(opt);
+  });
+};
+
+window.closeZauberPopup= function(){
+  const pop= document.getElementById("popup-zauber");
+  if(pop) pop.style.display="none";
+};
+
+window.popupZauberWirken= async function(){
+  const selT= document.getElementById("zauber-ziel-popup");
+  const selZ= document.getElementById("zauber-liste-popup");
+  if(!selT|| !selZ) return;
+  let tVal= selT.value;
+  let zVal= selZ.value;
+  await wirkeZauber(tVal, zVal);
+  closeZauberPopup();
+};
+
+// =============== SPEZIAL-POPUP ===============
+window.zeigeSpezialPopup= async function(){
+  const pop= document.getElementById("popup-spezial");
+  if(!pop) return;
+  pop.style.display="flex";
+
   const user= auth.currentUser;
   if(!user) return;
 
-  const zSnap= await get(ref(db,"zauber/"+zauberKey));
-  if(!zSnap.exists()){
-    alert("Zauber existiert nicht!");
-    return;
-  }
-  let zauber= zSnap.val();
+  const bSnap= await get(ref(db,"benutzer/"+user.uid));
+  if(!bSnap.exists()) return;
+  let bD= bSnap.val();
 
-  const casterSnap= await get(ref(db,"benutzer/"+user.uid));
-  if(!casterSnap.exists()){
-    alert("Caster nicht gefunden!");
-    return;
-  }
-  let caster= casterSnap.val();
+  const selTarget= document.getElementById("spezial-ziel-popup");
+  const selSpec  = document.getElementById("spezial-liste-popup");
+  if(!selTarget|| !selSpec) return;
+  selTarget.innerHTML="";
+  selSpec.innerHTML="";
 
-  if((caster.mp||0)< (zauber.kostenMP||0)){
-    alert("Nicht genug MP!");
-    return;
-  }
-  const zielSnap= await get(ref(db,"benutzer/"+zielID));
-  if(!zielSnap.exists()){
-    alert("Ziel nicht gefunden!");
-    return;
-  }
-  let ziel= zielSnap.val();
-
-  let updates={};
-  // MP abziehen
-  updates[`benutzer/${user.uid}/mp`] = Math.max(0, (caster.mp||0)- (zauber.kostenMP||0));
-
-  if(zauber.typ==="heilen"){
-    let maxHP= 100 + Math.floor((ziel.level-1)/10)*100;
-    let newHP= Math.min(maxHP, (ziel.hp||0)+ zauber.wert);
-    updates[`benutzer/${zielID}/hp`] = newHP;
-  } else if(zauber.typ==="schaden"){
-    let newHP= Math.max(0, (ziel.hp||0)- zauber.wert);
-    updates[`benutzer/${zielID}/hp`] = newHP;
-    if(newHP<=0){
-      let newLvl= Math.max(1, (ziel.level||1)-1);
-      let respawnHP= 100 + Math.floor((newLvl-1)/10)*100;
-      updates[`benutzer/${zielID}/level`] = newLvl;
-      updates[`benutzer/${zielID}/hp`]    = respawnHP;
+  if(bD.familie){
+    const famSnap= await get(ref(db,"familien/"+bD.familie+"/mitglieder"));
+    if(famSnap.exists()){
+      let mem= famSnap.val();
+      for(let uid in mem){
+        if(uid===user.uid) continue;
+        const bn= await get(ref(db,"benutzer/"+uid));
+        if(!bn.exists()) continue;
+        let d= bn.val();
+        let opt= document.createElement("option");
+        opt.value= uid;
+        opt.textContent= d.name;
+        selTarget.appendChild(opt);
+      }
     }
   }
+  // "spezial/"
+  const spSnap= await get(ref(db,"spezial"));
+  if(!spSnap.exists()) return;
+  let spObj= spSnap.val();
+  Object.keys(spObj).forEach(k=>{
+    let s= spObj[k];
+    let opt= document.createElement("option");
+    opt.value= k;
+    opt.textContent= `${s.name} (Kosten:${s.kostenLevel||0},Chance:${s.chance||100}%)`;
+    selSpec.appendChild(opt);
+  });
+};
+
+window.closeSpezialPopup= function(){
+  const pop= document.getElementById("popup-spezial");
+  if(pop) pop.style.display="none";
+};
+
+window.popupSpezialWirken= async function(){
+  const selT= document.getElementById("spezial-ziel-popup");
+  const selS= document.getElementById("spezial-liste-popup");
+  if(!selT|| !selS) return;
+
+  let tVal= selT.value;
+  let sVal= selS.value;
+
+  await wirkeSpezial(tVal, sVal);
+  closeSpezialPopup();
+};
+
+/** wirkeSpezial => Admin definierte "kommentar", "chance", "cooldown" => 
+    - Chance => random => success/fail
+    - Immer Kosten abziehen
+    - If success => user can't use again => block e.g. store lastUsed + cooldown? 
+*/
+async function wirkeSpezial(zielID, spKey){
+  const user= auth.currentUser;
+  if(!user) return;
+
+  // caster
+  const cSnap= await get(ref(db,"benutzer/"+user.uid));
+  if(!cSnap.exists()) return;
+  let caster= cSnap.val();
+
+  // ability
+  const spSnap= await get(ref(db,"spezial/"+spKey));
+  if(!spSnap.exists()) return alert("Spezialfähigkeit existiert nicht!");
+  let sp= spSnap.val();
+
+  // Ziel
+  const zSnap= await get(ref(db,"benutzer/"+zielID));
+  if(!zSnap.exists()) return alert("Ziel nicht gefunden!");
+  let ziel= zSnap.val();
+
+  // Check level cost
+  if((caster.level||1)< (sp.kostenLevel||0)){
+    alert(`Nicht genug Level! Benötigt: ${sp.kostenLevel||0}`);
+    return;
+  }
+
+  // Check cooldown => z.B. wir speichern caster.spezialUsed?.[spKey]= date => can't use again 
+  // (hier nur rudimentär)
+  let now= new Date();
+  let casterSpecUsed= caster.spezialUsed|| {};
+  if(casterSpecUsed[spKey]){
+    let lastUsedMs= casterSpecUsed[spKey];
+    let diffDays= (now.getTime()- lastUsedMs)/(1000*60*60*24);
+    if(diffDays< (sp.cooldown||0)){
+      let left= (sp.cooldown||0)- diffDays;
+      alert(`Fähigkeit gesperrt! Noch ~${left.toFixed(1)} Tage warten.`);
+      return;
+    }
+  }
+
+  // Abziehen => newLevel
+  let newLvl= caster.level;
+  for(let i=0; i<(sp.kostenLevel||0); i++){
+    if(newLvl>1) newLvl--;
+  }
+
+  // check chance => success/fail
+  let chance= (sp.chance||100); 
+  let rolled= Math.random()*100;
+  let success= (rolled< chance);
+
+  // updates
+  let updates={};
+  updates[`benutzer/${user.uid}/level`] = newLvl;
+
+  if(success){
+    // success => set lastUsed now
+    casterSpecUsed[spKey]= now.getTime(); 
+    updates[`benutzer/${user.uid}/spezialUsed`] = casterSpecUsed;
+    // => optional: was tun? healing? 
+  } 
+
   await update(ref(db), updates);
 
-  // Log => publicLogs mit actionType="zauber"
+  if(!success){
+    alert(`Fähigkeit fehlgeschlagen! Du verlierst trotzdem ${sp.kostenLevel||0} Level.`);
+  } else {
+    alert(`Fähigkeit erfolgreich! ${sp.kommentar|| ''}`);
+  }
+
+  // log => actionType="spezial", store realName
+  // => wir wollen im log => benutzerName + zielName
+  let casterName= caster.name|| caster.email;
+  let zielName  = ziel.name  || ziel.email;
+
   await push(ref(db,"publicLogs"), {
-    timestamp: Date.now(),
-    caster: user.uid,
-    target: zielID,
-    actionType: "zauber",
-    zauber: zauber.name,
-    typ: zauber.typ,
-    wert: zauber.wert,
-    kosten: zauber.kostenMP||0
+    timestamp:Date.now(),
+    actionType:"spezial",
+    casterID: user.uid, 
+    targetID: zielID,
+    casterName: casterName,
+    targetName: zielName,
+    name: sp.name,
+    kosten: sp.kostenLevel||0,
+    chance: sp.chance||100,
+    kommentar: sp.kommentar||"",
+    success: success
   });
-  alert(`Zauber '${zauber.name}' gewirkt!`);
 }
 
-/* ===========================
-   LOGS 
-   => Nur actionType=="zauber"/"spezial" 
-=========================== */
+/* =============== LOGS (NUR ZAUBER/SPEZIAL) =============== 
+   => wir holen real name: 
+   => in wirkeZauber => push(caster, target) 
+   => in wirkeSpezial => push(casterName, targetName)
+   => Hier => wir zeigen L.casterName || L.casterID 
+*/
 function ladeLogsInTabelle(){
-  const tb= document.getElementById("log-table-body");
-  if(!tb) return;
+  const body= document.getElementById("log-table-body");
+  if(!body) return;
   onValue(ref(db,"publicLogs"), (snap)=>{
-    tb.innerHTML="";
+    body.innerHTML="";
     if(!snap.exists()) return;
     let logs= snap.val();
     let keys= Object.keys(logs).sort((a,b)=> logs[b].timestamp - logs[a].timestamp);
+
     keys.forEach(k=>{
       let l= logs[k];
-      // "quest" => skip
-      if(l.actionType==="quest") return; 
-      // Nur zauber/spezial 
+      // skip quest
+      if(l.actionType==="quest") return;
+
       let tr= document.createElement("tr");
 
-      let tdDate= document.createElement("td");
-      tdDate.textContent= new Date(l.timestamp).toLocaleString();
+      let tdD= document.createElement("td");
+      tdD.textContent= new Date(l.timestamp).toLocaleString();
 
-      let tdUser= document.createElement("td");
-      tdUser.textContent= l.caster|| l.user || "--";
+      let tdU= document.createElement("td");
+      // prefer casterName => fallback
+      tdU.textContent= l.casterName|| l.caster|| l.user||"--";
 
-      let tdZiel= document.createElement("td");
-      tdZiel.textContent= l.target|| "-";
+      let tdZ= document.createElement("td");
+      tdZ.textContent= l.targetName|| l.target|| l.targetID|| "--";
 
-      let tdFaeh= document.createElement("td");
-      tdFaeh.textContent= `${l.zauber|| l.name} (Typ: ${l.typ||'??'}, Wert: ${l.wert||0}, Kosten: ${l.kosten||0})`;
+      let tdF= document.createElement("td");
+      if(l.actionType==="zauber"){
+        tdF.textContent= `${l.zauber} (Typ:${l.typ}, Wert:${l.wert}, Kosten:${l.kosten||0})`;
+      } else if(l.actionType==="spezial"){
+        let succ= l.success? "erfolgreich":"fehlgeschlagen";
+        tdF.textContent= `${l.name} [${succ}] (Kosten:${l.kosten||0}, Chance:${l.chance||100}%, Kommentar:'${l.kommentar||""}')`;
+      } else {
+        tdF.textContent= `(??)`;
+      }
 
-      tr.appendChild(tdDate);
-      tr.appendChild(tdUser);
-      tr.appendChild(tdZiel);
-      tr.appendChild(tdFaeh);
-
-      tb.appendChild(tr);
+      tr.appendChild(tdD);
+      tr.appendChild(tdU);
+      tr.appendChild(tdZ);
+      tr.appendChild(tdF);
+      body.appendChild(tr);
     });
   });
 }
 
-/* ===========================
-   QUests 
-   => Keine Logs 
-   => Prompt nach Einheiten
-=========================== */
+// Admin => log CLEAR
+window.adminLogsClear= async function(){
+  if(!confirm("Wirklich ALLE Logs löschen?")) return;
+  await update(ref(db,"publicLogs"), null);
+  alert("Alle Logs gelöscht!");
+};
+
+/* =============== QUESTS =============== */
 async function ladeQuests(uid){
-  const qC= document.getElementById("quest-container");
-  if(!qC) return;
+  const qc= document.getElementById("quest-container");
+  if(!qc) return;
   const snap= await get(ref(db,"quests"));
   if(!snap.exists()){
-    qC.innerHTML="<p>Keine Quests vorhanden.</p>";
+    qc.innerHTML="<p>Keine Quests vorhanden.</p>";
     return;
   }
   let qObj= snap.val();
-  qC.innerHTML="";
+  qc.innerHTML="";
 
   Object.keys(qObj).forEach(qid=>{
     let quest= qObj[qid];
-    let doneC= quest.doneCount||0;
+    let doneCount= quest.doneCount||0;
     let tot= quest.totalUnits||1;
-
-    let isFertig= (doneC>=tot);
+    let isFertig= (doneCount>= tot);
     let questName= isFertig? `<s>${quest.name}</s>`: quest.name;
 
     let div= document.createElement("div");
@@ -561,91 +730,84 @@ async function ladeQuests(uid){
     div.innerHTML=`
       <div>
         <strong>${questName}</strong><br>
-        Fortschritt: ${doneC}/${tot}
+        Fortschritt: ${doneCount}/${tot}
         <small>(${quest.xpPerUnit||0} XP pro Einheit)</small>
       </div>
     `;
     if(!isFertig){
-      // Button
       let btn= document.createElement("button");
       btn.textContent="Erledigt";
-      btn.onclick= ()=> questAbschliessen(qid,uid);
+      btn.onclick= ()=> questAbschliessen(qid, uid);
       div.appendChild(btn);
     } else {
-      let span= document.createElement("span");
-      span.style.color="lime";
-      span.textContent="Abgeschlossen!";
-      div.appendChild(span);
+      let sp= document.createElement("span");
+      sp.style.color="lime";
+      sp.textContent="Abgeschlossen!";
+      div.appendChild(sp);
     }
-    qC.appendChild(div);
+    qc.appendChild(div);
   });
 }
 
 async function questAbschliessen(qid, uid){
-  // prompt => wie viele Einheiten?
   const qSnap= await get(ref(db,"quests/"+qid));
   if(!qSnap.exists()) return;
   let quest= qSnap.val();
 
   let doneC= quest.doneCount||0;
   let tot= quest.totalUnits||1;
-  if(doneC>=tot){
-    alert("Quest ist schon abgeschlossen.");
+  if(doneC>= tot){
+    alert("Quest ist bereits abgeschlossen.");
     return;
   }
   let rest= tot- doneC;
-  let input= prompt(`Wie viele Einheiten von '${quest.name}' möchtest du abschließen?\n(Verbleibend: ${rest})`);
-  if(!input) return;
-  let anzahl= parseInt(input,10);
-  if(isNaN(anzahl)|| anzahl<=0) return alert("Ungültige Eingabe.");
+  let howManyStr= prompt(`Wie viele Einheiten von '${quest.name}' möchtest du abschließen?\n(Verbleibend: ${rest})`);
+  if(!howManyStr) return;
+  let howMany= parseInt(howManyStr,10);
+  if(isNaN(howMany)|| howMany<=0) return alert("Ungültige Eingabe.");
 
-  if(anzahl> rest) anzahl= rest; // max=rest
-  // XP
-  const userSnap= await get(ref(db,"benutzer/"+uid));
-  if(!userSnap.exists()) return;
-  let userData= userSnap.val();
+  if(howMany> rest) howMany= rest; // max
 
-  let gainedXP= (quest.xpPerUnit||0)* anzahl;
-  let newXP= (userData.xp||0)+ gainedXP;
-  let lvl= userData.level||1;
+  // xp
+  const uSnap= await get(ref(db,"benutzer/"+uid));
+  if(!uSnap.exists()) return;
+  let uData= uSnap.val();
 
-  // level-check
-  let xpNeed= xpNeededForLevel(lvl);
+  let gainedXP= (quest.xpPerUnit||0)* howMany;
+  let newXP= (uData.xp||0)+ gainedXP;
+  let level= uData.level||1;
+
+  // check level up
+  let xpNeed= xpNeededForLevel(level);
+  let leveledUp= false;
   while(newXP>= xpNeed){
     newXP -= xpNeed;
-    lvl++;
-    xpNeed= xpNeededForLevel(lvl);
+    level++;
+    xpNeed= xpNeededForLevel(level);
+    leveledUp= true;
   }
 
-  let newDone= doneC+ anzahl;
+  let newDone= doneC+ howMany;
+
   let updates={};
-  updates[`benutzer/${uid}/xp`]   = newXP;
-  updates[`benutzer/${uid}/level`]= lvl;
-  updates[`quests/${qid}/doneCount`]= newDone;
+  updates[`benutzer/${uid}/xp`] = newXP;
+  updates[`benutzer/${uid}/level`]= level;
+  updates[`quests/${qid}/doneCount`] = newDone;
 
   await update(ref(db), updates);
 
-  // XP-Bar 
-  updateXPBar({ xp:newXP, level:lvl });
+  // direct xpBar update
+  updateXPBar({ xp:newXP, level:level });
 
-  // Kein Alert (außer invalid)
-  // => neu laden
+  if(leveledUp){
+    playLevelUpAnimation();
+  }
+  // KEIN Log => quest => wir skip
+  // reload
   ladeQuests(uid);
 }
 
-/* ===========================
-   ADMIN: ALLE Quests löschen
-=========================== */
-window.adminQuestsAlleLoeschen= async function(){
-  if(!confirm("Wirklich ALLE Quests löschen?")) return;
-  await update(ref(db, "quests"), null);
-  adminQuestListeLaden();
-  alert("Alle Quests gelöscht!");
-};
-
-/* ===========================
-   EINSTELLUNGEN-FENSTER (TABS)
-=========================== */
+/* =============== EINSTELLUNGEN (TABS) =============== */
 window.oeffneEinstellungen= async function(){
   const s= document.getElementById("einstellungen-section");
   if(!s) return;
@@ -654,26 +816,27 @@ window.oeffneEinstellungen= async function(){
 
   const user= auth.currentUser;
   if(!user) return;
-  const snap= await get(ref(db,"benutzer/"+user.uid));
-  if(!snap.exists()) return;
-  let uData= snap.val();
+  const uSnap= await get(ref(db,"benutzer/"+user.uid));
+  if(!uSnap.exists()) return;
+  let uData= uSnap.val();
 
-  // Admin-check => show/hide tabs
-  const tZ= document.querySelector("[data-tab='tab-zauber']");
-  const tQ= document.querySelector("[data-tab='tab-quests']");
-  const tS= document.querySelector("[data-tab='tab-spezial']");
+  const tz= document.querySelector("[data-tab='tab-zauber']");
+  const tq= document.querySelector("[data-tab='tab-quests']");
+  const ts= document.querySelector("[data-tab='tab-spezial']");
+
   if(uData.isAdmin){
-    tZ.style.display="inline-block";
-    tQ.style.display="inline-block";
-    tS.style.display="inline-block";
+    tz.style.display="inline-block";
+    tq.style.display="inline-block";
+    ts.style.display="inline-block";
     adminZauberListeLaden();
     adminQuestListeLaden();
     adminSpezialListeLaden();
   } else {
-    tZ.style.display="none";
-    tQ.style.display="none";
-    tS.style.display="none";
+    tz.style.display="none";
+    tq.style.display="none";
+    ts.style.display="none";
   }
+
   await zeigeAvatarEinstellungen();
 };
 
@@ -684,20 +847,17 @@ window.schliesseEinstellungen= function(){
 
 function switchTab(tabId){
   document.querySelectorAll(".tab-content").forEach(tc=> tc.style.display="none");
-  const target= document.getElementById(tabId);
-  if(target) target.style.display="block";
+  const t= document.getElementById(tabId);
+  if(t) t.style.display="block";
 }
-
 document.addEventListener("click",(e)=>{
   if(e.target.classList.contains("tab-btn")){
-    let t= e.target.getAttribute("data-tab");
-    switchTab(t);
+    let tb= e.target.getAttribute("data-tab");
+    switchTab(tb);
   }
 });
 
-/* ===========================
-   ADMIN-FUNKTIONEN: ZAUBER
-=========================== */
+/* =============== ADMIN: ZAUBER  =============== */
 async function adminZauberListeLaden(){
   const ul= document.getElementById("admin-zauber-liste");
   if(!ul) return;
@@ -712,7 +872,7 @@ async function adminZauberListeLaden(){
   Object.keys(zObj).forEach(k=>{
     let z= zObj[k];
     let li= document.createElement("li");
-    li.textContent= `${z.name} (Typ:${z.typ}, Wert:${z.wert}, Kosten:${z.kostenMP}MP)`;
+    li.textContent=`${z.name} (Typ:${z.typ}, Wert:${z.wert}, Kosten:${z.kostenMP} MP)`;
     let btn= document.createElement("button");
     btn.textContent="Löschen";
     btn.onclick= ()=> adminZauberLoeschen(k);
@@ -720,33 +880,32 @@ async function adminZauberListeLaden(){
     ul.appendChild(li);
   });
 }
-
 window.adminZauberAnlegen= async function(){
-  const name= document.getElementById("zauber-name").value;
-  const typ=  document.getElementById("zauber-typ").value;
-  const wert= parseInt(document.getElementById("zauber-wert").value,10);
-  const cost= parseInt(document.getElementById("zauber-kosten").value,10);
-  if(!name|| isNaN(wert)|| isNaN(cost)){
+  const zName= document.getElementById("zauber-name").value;
+  const zTyp=  document.getElementById("zauber-typ").value;
+  const zWert= parseInt(document.getElementById("zauber-wert").value,10);
+  const zCost= parseInt(document.getElementById("zauber-kosten").value,10);
+  if(!zName|| isNaN(zWert)|| isNaN(zCost)){
     alert("Bitte Name, Typ, Wert, Kosten angeben!");
     return;
   }
   const newKey= push(ref(db,"zauber")).key;
-  await set(ref(db,"zauber/"+newKey), {
-    name:name, typ:typ, wert:wert, kostenMP: cost
+  await set(ref(db,"zauber/"+newKey),{
+    name:zName, 
+    typ:zTyp,
+    wert:zWert,
+    kostenMP:zCost
   });
   alert("Zauber angelegt!");
   adminZauberListeLaden();
 };
-
 async function adminZauberLoeschen(k){
   if(!confirm("Zauber wirklich löschen?")) return;
   await update(ref(db,"zauber/"+k), null);
   adminZauberListeLaden();
 }
 
-/* ===========================
-   ADMIN-FUNKTIONEN: QUESTS
-=========================== */
+/* =============== ADMIN: QUESTS  =============== */
 async function adminQuestListeLaden(){
   const ul= document.getElementById("admin-quests-liste");
   if(!ul) return;
@@ -758,45 +917,42 @@ async function adminQuestListeLaden(){
     return;
   }
   let qObj= snap.val();
-  Object.keys(qObj).forEach(qk=>{
-    let q= qObj[qk];
+  Object.keys(qObj).forEach(qKey=>{
+    let q= qObj[qKey];
     let li= document.createElement("li");
     let dc= q.doneCount||0;
     let tot= q.totalUnits||1;
     li.textContent= `${q.name} (XP:${q.xpPerUnit}, Fortschritt:${dc}/${tot})`;
     let btn= document.createElement("button");
     btn.textContent="Löschen";
-    btn.onclick= ()=> adminQuestLoeschen(qk);
+    btn.onclick= ()=> adminQuestLoeschen(qKey);
     li.appendChild(btn);
     ul.appendChild(li);
   });
 }
-
 window.adminQuestAnlegen= async function(){
-  const qName=  document.getElementById("quest-name").value;
-  const qXP=    parseInt(document.getElementById("quest-xp").value,10);
-  const qUnits= parseInt(document.getElementById("quest-totalunits").value,10);
-  if(!qName|| isNaN(qXP)|| isNaN(qUnits)){
+  const qName= document.getElementById("quest-name").value;
+  const qXP=   parseInt(document.getElementById("quest-xp").value,10);
+  const qTot=  parseInt(document.getElementById("quest-totalunits").value,10);
+  if(!qName|| isNaN(qXP)|| isNaN(qTot)){
     alert("Bitte Name, XP und Anzahl angeben!");
     return;
   }
-  const newKey= push(ref(db,"quests")).key;
-  await set(ref(db,"quests/"+newKey), {
-    name: qName,
-    xpPerUnit: qXP,
-    totalUnits: qUnits,
-    doneCount: 0
+  const newK= push(ref(db,"quests")).key;
+  await set(ref(db,"quests/"+newK), {
+    name:qName,
+    xpPerUnit:qXP,
+    totalUnits:qTot,
+    doneCount:0
   });
   alert("Quest angelegt!");
   adminQuestListeLaden();
 };
-
 async function adminQuestLoeschen(qKey){
   if(!confirm("Quest wirklich löschen?")) return;
   await update(ref(db,"quests/"+qKey), null);
   adminQuestListeLaden();
 }
-
 window.adminQuestsAlleLoeschen= async function(){
   if(!confirm("Wirklich ALLE Quests löschen?")) return;
   await update(ref(db,"quests"), null);
@@ -804,9 +960,7 @@ window.adminQuestsAlleLoeschen= async function(){
   adminQuestListeLaden();
 };
 
-/* ===========================
-   ADMIN-FUNKTIONEN: SPEZIAL
-=========================== */
+/* =============== ADMIN: SPEZIAL  =============== */
 async function adminSpezialListeLaden(){
   const ul= document.getElementById("admin-spezial-liste");
   if(!ul) return;
@@ -821,7 +975,7 @@ async function adminSpezialListeLaden(){
   Object.keys(sObj).forEach(sk=>{
     let s= sObj[sk];
     let li= document.createElement("li");
-    li.textContent= `${s.name} (Kosten: ${s.kostenLevel||0} Level)`;
+    li.textContent=`${s.name} (Kosten:${s.kostenLevel||0} Lvl, Chance:${s.chance||100}%, Cooldown:${s.cooldown||0}d, '${s.kommentar||''}')`;
     let btn= document.createElement("button");
     btn.textContent="Löschen";
     btn.onclick= ()=> adminSpezialLoeschen(sk);
@@ -829,272 +983,83 @@ async function adminSpezialListeLaden(){
     ul.appendChild(li);
   });
 }
-
 window.adminSpezialAnlegen= async function(){
-  const sName=   document.getElementById("spezial-name").value;
+  const sName= document.getElementById("spezial-name").value.trim();
   const sKosten= parseInt(document.getElementById("spezial-kosten").value,10);
-  if(!sName|| isNaN(sKosten)){
-    alert("Bitte Name & Kosten angeben!");
+  const sChance= parseInt(document.getElementById("spezial-chance").value,10);
+  const sCd= parseInt(document.getElementById("spezial-cooldown").value,10);
+  const sComm= document.getElementById("spezial-kommentar").value.trim();
+
+  if(!sName|| isNaN(sKosten)|| isNaN(sChance)|| isNaN(sCd)){
+    alert("Bitte Name, Kosten, Chance, Cooldown angeben!");
     return;
   }
   const newKey= push(ref(db,"spezial")).key;
   await set(ref(db,"spezial/"+newKey), {
     name: sName,
-    kostenLevel: sKosten
+    kostenLevel: sKosten,
+    chance: sChance,
+    cooldown: sCd,
+    kommentar: sComm
   });
   alert("Spezialfähigkeit angelegt!");
   adminSpezialListeLaden();
 };
-
 async function adminSpezialLoeschen(sk){
   if(!confirm("Wirklich löschen?")) return;
   await update(ref(db,"spezial/"+sk), null);
   adminSpezialListeLaden();
 }
 
-/* ===========================
-   AVATAR & NAME ÄNDERN
-=========================== */
+/* =============== AVATAR & NAME =============== */
 window.zeigeAvatarEinstellungen= async function(){
   const user= auth.currentUser;
   if(!user) return;
-  const snap= await get(ref(db, "benutzer/"+user.uid));
+  const snap= await get(ref(db,"benutzer/"+user.uid));
   if(!snap.exists()) return;
+  let ud= snap.val();
 
-  let uData= snap.val();
   const pImg= document.getElementById("avatar-preview");
-  const nInput= document.getElementById("namen-input");
+  const nInp= document.getElementById("namen-input");
   const sel= document.getElementById("avatar-auswahl");
-  if(!pImg|| !nInput|| !sel) return;
+  if(!pImg|| !nInp|| !sel) return;
 
-  nInput.value= uData.name||"";
-  pImg.src= uData.avatarURL||"avatars/avatar1.png";
+  nInp.value= ud.name||"";
+  pImg.src= ud.avatarURL||"avatars/avatar1.png";
 
-  const avatarList= [
-    "avatars/avatar1.png",
-    "avatars/avatar2.png",
-    "avatars/avatar3.png",
-    "avatars/avatar4.png",
-    "avatars/avatar5.png",
-    "avatars/avatar6.png",
-    "avatars/avatar7.png",
-    "avatars/avatar8.png",
-    "avatars/avatar9.png",
+  const avList= [
+    "avatars/avatar1.png","avatars/avatar2.png","avatars/avatar3.png",
+    "avatars/avatar4.png","avatars/avatar5.png","avatars/avatar6.png",
+    "avatars/avatar7.png","avatars/avatar8.png","avatars/avatar9.png",
     "avatars/avatar10.png"
   ];
   sel.innerHTML="";
-  avatarList.forEach(a=>{
+  avList.forEach(a=>{
     let opt= document.createElement("option");
     opt.value=a;
     opt.textContent= a.split("/").pop();
     sel.appendChild(opt);
   });
-  sel.value= uData.avatarURL||"avatars/avatar1.png";
-  sel.onchange=()=> { pImg.src= sel.value; };
+  sel.value= ud.avatarURL||"avatars/avatar1.png";
+  sel.onchange= ()=> pImg.src= sel.value;
 };
 
 window.avatarSpeichern= async function(){
   const user= auth.currentUser;
   if(!user) return;
-  const nInput= document.getElementById("namen-input");
+  const nInp= document.getElementById("namen-input");
   const sel= document.getElementById("avatar-auswahl");
   const aImg= document.getElementById("avatar-anzeige");
+  if(!nInp|| !sel|| !aImg) return;
 
-  if(!nInput|| !sel|| !aImg) return;
-  let newName= nInput.value.trim()||"Unbekannt";
-  let chosenURL= sel.value||"avatars/avatar1.png";
+  let newN= nInp.value.trim()|| "Unbekannt";
+  let chURL= sel.value|| "avatars/avatar1.png";
 
   await update(ref(db,"benutzer/"+user.uid), {
-    name: newName,
-    avatarURL: chosenURL
+    name:newN,
+    avatarURL: chURL
   });
-  aImg.src= chosenURL;
-  document.getElementById("benutzer-name").textContent= newName;
-
+  aImg.src= chURL;
+  document.getElementById("benutzer-name").textContent= newN;
   alert("Profil aktualisiert!");
-};
-
-window.schliesseEinstellungen= function(){
-  const s= document.getElementById("einstellungen-section");
-  if(s) s.style.display="none";
-};
-
-/* ===========================
-   ZAUBER-POPUP / SPEZIAL-POPUP
-=========================== */
-window.zeigeZauberPopup= async function(){
-  const pop= document.getElementById("popup-zauber");
-  if(!pop) return;
-  pop.style.display="flex";
-
-  // Ziel-liste
-  const user= auth.currentUser;
-  if(!user) return;
-
-  let familyID= null;
-  const usnap= await get(ref(db,"benutzer/"+user.uid));
-  if(usnap.exists()) familyID= usnap.val().familie||null;
-
-  const selTarget= document.getElementById("zauber-ziel-popup");
-  const selZauber= document.getElementById("zauber-liste-popup");
-  if(!selTarget|| !selZauber) return;
-  selTarget.innerHTML="";
-  selZauber.innerHTML="";
-
-  // Familie -> mitglieder
-  if(familyID){
-    const famSnap= await get(ref(db,"familien/"+familyID+"/mitglieder"));
-    if(famSnap.exists()){
-      let memObj= famSnap.val();
-      for(let uid in memObj){
-        if(uid===user.uid) continue; 
-        const bsn= await get(ref(db,"benutzer/"+uid));
-        if(!bsn.exists()) continue;
-        let bd= bsn.val();
-        let opt= document.createElement("option");
-        opt.value= uid;
-        opt.textContent= bd.name;
-        selTarget.appendChild(opt);
-      }
-    }
-  }
-  // Zauber-liste
-  const zSnap= await get(ref(db,"zauber"));
-  if(zSnap.exists()){
-    let zObj= zSnap.val();
-    Object.keys(zObj).forEach(k=>{
-      let z= zObj[k];
-      let opt= document.createElement("option");
-      opt.value= k;
-      opt.textContent= `${z.name} (Kosten:${z.kostenMP||0}MP)`;
-      selZauber.appendChild(opt);
-    });
-  }
-};
-
-window.closeZauberPopup= function(){
-  const pop= document.getElementById("popup-zauber");
-  if(pop) pop.style.display="none";
-};
-
-window.popupZauberWirken= async function(){
-  const selTarget= document.getElementById("zauber-ziel-popup");
-  const selZauber= document.getElementById("zauber-liste-popup");
-  if(!selTarget|| !selZauber) return;
-  let zielID= selTarget.value;
-  let zauberKey= selZauber.value;
-  await wirkeZauber(zielID, zauberKey);
-  closeZauberPopup();
-};
-
-window.zeigeSpezialPopup= async function(){
-  const pop= document.getElementById("popup-spezial");
-  if(!pop) return;
-  pop.style.display="flex";
-
-  // familie -> ziele
-  const user= auth.currentUser;
-  if(!user) return;
-
-  const usnap= await get(ref(db,"benutzer/"+user.uid));
-  if(!usnap.exists()) return;
-  let famID= usnap.val().familie||null;
-
-  const selTarget= document.getElementById("spezial-ziel-popup");
-  const selSpec  = document.getElementById("spezial-liste-popup");
-  if(!selTarget|| !selSpec) return;
-
-  selTarget.innerHTML="";
-  selSpec.innerHTML="";
-
-  if(famID){
-    const famSnap= await get(ref(db,"familien/"+famID+"/mitglieder"));
-    if(famSnap.exists()){
-      let memObj= famSnap.val();
-      for(let uid in memObj){
-        if(uid===user.uid) continue;
-        const bsn= await get(ref(db,"benutzer/"+uid));
-        if(!bsn.exists()) continue;
-        let bd= bsn.val();
-        let opt= document.createElement("option");
-        opt.value= uid;
-        opt.textContent= bd.name;
-        selTarget.appendChild(opt);
-      }
-    }
-  }
-  // speziel-liste
-  const spSnap= await get(ref(db,"spezial"));
-  if(spSnap.exists()){
-    let spObj= spSnap.val();
-    Object.keys(spObj).forEach(k=>{
-      let s= spObj[k];
-      let opt= document.createElement("option");
-      opt.value= k;
-      opt.textContent= `${s.name} (Kosten: ${s.kostenLevel||0} Lvl)`;
-      selSpec.appendChild(opt);
-    });
-  }
-};
-
-window.closeSpezialPopup= function(){
-  const pop= document.getElementById("popup-spezial");
-  if(pop) pop.style.display="none";
-};
-
-window.popupSpezialWirken= async function(){
-  const selTarget= document.getElementById("spezial-ziel-popup");
-  const selSpec  = document.getElementById("spezial-liste-popup");
-  if(!selTarget|| !selSpec) return;
-
-  let zielID= selTarget.value;
-  let spKey = selSpec.value;
-
-  const user= auth.currentUser;
-  if(!user) return;
-
-  // hole caster, special
-  const casterSnap= await get(ref(db,"benutzer/"+user.uid));
-  if(!casterSnap.exists()) return alert("Deine Daten nicht gefunden!");
-  let caster= casterSnap.val();
-
-  const spSnap= await get(ref(db,"spezial/"+spKey));
-  if(!spSnap.exists()) return alert("Spezialfähigkeit existiert nicht!");
-  let sp= spSnap.val();
-
-  // check Level-Kosten
-  if((caster.level||1)<(sp.kostenLevel||0)){
-    alert(`Nicht genug Level! Benötigt: ${sp.kostenLevel||0}`);
-    return;
-  }
-
-  // Ziel
-  const zielSnap= await get(ref(db,"benutzer/"+zielID));
-  if(!zielSnap.exists()) return alert("Ziel nicht gefunden!");
-  let ziel= zielSnap.val();
-
-  // z.B. minus level? => du könntest coder z.B. caster level--
-  let newLevel= caster.level;
-  for(let i=0; i<(sp.kostenLevel||0); i++){
-    newLevel= Math.max(1, newLevel-1);
-  }
-
-  let updates={};
-  updates[`benutzer/${user.uid}/level`] = newLevel;
-
-  // kannst dem ziel irgendwas +HP geben etc. – oder was du eben willst
-  await update(ref(db), updates);
-
-  // log => actionType="spezial"
-  await push(ref(db,"publicLogs"),{
-    timestamp:Date.now(),
-    caster: user.uid,
-    target: zielID,
-    actionType: "spezial",
-    name: sp.name,
-    kosten: sp.kostenLevel||0
-  });
-  alert(`Spezial '${sp.name}' angewendet! Kosten: ${sp.kostenLevel||0} Lvl`);
-
-  closeSpezialPopup();
 };
