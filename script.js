@@ -248,16 +248,19 @@ async function ladeBenutzerdaten() {
   if (avatarImg) avatarImg.src = userData.avatarURL || "avatars/avatar1.png";
   if (nameElem)  nameElem.textContent = userData.name || userData.email;
 
-  ladeZauberListe();
-  ladeZielListe();
+  // Zauber-Liste laden
+  await ladeZauberListe();
+  // Ziele laden
+  await ladeZielListe();
+  // Logs
   ladeLogsInTabelle();
+  // Quests
   ladeQuests(user.uid);
 }
 
 /** Balken-Funktion für HP/MP */
 function getBarHTML(current, max, type="hp") {
   const perc = Math.round((current / max) * 100);
-  // z. B. "hp" oder "mp"
   return `
     <div class="bar-outer">
       <div class="bar-inner ${type}" style="width: ${perc}%;"></div>
@@ -284,7 +287,6 @@ async function zeigeFamilienMitglieder(famID) {
     let maxHP = 100 + Math.floor((benData.level-1)/10)*100;
     let maxMP = 100 + Math.floor((benData.level-1)/10)*50;
 
-    // Balken
     const hpBar = getBarHTML(benData.hp || 0, maxHP, "hp");
     const mpBar = getBarHTML(benData.mp || 0, maxMP, "mp");
 
@@ -332,44 +334,29 @@ async function zeigeAlleNutzer() {
 }
 
 /* ZAUBER-LISTE & ANGRIFF */
-function ladeZauberListe() {
+async function ladeZauberListe() {
   const zauberSelect = document.getElementById("zauber-auswahl");
   if (!zauberSelect) return;
   zauberSelect.innerHTML = "";
 
-  // Hier kannst du beliebig viele Zauber definieren
-  const zauber = [
-    { 
-      id: "z1", 
-      name: "Heilzauber",  
-      typ: "heilen", 
-      wert: 20,         // z. B. +20 HP
-      kostenMP: 10      // z. B. 10 MP
-    },
-    { 
-      id: "z2", 
-      name: "Feuerball", 
-      typ: "schaden", 
-      wert: 30,         // 30 Schaden
-      kostenMP: 15      // 15 MP
-    },
-    {
-      id: "z3",
-      name: "Frostblitz",
-      typ: "schaden",
-      wert: 20,
-      kostenMP: 8
-    }
-    // usw.
-  ];
+  // Hole alle Zauber aus DB
+  const snap = await get(ref(db, "zauber"));
+  if (!snap.exists()) {
+    console.log("Keine Zauber definiert.");
+    return;
+  }
+  const zauberObj = snap.val();
 
-  zauber.forEach(z => {
+  // Durch die Keys iterieren
+  Object.keys(zauberObj).forEach(zKey => {
+    let zData = zauberObj[zKey];
     const opt = document.createElement("option");
-    opt.value = z.id;
-    opt.textContent = `${z.name} (Kosten: ${z.kostenMP} MP)`;
+    opt.value = zKey; 
+    opt.textContent = `${zData.name} (Kosten: ${zData.kostenMP || 0} MP)`;
     zauberSelect.appendChild(opt);
   });
 }
+
 
 async function ladeZielListe() {
   const user = auth.currentUser;
@@ -399,38 +386,45 @@ async function ladeZielListe() {
   }
 }
 
+/** Aufruf durch Button "Wirken" */
 window.zauberWirkenHandler = async function() {
   const zielVal   = document.getElementById("zauber-ziel").value;
-  const zauberVal = document.getElementById("zauber-auswahl").value;
+  const zauberKey = document.getElementById("zauber-auswahl").value;  // ZAUBER-KEY (z1, z2,...)
   if (!zielVal) {
     alert("Kein Ziel ausgewählt!");
     return;
   }
-  let zauber = {};
-  if (zauberVal === "z1") zauber = { typ:"heilen",  wert:20, name:"Heilzauber" };
-  if (zauberVal === "z2") zauber = { typ:"schaden", wert:30, name:"Feuerball" };
-  await wirkeZauber(zielVal, zauber);
+  await wirkeZauber(zielVal, zauberKey);
 };
 
-async function wirkeZauber(zielID, zauber) {
+/** Die eigentliche Wirken-Funktion */
+async function wirkeZauber(zielID, zauberKey) {
   const user = auth.currentUser;
   if (!user) return;
 
-  // Hole caster (Benutzer)
+  // Lade Zauber-Daten
+  const zauberSnap = await get(ref(db, `zauber/${zauberKey}`));
+  if (!zauberSnap.exists()) {
+    alert("Zauber existiert nicht!");
+    return;
+  }
+  const zauber = zauberSnap.val();
+
+  // Lade Caster
   const casterSnap = await get(ref(db, `benutzer/${user.uid}`));
   if (!casterSnap.exists()) {
-    alert("Deine Daten nicht gefunden!");
+    alert("Fehler: Deine Daten nicht gefunden.");
     return;
   }
   const caster = casterSnap.val();
 
-  // Prüfe, ob caster genug MP hat
+  // MP-Check
   if (zauber.kostenMP && (caster.mp || 0) < zauber.kostenMP) {
     alert("Nicht genug MP!");
     return;
   }
 
-  // Ziel ...
+  // Lade Ziel
   const zielSnap = await get(ref(db, `benutzer/${zielID}`));
   if (!zielSnap.exists()) {
     alert("Ziel nicht gefunden!");
@@ -440,7 +434,7 @@ async function wirkeZauber(zielID, zauber) {
 
   let updates = {};
 
-  // Caster MP abziehen
+  // MP abziehen
   if (zauber.kostenMP) {
     updates[`benutzer/${user.uid}/mp`] = Math.max(0, (caster.mp||0) - zauber.kostenMP);
   }
@@ -462,7 +456,7 @@ async function wirkeZauber(zielID, zauber) {
 
   await update(ref(db), updates);
 
-  // Logging
+  // Log
   await push(ref(db, "publicLogs"), {
     timestamp: Date.now(),
     caster: user.uid,
@@ -472,6 +466,7 @@ async function wirkeZauber(zielID, zauber) {
     wert: zauber.wert,
     kosten: zauber.kostenMP || 0
   });
+
   alert(`Zauber '${zauber.name}' ausgeführt! (Kosten: ${zauber.kostenMP||0} MP)`);
 }
 
@@ -497,7 +492,7 @@ function ladeLogsInTabelle() {
       let tdZiel = document.createElement("td");
       tdZiel.textContent = l.target;
       let tdFäh = document.createElement("td");
-      tdFäh.textContent = `${l.zauber} (Typ: ${l.typ}, Wert: ${l.wert})`;
+      tdFäh.textContent = `${l.zauber} (Typ: ${l.typ}, Wert: ${l.wert}, Kosten: ${l.kosten||0} MP)`;
       tr.appendChild(tdDatum);
       tr.appendChild(tdBenutzer);
       tr.appendChild(tdZiel);
