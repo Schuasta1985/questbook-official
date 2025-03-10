@@ -641,14 +641,6 @@ window.schliesseEinstellungen = function() {
   if (einstellungenSec) einstellungenSec.style.display = "none";
 };
 
-function switchTab(tabId) {
-  document.querySelectorAll(".tab-content").forEach(tab => {
-    tab.style.display = "none";
-  });
-  const target = document.getElementById(tabId);
-  if (target) target.style.display = "block";
-}
-
 // Tab-Buttons
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("tab-btn")) {
