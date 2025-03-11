@@ -4,6 +4,25 @@
   <meta charset="UTF-8">
   <title>Quest-Buch – Start</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* TikTok-Video Styling */
+    #tiktok-container {
+      position: fixed;
+      left: 20px; /* Abstand vom linken Rand */
+      bottom: 30px; /* Abstand vom unteren Rand */
+      width: 300px; /* Breite des Videos */
+      height: 550px; /* Höhe des Videos */
+      border-radius: 10px;
+      overflow: hidden; /* Kein Scrollen */
+      z-index: 1000; /* Immer sichtbar */
+    }
+    
+    #tiktok-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
 </head>
 <body>
 
@@ -50,24 +69,21 @@
     <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
   </div>
 
-      <!-- TikTok Video einbetten -->
-    <iframe src="https://www.tiktok.com/embed/7480095371142663456" 
-            width="325" 
-            height="575" 
-            style="border:none; overflow:hidden;" 
-            allowfullscreen>
-    </iframe>
-
 </main>
+
+<!-- TikTok Video Container -->
+<div id="tiktok-container">
+    <iframe src="https://www.tiktok.com/embed/7480095371142663456" allowfullscreen></iframe>
+</div>
+
 <!-- Spenden-Button -->
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
    target="_blank"
    rel="noopener"
-   id="donate-button"
->
+   id="donate-button">
   Unterstütze mich
 </a>
 
-</body>
 <script type="module" src="script.js"></script>
+</body>
 </html>
