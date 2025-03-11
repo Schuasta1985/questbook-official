@@ -5,7 +5,7 @@
   <title>Quest-Buch – Start</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Beispiel: Spenden-Button rechts unten */
+    /* Button rechts unten für Spenden */
     #donate-button {
       position: fixed;
       bottom: 20px;
@@ -24,16 +24,38 @@
       background-color: #ffb347;
     }
 
-    /* Das Video fest in der linken unteren Ecke platzieren */
-    #beginn-video {
+    /* Container für das Video links unten */
+    #video-container {
       position: fixed;
       left: 30px;
       bottom: 30px;
-      width: 400px;       /* Passe bei Bedarf an */
-      height: 650px;      /* Passe bei Bedarf an */
-      object-fit: cover;  /* Füllt das Element aus */
-      border: none;
-      z-index: 1000;      /* Damit es über dem Rest liegt */
+      z-index: 1000;
+      /* Optional: Hintergrundfarbe oder Rahmen */
+      background: #000;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    /* Video selbst: feste Größe, kein Scrollen */
+    #beginn-video {
+      display: block;
+      width: 400px;       /* Passe die Größe nach Bedarf an */
+      height: 650px;
+      object-fit: cover;
+    }
+    /* Button zum Ton-Toggle, direkt unter dem Video */
+    #toggle-sound {
+      display: block;
+      margin: 5px auto 0;
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    /* Info-Overlay (optional) */
+    #video-info {
+      text-align: center;
+      color: #fff;
+      font-size: 14px;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -44,7 +66,6 @@
 </header>
 
 <main id="auth-container">
-
   <!-- Infotext über das Spiel -->
   <section id="game-info">
     <h2>Was ist eigentlich ein Quest-Buch?</h2>
@@ -81,29 +102,42 @@
     <input type="password" id="admin-password" placeholder="Passwort">
     <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
   </div>
-
 </main>
 
-<!-- Eigenes Video -->
-<video 
-  id="beginn-video"
-  src="avatars/beginn.mp4"  <!-- ggf. "beginn.webm" etc. -->
-  autoplay
-  muted
-  loop
-  playsinline
-></video>
+<!-- Container für das Erklärungsvideo -->
+<div id="video-container">
+  <!-- Das Video startet NICHT automatisch, hat Controls -->
+  <video id="beginn-video" controls playsinline>
+    <source src="avatars/beginn.mp4" type="video/mp4">
+    Dein Browser unterstützt kein HTML5-Video.
+  </video>
+  <!-- Button zum Ein-/Ausschalten des Tons -->
+  <button id="toggle-sound">Ton ein/aus</button>
+  <!-- Info, dass es sich um ein Erklärvideo handelt -->
+  <div id="video-info">Erklärungsvideo</div>
+</div>
 
 <!-- Spenden-Button -->
-<a 
-  href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
-  target="_blank"
-  rel="noopener"
-  id="donate-button"
->
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
+   target="_blank"
+   rel="noopener"
+   id="donate-button">
   Unterstütze mich
 </a>
 
 <script type="module" src="script.js"></script>
+<script>
+  // JavaScript zum Umschalten des Tons
+  const video = document.getElementById('beginn-video');
+  const toggleBtn = document.getElementById('toggle-sound');
+  toggleBtn.addEventListener('click', () => {
+    video.muted = !video.muted;
+    toggleBtn.textContent = video.muted ? 'Ton ein' : 'Ton aus';
+  });
+  // Standardmäßig Ton aus, falls gewünscht:
+  video.muted = true;
+  toggleBtn.textContent = 'Ton ein';
+</script>
+
 </body>
 </html>
