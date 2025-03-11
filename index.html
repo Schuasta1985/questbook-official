@@ -5,57 +5,22 @@
   <title>Quest-Buch – Start</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Button rechts unten für Spenden */
-    #donate-button {
+    /* YouTube-Video Styling */
+    #youtube-container {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #ffc439;
-      color: #111;
-      padding: 10px 15px;
-      border-radius: 5px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-      z-index: 9999;
+      left: 20px; /* Abstand vom linken Rand */
+      bottom: 30px; /* Abstand vom unteren Rand */
+      width: 320px; /* Breite des Videos */
+      height: 180px; /* Höhe des Videos (16:9 Format) */
+      border-radius: 10px;
+      overflow: hidden; /* Kein Scrollen */
+      z-index: 1000; /* Immer sichtbar */
     }
-    #donate-button:hover {
-      background-color: #ffb347;
-    }
-
-    /* Container für das Video links unten */
-    #video-container {
-      position: fixed;
-      left: 30px;
-      bottom: 30px;
-      z-index: 1000;
-      /* Optional: Hintergrundfarbe oder Rahmen */
-      background: #000;
-      padding: 5px;
-      border-radius: 5px;
-    }
-    /* Video selbst: feste Größe, kein Scrollen */
-    #beginn-video {
-      display: block;
-      width: 400px;       /* Passe die Größe nach Bedarf an */
-      height: 650px;
-      object-fit: cover;
-    }
-    /* Button zum Ton-Toggle, direkt unter dem Video */
-    #toggle-sound {
-      display: block;
-      margin: 5px auto 0;
-      padding: 5px 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    /* Info-Overlay (optional) */
-    #video-info {
-      text-align: center;
-      color: #fff;
-      font-size: 14px;
-      margin-top: 5px;
+    
+    #youtube-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
   </style>
 </head>
@@ -66,6 +31,7 @@
 </header>
 
 <main id="auth-container">
+
   <!-- Infotext über das Spiel -->
   <section id="game-info">
     <h2>Was ist eigentlich ein Quest-Buch?</h2>
@@ -102,19 +68,15 @@
     <input type="password" id="admin-password" placeholder="Passwort">
     <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
   </div>
+
 </main>
 
-<!-- Container für das Erklärungsvideo -->
-<div id="video-container">
-  <!-- Das Video startet NICHT automatisch, hat Controls -->
-  <video id="beginn-video" controls playsinline>
-    <source src="avatars/beginn.mp4" type="video/mp4">
-    Dein Browser unterstützt kein HTML5-Video.
-  </video>
-  <!-- Button zum Ein-/Ausschalten des Tons -->
-  <button id="toggle-sound">Ton ein/aus</button>
-  <!-- Info, dass es sich um ein Erklärvideo handelt -->
-  <div id="video-info">Erklärungsvideo</div>
+<!-- YouTube Video Container -->
+<div id="youtube-container">
+    <iframe 
+        src="https://www.youtube.com/embed/Trdyo2j9zbs" 
+        allowfullscreen>
+    </iframe>
 </div>
 
 <!-- Spenden-Button -->
@@ -126,18 +88,5 @@
 </a>
 
 <script type="module" src="script.js"></script>
-<script>
-  // JavaScript zum Umschalten des Tons
-  const video = document.getElementById('beginn-video');
-  const toggleBtn = document.getElementById('toggle-sound');
-  toggleBtn.addEventListener('click', () => {
-    video.muted = !video.muted;
-    toggleBtn.textContent = video.muted ? 'Ton ein' : 'Ton aus';
-  });
-  // Standardmäßig Ton aus, falls gewünscht:
-  video.muted = true;
-  toggleBtn.textContent = 'Ton ein';
-</script>
-
 </body>
 </html>
