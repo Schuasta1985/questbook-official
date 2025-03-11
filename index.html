@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <title>Quest-Buch – Start</title>
   <link rel="stylesheet" href="styles.css">
-
   <style>
-    /* Button rechts unten für Spenden */
+    /* Beispiel: Spenden-Button rechts unten */
     #donate-button {
       position: fixed;
       bottom: 20px;
@@ -25,14 +24,16 @@
       background-color: #ffb347;
     }
 
-    /* TikTok-Video fest in der linken unteren Ecke (ohne Scrollbalken) */
-    #tiktok-video {
+    /* Das Video fest in der linken unteren Ecke platzieren */
+    #beginn-video {
       position: fixed;
       left: 30px;
       bottom: 30px;
+      width: 400px;       /* Passe bei Bedarf an */
+      height: 650px;      /* Passe bei Bedarf an */
+      object-fit: cover;  /* Füllt das Element aus */
       border: none;
-      overflow: hidden;   /* kein Scrollen */
-      z-index: 1000;      /* damit es über allem liegt */
+      z-index: 1000;      /* Damit es über dem Rest liegt */
     }
   </style>
 </head>
@@ -83,19 +84,18 @@
 
 </main>
 
-<!-- TikTok-Video -->
-<iframe
-  id="tiktok-video"
-  src="https://www.tiktok.com/embed/7480095371142663456"
-  width="400"
-  height="650"
-  scrolling="no"
-  allowfullscreen
->
-</iframe>
+<!-- Eigenes Video -->
+<video 
+  id="beginn-video"
+  src="avatars/beginn.mp4"  <!-- ggf. "beginn.webm" etc. -->
+  autoplay
+  muted
+  loop
+  playsinline
+></video>
 
 <!-- Spenden-Button -->
-<a
+<a 
   href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
   target="_blank"
   rel="noopener"
