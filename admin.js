@@ -100,10 +100,26 @@ window.speichereLevel = async function(uid) {
 // Neu: Mitglied komplett löschen
 window.loescheMitglied = async function(uid) {
   if (!confirm("Soll dieses Mitglied wirklich gelöscht werden?")) return;
-  await update(ref(db, `benutzer/${uid}`), null);
-  alert("Mitglied gelöscht!");
 
-  // Liste neu laden, damit der Eintrag verschwindet
+  // 1) Hole die Benutzerdaten
+  const snap = await get(ref(db, "benutzer/" + uid));
+  if (!snap.exists()) {
+    alert("Benutzer existiert nicht (oder schon gelöscht).");
+    return;
+  }
+  const userData = snap.val();
+
+  // 2) Entferne den Benutzer aus der Familie (falls vorhanden)
+  if (userData.familie) {
+    await update(ref(db, `familien/${userData.familie}/mitglieder/${uid}`), null);
+  }
+
+  // 3) Benutzer selbst entfernen
+  //    Du kannst remove(...) statt update(..., null) benutzen
+  await remove(ref(db, "benutzer/" + uid));
+
+  alert("Mitglied gelöscht!");
+  // Liste neu laden
   ladeBenutzer();
 };
 
