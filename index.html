@@ -178,39 +178,34 @@
   Unterstütze mich
 </a>
 
-<!-- Footer mit Copyright -->
+<!-- Footer -->
 <footer>
-  <span id="copyright" onclick="zeigeAdminLogin()">
+  <span id="copyright">
     © Questbook
   </span>
 </footer>
 
+<!-- Dein Inline-Script: Popup-Funktionen -->
 <script type="module">
-  // Hier kommen die Popup-Funktionen
   window.zeigeVideoPopup = function() {
+    // Weisen dem iframe die YouTube-URL zu
     const iframe = document.getElementById("tutorial-iframe");
-    // Trage hier deine Video-ID ein, inkl. ?autoplay=1, wenn du willst
     iframe.src = "https://www.youtube.com/embed/Trdyo2j9zbs?autoplay=1";
-
+    
+    // Popup anzeigen
     document.getElementById("video-popup").style.display = "flex";
-};
-
-window.schließeVideoPopup = function() {
-    document.getElementById("video-popup").style.display = "none";
-    // Leere den src => Video stoppt
-    document.getElementById("tutorial-iframe").src = "";
-};
+  };
 
   window.schließeVideoPopup = function() {
+    // Popup schließen
     document.getElementById("video-popup").style.display = "none";
-    // Leere den src, damit das Video stoppt
+    // src leeren => Video stoppt
     document.getElementById("tutorial-iframe").src = "";
   };
 
   window.zeigeAdminLogin = function() {
     document.getElementById("admin-login-popup").style.display = "flex";
   };
-
   window.schließeAdminLogin = function() {
     document.getElementById("admin-login-popup").style.display = "none";
   };
@@ -218,15 +213,12 @@ window.schließeVideoPopup = function() {
   window.zeigeFehlerPopup = function() {
     document.getElementById("error-popup").style.display = "flex";
   };
-
   window.schließeFehlerPopup = function() {
     document.getElementById("error-popup").style.display = "none";
   };
-
-  // Falls weitere Funktionen (Login, Registrierung, etc.) in script.js vorhanden sind,
-  // werden diese dort eingebunden.
 </script>
 
+<!-- Dein externes Script -->
 <script type="module" src="script.js"></script>
 </body>
 </html>
