@@ -189,10 +189,17 @@
   // Hier kommen die Popup-Funktionen
   window.zeigeVideoPopup = function() {
     const iframe = document.getElementById("tutorial-iframe");
-    // Setze den YouTube-Embed-Link mit der Video-ID "Trdyo2j9zbs"
-   iframe.src = "https://www.youtube.com/embed/Trdyo2j9zbs";
+    // Trage hier deine Video-ID ein, inkl. ?autoplay=1, wenn du willst
+    iframe.src = "https://www.youtube.com/embed/Trdyo2j9zbs?autoplay=1";
+
     document.getElementById("video-popup").style.display = "flex";
-  };
+};
+
+window.schließeVideoPopup = function() {
+    document.getElementById("video-popup").style.display = "none";
+    // Leere den src => Video stoppt
+    document.getElementById("tutorial-iframe").src = "";
+};
 
   window.schließeVideoPopup = function() {
     document.getElementById("video-popup").style.display = "none";
