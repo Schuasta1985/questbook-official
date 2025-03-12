@@ -1,141 +1,82 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Quest-Buch – Start</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    /* Goldfarbener Link für das Erklärvideo */
-    #video-link {
-      display: block;
-      text-align: center;
-      font-size: 18px;
-      color: gold;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-
-    /* Popup-Container */
-    #video-popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 70%;
-      max-width: 800px;
-      background: black;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-    }
-
-    /* Popup-Hintergrund */
-    #video-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 999;
-    }
-
-    /* Copyright & Admin Link */
-    #copyright {
-      position: fixed;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 16px;
-      color: white;
-      cursor: pointer;
-    }
-
-    /* Fehlermeldung Button */
-    #error-button {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 10px;
-      background: red;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Quest-Buch – Start</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 
 <header>
-  <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
+    <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
 </header>
-
-<!-- Fehlermeldung Button -->
-<button id="error-button" onclick="window.location.href='error.html'">Fehlermeldung</button>
 
 <main id="auth-container">
 
-  <!-- Infotext über das Spiel -->
-  <section id="game-info">
-    <h2>Was ist eigentlich ein Quest-Buch?</h2>
-    <p class="info-text">
-      🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
-      Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
-      Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
-      Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
-      <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
-    </p>
-  </section>
+    <!-- Infotext über das Spiel -->
+    <section id="game-info">
+        <h2>Was ist eigentlich ein Quest-Buch?</h2>
+        <p class="info-text">
+            🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
+            Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
+            Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
+            Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
+            <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
+        </p>
+    </section>
 
-  <!-- Buttons für Login/Register -->
-  <div id="auth-selection">
-    <button id="login-btn" class="auth-button">Einloggen</button>
-    <button id="register-btn" class="auth-button">Registrieren</button>
-  </div>
+    <!-- Buttons für Login/Register -->
+    <div id="auth-selection">
+        <button id="login-btn" class="auth-button">Einloggen</button>
+        <button id="register-btn" class="auth-button">Registrieren</button>
+    </div>
 
-  <!-- Video-Link -->
-  <span id="video-link" onclick="zeigeVideo()">Hier seht ihr das Erklärvideo zur App!</span>
+    <!-- Registrierungs-Formular -->
+    <div id="register-form" class="auth-form" style="display:none;">
+        <h3>Registrieren / Familie gründen</h3>
+        <input type="text" id="family-name" placeholder="(Optional) Familienname">
+        <input type="email" id="admin-email" placeholder="E-Mail">
+        <input type="password" id="admin-password" placeholder="Passwort">
+        <label>
+            <input type="checkbox" id="datenschutz-checkbox"> 
+            Ich akzeptiere die <a href="datenschutz.html" target="_blank">Datenschutzbestimmungen</a>.
+        </label>
+        <div class="g-recaptcha" data-sitekey="DEIN_RECAPTCHA_SITE_KEY"></div>
+        <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
+    </div>
+
+    <!-- Video Link -->
+    <p id="video-link"><a href="#" onclick="zeigeVideoPopup()">Hier seht ihr das Erklärvideo zur App!</a></p>
+
+    <!-- Video Popup -->
+    <div id="video-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="schließeVideoPopup()">&times;</span>
+            <iframe width="640" height="360" src="https://www.youtube.com/embed/Trdyo2j9zbs" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
 
 </main>
 
-<!-- Video-Popup -->
-<div id="video-overlay" onclick="schliesseVideo()"></div>
-<div id="video-popup">
-  <iframe 
-      width="100%" 
-      height="400" 
-      src="https://www.youtube.com/embed/Trdyo2j9zbs" 
-      allowfullscreen>
-  </iframe>
+<!-- Copyright & Admin Login -->
+<footer>
+    <p id="copyright">
+        &copy; <span onclick="zeigeAdminLogin()">Questbook</span>
+    </p>
+</footer>
+
+<!-- Admin-Login Popup -->
+<div id="admin-login-popup" class="popup">
+    <div class="popup-content">
+        <span class="close" onclick="schließeAdminLogin()">&times;</span>
+        <h2>Admin-Login</h2>
+        <input type="email" id="admin-email-input" placeholder="E-Mail">
+        <input type="password" id="admin-password-input" placeholder="Passwort">
+        <button onclick="adminLogin()">Anmelden</button>
+    </div>
 </div>
 
-<!-- Copyright & Admin-Link -->
-<span id="copyright" onclick="window.location.href='admin.html'">© Questbook</span>
-
-<!-- Spenden-Button -->
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
-   target="_blank"
-   rel="noopener"
-   id="donate-button">
-  Unterstütze mich
-</a>
-
-<script>
-  // Video anzeigen
-  function zeigeVideo() {
-    document.getElementById("video-popup").style.display = "block";
-    document.getElementById("video-overlay").style.display = "block";
-  }
-
-  // Video schließen
-  function schliesseVideo() {
-    document.getElementById("video-popup").style.display = "none";
-    document.getElementById("video-overlay").style.display = "none";
-  }
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
