@@ -1,69 +1,103 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Quest-Buch – Start</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Quest-Buch – Start</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header>
-    <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
+  <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
+  <!-- Fehlermeldung-Button -->
+  <button id="error-report-btn" onclick="zeigeFehlerPopup()">Fehlermeldung</button>
 </header>
 
 <main id="auth-container">
 
-    <!-- Infotext über das Spiel -->
-    <section id="game-info">
-        <h2>Was ist eigentlich ein Quest-Buch?</h2>
-        <p class="info-text">
-            🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
-            Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
-            Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
-            Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
-            <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
-        </p>
-    </section>
-
-    <!-- Buttons für Login/Register -->
-    <div id="auth-selection">
-        <button id="login-btn" class="auth-button">Einloggen</button>
-        <button id="register-btn" class="auth-button">Registrieren</button>
-    </div>
-
-    <!-- Link für Video in Gold -->
-    <p style="text-align: center;">
-        <a href="#" onclick="zeigeVideoPopup()" style="color: gold; font-weight: bold;">Hier seht ihr das Erklärvideo zur App!</a>
+  <!-- Infotext über das Spiel -->
+  <section id="game-info">
+    <h2>Was ist eigentlich ein Quest-Buch?</h2>
+    <p class="info-text">
+      🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
+      Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
+      Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
+      Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
+      <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
     </p>
+  </section>
 
-    <!-- Popup für das YouTube-Video -->
-    <div id="video-popup" class="popup-overlay">
-        <div class="popup-content">
-            <span class="close-btn" onclick="schließeVideoPopup()">✖</span>
-            <iframe width="640" height="360" src="https://www.youtube.com/embed/Trdyo2j9zbs" allowfullscreen></iframe>
-        </div>
-    </div>
+  <!-- Buttons für Login/Register -->
+  <div id="auth-selection">
+    <button id="login-btn" class="auth-button">Einloggen</button>
+    <button id="register-btn" class="auth-button">Registrieren</button>
+  </div>
+
+  <!-- Login-Formular -->
+  <div id="login-form" class="auth-form" style="display:none;">
+    <h3>Einloggen</h3>
+    <input type="email" id="login-email" placeholder="E-Mail">
+    <input type="password" id="login-password" placeholder="Passwort">
+    <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
+  </div>
+
+  <!-- Registrierungs-Formular -->
+  <div id="register-form" class="auth-form" style="display:none;">
+    <h3>Registrieren / Familie gründen</h3>
+    <input type="text" id="family-name" placeholder="(Optional) Familienname">
+    <input type="email" id="admin-email" placeholder="E-Mail">
+    <input type="password" id="admin-password" placeholder="Passwort">
+    <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
+  </div>
+
+  <!-- Link zum Erklärvideo -->
+  <p style="text-align:center; margin-top:20px;">
+    <a href="#" onclick="zeigeVideoPopup()" style="color: gold; text-decoration: none;">Hier seht ihr das Erklärvideo zur App!</a>
+  </p>
 
 </main>
 
-<!-- Copyright (öffnet Admin-Login) -->
-<footer>
-    <p style="text-align: center;">
-        <span id="copyright" onclick="zeigeAdminLogin()" style="cursor: pointer;">© Questbook</span>
-    </p>
-</footer>
+<!-- Spenden-Button -->
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
+   target="_blank"
+   rel="noopener"
+   id="donate-button"
+>
+  Unterstütze mich
+</a>
+
+<!-- Admin-Login über Copyright -->
+<p id="copyright" onclick="zeigeAdminLogin()">© Questbook</p>
+
+<!-- Popup für YouTube-Video -->
+<div id="video-popup" class="popup" style="display:none;">
+  <div class="popup-content">
+    <span class="close-btn" onclick="schließeVideoPopup()">&times;</span>
+    <iframe width="600" height="340" src="https://www.youtube.com/embed/Trdyo2j9zbs" frameborder="0" allowfullscreen></iframe>
+  </div>
+</div>
 
 <!-- Popup für Admin-Login -->
-<div id="admin-login-popup" class="popup-overlay">
-    <div class="popup-content">
-        <span class="close-btn" onclick="schließeAdminLogin()">✖</span>
-        <h2>Admin-Login</h2>
-        <label for="admin-email-input">E-Mail</label>
-        <input type="email" id="admin-email-input" required>
-        <label for="admin-password-input">Passwort</label>
-        <input type="password" id="admin-password-input" required>
-        <button onclick="adminLogin()">Anmelden</button>
-    </div>
+<div id="admin-login-popup" class="popup" style="display:none;">
+  <div class="popup-content">
+    <span class="close-btn" onclick="schließeAdminLogin()">&times;</span>
+    <h3>Admin-Login</h3>
+    <input type="email" id="admin-email-input" placeholder="E-Mail">
+    <input type="password" id="admin-password-input" placeholder="Passwort">
+    <button onclick="adminLogin()">Anmelden</button>
+  </div>
+</div>
+
+<!-- Popup für Fehlermeldung -->
+<div id="error-popup" class="popup" style="display:none;">
+  <div class="popup-content">
+    <span class="close-btn" onclick="schließeFehlerPopup()">&times;</span>
+    <h3>Fehlermeldung senden</h3>
+    <input type="text" id="error-name" placeholder="Dein Name">
+    <input type="email" id="error-email" placeholder="Deine E-Mail">
+    <textarea id="error-message" placeholder="Beschreibe den Fehler"></textarea>
+    <button onclick="sendeFehlermeldung()">Senden</button>
+  </div>
 </div>
 
 <script type="module" src="script.js"></script>
