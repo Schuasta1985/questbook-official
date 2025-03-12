@@ -30,6 +30,42 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 const auth= getAuth();
 
+
+// Admin-Login Funktion
+window.adminLogin = function() {
+    const email = document.getElementById("admin-email-input").value;
+    const password = document.getElementById("admin-password-input").value;
+
+    if (email !== "thomas.schuster-vb@eclipso.at") {
+        alert("Kein Admin-Zugang!");
+        return;
+    }
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+            window.location.href = "admin.html";
+        })
+        .catch(error => alert(error.message));
+};
+
+// Video Popup
+window.zeigeVideoPopup = function() {
+    document.getElementById("video-popup").style.display = "block";
+};
+
+window.schließeVideoPopup = function() {
+    document.getElementById("video-popup").style.display = "none";
+};
+
+// Admin-Login Popup
+window.zeigeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "block";
+};
+
+window.schließeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "none";
+};
+
 /** Alle 10 Level +100 XP pro Stufe */
 function xpNeededForLevel(level) {
   let block = Math.floor((level - 1) / 10) + 1;
