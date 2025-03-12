@@ -1208,3 +1208,20 @@ window.avatarSpeichern= async function(){
   document.getElementById("benutzer-name").textContent= newN;
   alert("Profil aktualisiert!");
 };
+// =============== VIDEO-POPUP ===============
+window.zeigeVideoPopup = function() {
+    document.getElementById("video-popup").style.display = "flex";
+};
+
+window.schließeVideoPopup = function() {
+    document.getElementById("video-popup").style.display = "none";
+};
+
+// =============== ADMIN-LOGIN-POPUP ===============
+window.zeigeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "flex";
+};
+
+window.schließeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "none";
+};
