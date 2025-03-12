@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin-Bereich – Questbook</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Admin-Bereich</h1>
+    <button onclick="ausloggen()">Abmelden</button>
+</header>
+
+<main>
+    <section id="admin-dashboard">
+        <h2>Benutzerverwaltung</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>E-Mail</th>
+                    <th>Familie</th>
+                    <th>Level</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody id="benutzer-liste">
+                <!-- Benutzer werden hier geladen -->
+            </tbody>
+        </table>
+    </section>
+
+    <section id="familien-dashboard">
+        <h2>Familienverwaltung</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Familienname</th>
+                    <th>Admin</th>
+                    <th>Mitglieder</th>
+                </tr>
+            </thead>
+            <tbody id="familien-liste">
+                <!-- Familien werden hier geladen -->
+            </tbody>
+        </table>
+    </section>
+
+    <section id="fehler-melden">
+        <h2>Fehlermeldung senden</h2>
+        <form id="fehler-form">
+            <label for="name">Dein Name:</label>
+            <input type="text" id="name" required>
+            
+            <label for="email">Deine E-Mail:</label>
+            <input type="email" id="email" required>
+            
+            <label for="beschreibung">Fehlerbeschreibung:</label>
+            <textarea id="beschreibung" required></textarea>
+            
+            <label for="screenshot">Screenshot (optional):</label>
+            <input type="file" id="screenshot" accept="image/*">
+            
+            <button type="submit">Absenden</button>
+        </form>
+    </section>
+</main>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
