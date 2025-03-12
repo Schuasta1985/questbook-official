@@ -23,11 +23,16 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 const auth = getAuth();
 
+// Flag, um wiederholte Redirects zu verhindern
+window.hasRedirected = false;
+
 // Nur Admin darf rein!
-// Vergleiche die E-Mail in Kleinbuchstaben
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email.toLowerCase() !== "thomas.schuster-vb@eclipso.at") {
-    window.location.href = "index.html";
+    if (!window.hasRedirected) {
+      window.hasRedirected = true;
+      window.location.href = "index.html";
+    }
   } else {
     ladeBenutzer();
     ladeFamilien();
