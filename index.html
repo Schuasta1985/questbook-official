@@ -133,7 +133,7 @@
 <!-- Video-Popup -->
 <div id="video-popup" class="popup-modal" onclick="schließeVideoPopup()">
   <div class="popup-content" onclick="event.stopPropagation()">
-    <!-- YouTube-Embed mit deinem Video -->
+    <!-- YouTube-Embed -->
     <iframe
       id="tutorial-iframe"
       width="560"
@@ -184,6 +184,41 @@
     © Questbook
   </span>
 </footer>
+
+<script type="module">
+  // Hier kommen die Popup-Funktionen
+  window.zeigeVideoPopup = function() {
+    const iframe = document.getElementById("tutorial-iframe");
+    // Setze den YouTube-Embed-Link mit der Video-ID "Trdyo2j9zbs"
+    iframe.src = "https://www.youtube.com/embed/Trdyo2j9zbs?autoplay=1";
+    document.getElementById("video-popup").style.display = "flex";
+  };
+
+  window.schließeVideoPopup = function() {
+    document.getElementById("video-popup").style.display = "none";
+    // Leere den src, damit das Video stoppt
+    document.getElementById("tutorial-iframe").src = "";
+  };
+
+  window.zeigeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "flex";
+  };
+
+  window.schließeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "none";
+  };
+
+  window.zeigeFehlerPopup = function() {
+    document.getElementById("error-popup").style.display = "flex";
+  };
+
+  window.schließeFehlerPopup = function() {
+    document.getElementById("error-popup").style.display = "none";
+  };
+
+  // Falls weitere Funktionen (Login, Registrierung, etc.) in script.js vorhanden sind,
+  // werden diese dort eingebunden.
+</script>
 
 <script type="module" src="script.js"></script>
 </body>
