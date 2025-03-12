@@ -57,10 +57,18 @@ window.schließeVideoPopup = function() {
     document.getElementById("video-popup").style.display = "none";
 };
 
-// Admin-Login Popup
+// Admin-Login Popup anzeigen
 window.zeigeAdminLogin = function() {
-    document.getElementById("admin-login-popup").style.display = "block";
+    const popup = document.getElementById("admin-login-popup");
+    if (popup) popup.style.display = "block";
 };
+
+// Admin-Login Popup schließen
+window.schließeAdminLogin = function() {
+    const popup = document.getElementById("admin-login-popup");
+    if (popup) popup.style.display = "none";
+};
+
 
 window.schließeAdminLogin = function() {
     document.getElementById("admin-login-popup").style.display = "none";
@@ -239,6 +247,8 @@ onAuthStateChanged(auth, (user) => {
 document.addEventListener("DOMContentLoaded", () => {
   const lBtn = document.getElementById("login-btn");
   const rBtn = document.getElementById("register-btn");
+  const copyright = document.getElementById("copyright"); // Admin-Login durch Copyright-Link
+
   if (lBtn) {
     lBtn.onclick = () => {
       if (document.getElementById("login-form")) {
@@ -259,7 +269,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
   }
+
+  // ✅ Admin-Login durch Klicken auf das Copyright-Zeichen öffnen
+  if (copyright) {
+    copyright.style.cursor = "pointer"; // Zeigt an, dass es anklickbar ist
+    copyright.addEventListener("click", () => {
+      zeigeAdminLogin();
+    });
+  }
 });
+
 
 window.benutzerEinloggen = async function() {
   const email = document.getElementById("login-email")?.value;
