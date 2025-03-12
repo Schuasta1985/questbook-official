@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Quest-Buch – Start</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 
@@ -32,51 +31,41 @@
         <button id="register-btn" class="auth-button">Registrieren</button>
     </div>
 
-    <!-- Registrierungs-Formular -->
-    <div id="register-form" class="auth-form" style="display:none;">
-        <h3>Registrieren / Familie gründen</h3>
-        <input type="text" id="family-name" placeholder="(Optional) Familienname">
-        <input type="email" id="admin-email" placeholder="E-Mail">
-        <input type="password" id="admin-password" placeholder="Passwort">
-        <label>
-            <input type="checkbox" id="datenschutz-checkbox"> 
-            Ich akzeptiere die <a href="datenschutz.html" target="_blank">Datenschutzbestimmungen</a>.
-        </label>
-        <div class="g-recaptcha" data-sitekey="DEIN_RECAPTCHA_SITE_KEY"></div>
-        <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
-    </div>
+    <!-- Link für Video in Gold -->
+    <p style="text-align: center;">
+        <a href="#" onclick="zeigeVideoPopup()" style="color: gold; font-weight: bold;">Hier seht ihr das Erklärvideo zur App!</a>
+    </p>
 
-    <!-- Video Link -->
-    <p id="video-link"><a href="#" onclick="zeigeVideoPopup()">Hier seht ihr das Erklärvideo zur App!</a></p>
-
-    <!-- Video Popup -->
-    <div id="video-popup" class="popup">
+    <!-- Popup für das YouTube-Video -->
+    <div id="video-popup" class="popup-overlay">
         <div class="popup-content">
-            <span class="close" onclick="schließeVideoPopup()">&times;</span>
-            <iframe width="640" height="360" src="https://www.youtube.com/embed/Trdyo2j9zbs" frameborder="0" allowfullscreen></iframe>
+            <span class="close-btn" onclick="schließeVideoPopup()">✖</span>
+            <iframe width="640" height="360" src="https://www.youtube.com/embed/Trdyo2j9zbs" allowfullscreen></iframe>
         </div>
     </div>
 
 </main>
 
-<!-- Copyright & Admin Login -->
+<!-- Copyright (öffnet Admin-Login) -->
 <footer>
-    <p id="copyright">
-        &copy; <span onclick="zeigeAdminLogin()">Questbook</span>
+    <p style="text-align: center;">
+        <span id="copyright" onclick="zeigeAdminLogin()" style="cursor: pointer;">© Questbook</span>
     </p>
 </footer>
 
-<!-- Admin-Login Popup -->
-<div id="admin-login-popup" class="popup">
+<!-- Popup für Admin-Login -->
+<div id="admin-login-popup" class="popup-overlay">
     <div class="popup-content">
-        <span class="close" onclick="schließeAdminLogin()">&times;</span>
+        <span class="close-btn" onclick="schließeAdminLogin()">✖</span>
         <h2>Admin-Login</h2>
-        <input type="email" id="admin-email-input" placeholder="E-Mail">
-        <input type="password" id="admin-password-input" placeholder="Passwort">
+        <label for="admin-email-input">E-Mail</label>
+        <input type="email" id="admin-email-input" required>
+        <label for="admin-password-input">Passwort</label>
+        <input type="password" id="admin-password-input" required>
         <button onclick="adminLogin()">Anmelden</button>
     </div>
 </div>
 
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
