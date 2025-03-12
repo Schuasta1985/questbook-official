@@ -1,65 +1,164 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Quest-Buch – Start</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Quest-Buch – Start</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Einfaches Popup-Styling */
+    .popup-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .popup-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      position: relative;
+      max-width: 600px;
+      width: 90%;
+    }
+    /* Fehlermeldung- und Admin-Login-Formulare */
+    .popup-content form {
+      display: flex;
+      flex-direction: column;
+    }
+    .popup-content form input,
+    .popup-content form textarea {
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+    .popup-content button {
+      margin-top: 10px;
+    }
+    /* Roter Button oben rechts */
+    #fehler-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: red;
+      color: #fff;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      z-index: 10000;
+    }
+    #fehler-button:hover {
+      opacity: 0.85;
+    }
+    /* Copyright unten mittig */
+    footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      z-index: 10000;
+    }
+    footer span {
+      cursor: pointer;
+      color: #aaa;
+      font-size: 14px;
+    }
+    footer span:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
 
+<!-- Fehlermeldung-Button oben rechts -->
+<button id="fehler-button" onclick="zeigeFehlerPopup()">Fehlermeldung</button>
+
 <header>
-    <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
+  <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
 </header>
 
 <main id="auth-container">
+  <!-- Infotext über das Spiel -->
+  <section id="game-info">
+    <h2>Was ist eigentlich ein Quest-Buch?</h2>
+    <p class="info-text">
+      🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
+      Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
+      Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
+      Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
+      <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
+    </p>
+  </section>
 
-    <!-- Infotext über das Spiel -->
-    <section id="game-info">
-        <h2>Was ist eigentlich ein Quest-Buch?</h2>
-        <p class="info-text">
-            🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
-            Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
-            Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
-            Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
-            <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
-        </p>
-    </section>
+  <!-- Buttons für Login/Register -->
+  <div id="auth-selection">
+    <button id="login-btn" class="auth-button">Einloggen</button>
+    <button id="register-btn" class="auth-button">Registrieren</button>
+  </div>
 
-    <!-- Buttons für Login/Register -->
-    <div id="auth-selection">
-        <button id="login-btn" class="auth-button">Einloggen</button>
-        <button id="register-btn" class="auth-button">Registrieren</button>
-    </div>
+  <!-- Login-Formular -->
+  <div id="login-form" class="auth-form" style="display:none;">
+    <h3>Einloggen</h3>
+    <input type="email" id="login-email" placeholder="E-Mail">
+    <input type="password" id="login-password" placeholder="Passwort">
+    <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
+    <p>Oder per Google:</p>
+    <button class="auth-button" onclick="googleLogin()">Google Login</button>
+  </div>
 
-    <!-- Login-Formular -->
-    <div id="login-form" class="auth-form" style="display:none;">
-        <h3>Einloggen</h3>
-        <input type="email" id="login-email" placeholder="E-Mail">
-        <input type="password" id="login-password" placeholder="Passwort">
-        <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
-        <p>Oder per Google:</p>
-        <button class="auth-button" onclick="googleLogin()">Google Login</button>
-    </div>
+  <!-- Registrierungs-Formular -->
+  <div id="register-form" class="auth-form" style="display:none;">
+    <h3>Registrieren / Familie gründen</h3>
+    <input type="text" id="family-name" placeholder="(Optional) Familienname">
+    <input type="email" id="admin-email" placeholder="E-Mail">
+    <input type="password" id="admin-password" placeholder="Passwort">
+    <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
+  </div>
 
-    <!-- Registrierungs-Formular -->
-    <div id="register-form" class="auth-form" style="display:none;">
-        <h3>Registrieren / Familie gründen</h3>
-        <input type="text" id="family-name" placeholder="(Optional) Familienname">
-        <input type="email" id="admin-email" placeholder="E-Mail">
-        <input type="password" id="admin-password" placeholder="Passwort">
-        <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
-    </div>
-
-    <!-- Info und manuelles Starten des Videos -->
-    <div id="video-container">
-        <h3>Schau dir das Erklärvideo an!</h3>
-        <video id="tutorial-video" width="400" controls>
-            <source src="avatars/beginn.mp4" type="video/mp4">
-            Dein Browser unterstützt kein Video-Tag.
-        </video>
-    </div>
-
+  <!-- Link zum Erklärvideo -->
+  <div style="margin-top: 30px;">
+    <a href="#" onclick="zeigeVideoPopup()">Erklärvideo ansehen</a>
+  </div>
 </main>
+
+<!-- Video-Popup (klick außen schließt Popup & Video) -->
+<div id="video-popup" class="popup-modal" onclick="schließeVideoPopup()">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <!-- Video, das beim Öffnen abgespielt werden kann -->
+    <video id="tutorial-video" width="560" controls>
+      <source src="avatars/beginn.mp4" type="video/mp4">
+      Dein Browser unterstützt kein HTML5-Video.
+    </video>
+  </div>
+</div>
+
+<!-- Admin-Login-Popup -->
+<div id="admin-login-popup" class="popup-modal" onclick="schließeAdminLogin()">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <h3>Admin-Login</h3>
+    <input type="email" id="admin-email-input" placeholder="Admin-E-Mail">
+    <input type="password" id="admin-password-input" placeholder="Passwort">
+    <button onclick="adminLogin()">Einloggen</button>
+  </div>
+</div>
+
+<!-- Fehlermeldung-Popup -->
+<div id="error-popup" class="popup-modal" onclick="schließeFehlerPopup()">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <h3>Fehlermeldung</h3>
+    <label for="error-name">Name:</label>
+    <input type="text" id="error-name">
+    <label for="error-email">E-Mail:</label>
+    <input type="email" id="error-email">
+    <label for="error-message">Beschreibung:</label>
+    <textarea id="error-message"></textarea>
+    <button onclick="sendeFehlermeldung()">Abschicken</button>
+  </div>
+</div>
 
 <!-- Spenden-Button -->
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
@@ -67,8 +166,15 @@
    rel="noopener"
    id="donate-button"
 >
-    Unterstütze mich
+  Unterstütze mich
 </a>
+
+<!-- Footer mit Copyright (Admin-Login) -->
+<footer>
+  <span id="copyright">
+    © Questbook
+  </span>
+</footer>
 
 <script type="module" src="script.js"></script>
 </body>
