@@ -10,7 +10,7 @@
         max-width: 1200px;
         margin: 20px auto;
         padding: 20px;
-        background: rgba(0,0,0,0.6);
+        background: rgba(0, 0, 0, 0.6);
         color: #fff;
         border-radius: 8px;
       }
@@ -23,9 +23,10 @@
       th, td {
         border: 1px solid #fff;
         padding: 10px;
+        text-align: center;
       }
       th {
-        background: rgba(255,255,255,0.2);
+        background: rgba(255, 255, 255, 0.2);
       }
       /* Button-Stil */
       button {
@@ -34,14 +35,14 @@
         border-radius: 4px;
         cursor: pointer;
         font-weight: bold;
-      }
-      /* Extra-Klassen für bestimmte Buttons */
-      .btn-delete {
-        background: #d9534f; /* Rot */
-        color: #fff;
+        margin: 0 2px;
       }
       .btn-save {
         background: #5cb85c; /* Grün */
+        color: #fff;
+      }
+      .btn-delete {
+        background: #d9534f; /* Rot */
         color: #fff;
       }
       button:hover {
@@ -70,18 +71,16 @@
                 </tr>
             </thead>
             <tbody id="benutzer-liste">
-                <!-- Dynamisch per JavaScript gefüllt -->
-                <!-- Beispiel-Zeile (später in admin.js generiert) 
+                <!-- Dynamisch per admin.js gefüllt -->
+                <!-- Beispiel-Zeile (wird in admin.js generiert):
                 <tr>
                     <td>Thomas</td>
                     <td>thomas@beispiel.de</td>
                     <td>FamKey123</td>
                     <td>
-                      <input type="number" value="5" min="1" />
-                    </td>
-                    <td>
-                      <button class="btn-save" onclick="levelSpeichern('UID_XYZ')">Speichern</button>
-                      <button class="btn-delete" onclick="mitgliedLoeschen('UID_XYZ')">Löschen</button>
+                      <input type="number" value="5" min="1" id="level-UID_XYZ">
+                      <button class="btn-save" onclick="speichereLevel('UID_XYZ')">Speichern</button>
+                      <button class="btn-delete" onclick="loescheMitglied('UID_XYZ')">Löschen</button>
                     </td>
                 </tr>
                 -->
@@ -104,8 +103,6 @@
             </tbody>
         </table>
     </section>
-
-    <!-- Der Fehlermeldung-Bereich ist komplett entfernt -->
     
 </main>
 
