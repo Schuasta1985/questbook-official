@@ -4,6 +4,50 @@
     <meta charset="UTF-8">
     <title>Admin-Bereich – Questbook</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+      /* Hintergrund und Schrift für bessere Sichtbarkeit */
+      main {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        border-radius: 8px;
+      }
+      /* Tabellen-Stil */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      th, td {
+        border: 1px solid #fff;
+        padding: 10px;
+      }
+      th {
+        background: rgba(255,255,255,0.2);
+      }
+      /* Button-Stil */
+      button {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      /* Extra-Klassen für bestimmte Buttons */
+      .btn-delete {
+        background: #d9534f; /* Rot */
+        color: #fff;
+      }
+      .btn-save {
+        background: #5cb85c; /* Grün */
+        color: #fff;
+      }
+      button:hover {
+        opacity: 0.85;
+      }
+    </style>
 </head>
 <body>
 
@@ -26,7 +70,21 @@
                 </tr>
             </thead>
             <tbody id="benutzer-liste">
-                <!-- Benutzer werden hier geladen -->
+                <!-- Dynamisch per JavaScript gefüllt -->
+                <!-- Beispiel-Zeile (später in admin.js generiert) 
+                <tr>
+                    <td>Thomas</td>
+                    <td>thomas@beispiel.de</td>
+                    <td>FamKey123</td>
+                    <td>
+                      <input type="number" value="5" min="1" />
+                    </td>
+                    <td>
+                      <button class="btn-save" onclick="levelSpeichern('UID_XYZ')">Speichern</button>
+                      <button class="btn-delete" onclick="mitgliedLoeschen('UID_XYZ')">Löschen</button>
+                    </td>
+                </tr>
+                -->
             </tbody>
         </table>
     </section>
@@ -47,24 +105,8 @@
         </table>
     </section>
 
-    <section id="fehler-melden">
-        <h2>Fehlermeldung senden</h2>
-        <form id="fehler-form">
-            <label for="name">Dein Name:</label>
-            <input type="text" id="name" required>
-            
-            <label for="email">Deine E-Mail:</label>
-            <input type="email" id="email" required>
-            
-            <label for="beschreibung">Fehlerbeschreibung:</label>
-            <textarea id="beschreibung" required></textarea>
-            
-            <label for="screenshot">Screenshot (optional):</label>
-            <input type="file" id="screenshot" accept="image/*">
-            
-            <button type="submit">Absenden</button>
-        </form>
-    </section>
+    <!-- Der Fehlermeldung-Bereich ist komplett entfernt -->
+    
 </main>
 
 <script type="module" src="admin.js"></script>
