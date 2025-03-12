@@ -5,31 +5,65 @@
   <title>Quest-Buch – Start</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* YouTube-Video Styling */
-    #youtube-container {
-      position: fixed;
-      left: 20px; /* Abstand vom linken Rand */
-      bottom: 30px; /* Abstand vom unteren Rand */
-      width: 640px; /* Doppelte Breite */
-      height: 360px; /* Doppelte Höhe (16:9 Format) */
-      border-radius: 10px;
-      overflow: hidden;
-      z-index: 1000;
+    /* Goldfarbener Link für das Erklärvideo */
+    #video-link {
+      display: block;
       text-align: center;
+      font-size: 18px;
+      color: gold;
+      cursor: pointer;
+      margin-top: 20px;
     }
 
-    #youtube-container iframe {
+    /* Popup-Container */
+    #video-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      max-width: 800px;
+      background: black;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    /* Popup-Hintergrund */
+    #video-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      border: none;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
     }
 
-    /* Überschrift für das Video */
-    #youtube-container h3 {
+    /* Copyright & Admin Link */
+    #copyright {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
       color: white;
-      font-size: 18px;
-      margin-bottom: 5px;
-      font-family: Arial, sans-serif;
+      cursor: pointer;
+    }
+
+    /* Fehlermeldung Button */
+    #error-button {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 10px;
+      background: red;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -38,6 +72,9 @@
 <header>
   <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
 </header>
+
+<!-- Fehlermeldung Button -->
+<button id="error-button" onclick="window.location.href='error.html'">Fehlermeldung</button>
 
 <main id="auth-container">
 
@@ -59,40 +96,21 @@
     <button id="register-btn" class="auth-button">Registrieren</button>
   </div>
 
-  <!-- Login-Formular -->
-  <div id="login-form" class="auth-form" style="display:none;">
-    <h3>Einloggen</h3>
-    <input type="email" id="login-email" placeholder="E-Mail">
-    <input type="password" id="login-password" placeholder="Passwort">
-    <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
-  </div>
-
-  <!-- Registrierungs-Formular -->
-  <div id="register-form" class="auth-form" style="display:none;">
-    <h3>Registrieren / Familie gründen</h3>
-    <input type="text" id="family-name" placeholder="(Optional) Familienname">
-    <input type="email" id="admin-email" placeholder="E-Mail">
-    <input type="password" id="admin-password" placeholder="Passwort">
-    <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
-  </div>
+  <!-- Video-Link -->
+  <span id="video-link" onclick="zeigeVideo()">Hier seht ihr das Erklärvideo zur App!</span>
 
 </main>
 
-<!-- YouTube Video Container -->
-<div id="youtube-container">
-    <h3>Hier seht ihr das Erklärvideo zur App!</h3>
-    <iframe 
-        src="https://www.youtube.com/embed/Trdyo2j9zbs" 
-        allowfullscreen>
-    </iframe>
+<!-- Video-Popup -->
+<div id="video-overlay" onclick="schliesseVideo()"></div>
+<div id="video-popup">
+  <iframe 
+      width="100%" 
+      height="400" 
+      src="https://www.youtube.com/embed/Trdyo2j9zbs" 
+      allowfullscreen>
+  </iframe>
 </div>
 
-<!-- Spenden-Button -->
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
-   target="_blank"
-   rel="noopener"
-   id="donate-button">
-  Unterstütze mich
-</a>
-
-<script type="module" src="script.js"></
+<!-- Copyright & Admin-Link -->
+<span id="copyright" onclick="window.location.href='admin.html'">© Questbook</
