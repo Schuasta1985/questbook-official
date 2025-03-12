@@ -1225,3 +1225,29 @@ window.zeigeAdminLogin = function() {
 window.schließeAdminLogin = function() {
     document.getElementById("admin-login-popup").style.display = "none";
 };
+
+// =============== FEHLERMELDUNGS-POPUP ===============
+window.zeigeFehlerPopup = function() {
+    document.getElementById("error-popup").style.display = "flex";
+};
+
+window.schließeFehlerPopup = function() {
+    document.getElementById("error-popup").style.display = "none";
+};
+
+// =============== FEHLERMELDUNG SENDEN ===============
+window.sendeFehlermeldung = function() {
+    const name = document.getElementById("error-name").value;
+    const email = document.getElementById("error-email").value;
+    const message = document.getElementById("error-message").value;
+
+    if (!name || !email || !message) {
+        alert("Bitte alle Felder ausfüllen!");
+        return;
+    }
+
+    const mailtoLink = `mailto:thomas.schuster-vb@eclipso.at?subject=Fehlermeldung von ${name}&body=${message}%0D%0A%0D%0AVon: ${email}`;
+    window.location.href = mailtoLink;
+    alert("Fehlermeldung wurde vorbereitet. Bitte prüfe dein E-Mail-Programm.");
+    schließeFehlerPopup();
+};
