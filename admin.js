@@ -23,19 +23,24 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 const auth = getAuth();
 
-// Flag, um wiederholte Redirects zu verhindern
+// Flags, um wiederholte Redirects und Datenladungen zu verhindern
 window.hasRedirected = false;
+window.adminDataLoaded = false;
 
 // Nur Admin darf rein!
+// Vergleiche die E-Mail in Kleinbuchstaben und prüfe, ob die aktuelle URL nicht schon index.html ist.
 onAuthStateChanged(auth, (user) => {
   if (!user || user.email.toLowerCase() !== "thomas.schuster-vb@eclipso.at") {
-    if (!window.hasRedirected) {
+    if (!window.hasRedirected && !window.location.href.includes("index.html")) {
       window.hasRedirected = true;
       window.location.href = "index.html";
     }
   } else {
-    ladeBenutzer();
-    ladeFamilien();
+    if (!window.adminDataLoaded) {
+      window.adminDataLoaded = true;
+      ladeBenutzer();
+      ladeFamilien();
+    }
   }
 });
 
