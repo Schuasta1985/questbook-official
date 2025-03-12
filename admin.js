@@ -21,12 +21,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
-const auth= getAuth();
+const auth = getAuth();
 
 // Nur Admin darf rein!
+// Vergleiche die E-Mail in Kleinbuchstaben
 onAuthStateChanged(auth, (user) => {
-  // Hier prüfst du die Admin-E-Mail:
-  if (!user || user.email !== "thomas.schuster-vb@eclipso.at") {
+  if (!user || user.email.toLowerCase() !== "thomas.schuster-vb@eclipso.at") {
     window.location.href = "index.html";
   } else {
     ladeBenutzer();
@@ -115,7 +115,6 @@ window.loescheMitglied = async function(uid) {
   }
 
   // 3) Benutzer selbst entfernen
-  //    Du kannst remove(...) statt update(..., null) benutzen
   await remove(ref(db, "benutzer/" + uid));
 
   alert("Mitglied gelöscht!");
