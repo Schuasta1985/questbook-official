@@ -1,3 +1,5 @@
+// script.js
+
 // 🔥 ALLE Import-Anweisungen oben:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import {
@@ -16,7 +18,7 @@ import {
 
 // 🔑 Deine Firebase-Daten
 const firebaseConfig = {
-  apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
+  apiKey: "AIzaSyAtUbDDMpZodZ-rcpGJfHbVWVZD2lXFgI",
   authDomain: "questbook-138c8.firebaseapp.com",
   databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "questbook-138c8",
@@ -33,45 +35,40 @@ const auth= getAuth();
 
 // Admin-Login Funktion
 window.adminLogin = function() {
-    const email = document.getElementById("admin-email-input").value;
-    const password = document.getElementById("admin-password-input").value;
+  const email = document.getElementById("admin-email-input").value;
+  const password = document.getElementById("admin-password-input").value;
 
-    if (email !== "thomas.schuster-vb@eclipso.at") {
-        alert("Kein Admin-Zugang!");
-        return;
-    }
+  if (email !== "thomas.schuster-vb@eclipso.at") {
+    alert("Kein Admin-Zugang!");
+    return;
+  }
 
-    signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-            window.location.href = "admin.html";
-        })
-        .catch(error => alert(error.message));
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      window.location.href = "admin.html";
+    })
+    .catch(error => alert(error.message));
 };
 
 // Video Popup
 window.zeigeVideoPopup = function() {
-    document.getElementById("video-popup").style.display = "block";
+  document.getElementById("video-popup").style.display = "block";
 };
 
 window.schließeVideoPopup = function() {
-    document.getElementById("video-popup").style.display = "none";
+  document.getElementById("video-popup").style.display = "none";
 };
 
 // Admin-Login Popup anzeigen
 window.zeigeAdminLogin = function() {
-    const popup = document.getElementById("admin-login-popup");
-    if (popup) popup.style.display = "block";
+  const popup = document.getElementById("admin-login-popup");
+  if (popup) popup.style.display = "block";
 };
 
 // Admin-Login Popup schließen
 window.schließeAdminLogin = function() {
-    const popup = document.getElementById("admin-login-popup");
-    if (popup) popup.style.display = "none";
-};
-
-
-window.schließeAdminLogin = function() {
-    document.getElementById("admin-login-popup").style.display = "none";
+  const popup = document.getElementById("admin-login-popup");
+  if (popup) popup.style.display = "none";
 };
 
 /** Alle 10 Level +100 XP pro Stufe */
@@ -247,7 +244,7 @@ onAuthStateChanged(auth, (user) => {
 document.addEventListener("DOMContentLoaded", () => {
   const lBtn = document.getElementById("login-btn");
   const rBtn = document.getElementById("register-btn");
-  const copyright = document.getElementById("copyright"); // Admin-Login durch Copyright-Link
+  const copyright = document.getElementById("copyright");
 
   if (lBtn) {
     lBtn.onclick = () => {
@@ -270,15 +267,14 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // ✅ Admin-Login durch Klicken auf das Copyright-Zeichen öffnen
+  // ✅ Admin-Login durch Klicken auf das Copyright
   if (copyright) {
-    copyright.style.cursor = "pointer"; // Zeigt an, dass es anklickbar ist
+    copyright.style.cursor = "pointer";
     copyright.addEventListener("click", () => {
       zeigeAdminLogin();
     });
   }
 });
-
 
 window.benutzerEinloggen = async function() {
   const email = document.getElementById("login-email")?.value;
@@ -850,8 +846,6 @@ function ladeLogsInTabelle() {
 // Admin => log CLEAR
 window.adminLogsClear = async function() {
   if (!confirm("Wirklich ALLE Logs löschen?")) return;
-  // Du kannst update(..., null) oder remove(...) nehmen:
-  // await update(ref(db, "publicLogs"), null);
   await remove(ref(db, "publicLogs"));
   alert("Alle Logs gelöscht!");
 };
@@ -1051,6 +1045,7 @@ window.adminZauberAnlegen = async function() {
 };
 async function adminZauberLoeschen(k){
   if(!confirm("Zauber wirklich löschen?")) return;
+  // Du kannst hier ebenfalls remove() verwenden, wenn du den Zauber komplett löschen willst:
   await update(ref(db,"zauber/"+k), null);
   adminZauberListeLaden();
 }
@@ -1105,13 +1100,12 @@ window.adminQuestAnlegen= async function(){
   // 1) Admin-Liste aktualisieren
   adminQuestListeLaden();
 
-  // 2) Tägliche Quests sofort neu laden, damit sie direkt oben angezeigt werden
+  // 2) Tägliche Quests sofort neu laden
   const user = auth.currentUser;
   if (user) {
     ladeQuests(user.uid);
   }
 };
-import { remove } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 
 async function adminQuestLoeschen(qKey){
   if(!confirm("Quest wirklich löschen?")) return;
@@ -1173,6 +1167,7 @@ window.adminSpezialAnlegen= async function(){
 };
 async function adminSpezialLoeschen(sk){
   if(!confirm("Wirklich löschen?")) return;
+  // Du kannst hier ebenfalls remove(...) verwenden, wenn du den Eintrag komplett löschen willst:
   await update(ref(db,"spezial/"+sk), null);
   adminSpezialListeLaden();
 }
@@ -1229,46 +1224,47 @@ window.avatarSpeichern= async function(){
   document.getElementById("benutzer-name").textContent= newN;
   alert("Profil aktualisiert!");
 };
+
 // =============== VIDEO-POPUP ===============
 window.zeigeVideoPopup = function() {
-    document.getElementById("video-popup").style.display = "flex";
+  document.getElementById("video-popup").style.display = "flex";
 };
 
 window.schließeVideoPopup = function() {
-    document.getElementById("video-popup").style.display = "none";
+  document.getElementById("video-popup").style.display = "none";
 };
 
 // =============== ADMIN-LOGIN-POPUP ===============
 window.zeigeAdminLogin = function() {
-    document.getElementById("admin-login-popup").style.display = "flex";
+  document.getElementById("admin-login-popup").style.display = "flex";
 };
 
 window.schließeAdminLogin = function() {
-    document.getElementById("admin-login-popup").style.display = "none";
+  document.getElementById("admin-login-popup").style.display = "none";
 };
 
 // =============== FEHLERMELDUNGS-POPUP ===============
 window.zeigeFehlerPopup = function() {
-    document.getElementById("error-popup").style.display = "flex";
+  document.getElementById("error-popup").style.display = "flex";
 };
 
 window.schließeFehlerPopup = function() {
-    document.getElementById("error-popup").style.display = "none";
+  document.getElementById("error-popup").style.display = "none";
 };
 
 // =============== FEHLERMELDUNG SENDEN ===============
 window.sendeFehlermeldung = function() {
-    const name = document.getElementById("error-name").value;
-    const email = document.getElementById("error-email").value;
-    const message = document.getElementById("error-message").value;
+  const name = document.getElementById("error-name").value;
+  const email = document.getElementById("error-email").value;
+  const message = document.getElementById("error-message").value;
 
-    if (!name || !email || !message) {
-        alert("Bitte alle Felder ausfüllen!");
-        return;
-    }
+  if (!name || !email || !message) {
+    alert("Bitte alle Felder ausfüllen!");
+    return;
+  }
 
-    const mailtoLink = `mailto:thomas.schuster-vb@eclipso.at?subject=Fehlermeldung von ${name}&body=${message}%0D%0A%0D%0AVon: ${email}`;
-    window.location.href = mailtoLink;
-    alert("Fehlermeldung wurde vorbereitet. Bitte prüfe dein E-Mail-Programm.");
-    schließeFehlerPopup();
+  const mailtoLink = `mailto:thomas.schuster-vb@eclipso.at?subject=Fehlermeldung von ${name}&body=${message}%0D%0A%0D%0AVon: ${email}`;
+  window.location.href = mailtoLink;
+  alert("Fehlermeldung wurde vorbereitet. Bitte prüfe dein E-Mail-Programm.");
+  schließeFehlerPopup();
 };
