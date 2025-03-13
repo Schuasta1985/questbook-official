@@ -1,6 +1,4 @@
-// script.js
-
-// 🔥 ALLE Import-Anweisungen oben:
+// 🔥 ALLE Import-Anweisungen:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import {
   getDatabase, ref, set, get, update, push, onValue,
@@ -16,13 +14,13 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
-// 🔑 Deine Firebase-Daten
+// 🔑 Firebase-Konfiguration (angepasst an deine Firebase Console)
 const firebaseConfig = {
   apiKey: "AIzaSyAtUbDDMpZodZ-rcpGJfHbVWVZD2lXFgI",
   authDomain: "questbook-138c8.firebaseapp.com",
   databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "questbook-138c8",
-  storageBucket: "questbook-138c8.appspot.com",
+  storageBucket: "questbook-138c8.firebasestorage.app", // angepasst!
   messagingSenderId: "625259298286",
   appId: "1:625259298286:web:bf60483c258cd311bea2ff",
   measurementId: "G-H6F2TB6PY7"
@@ -30,14 +28,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
-const auth= getAuth();
+const auth = getAuth();
 
+// ----------------------------------------
+// Admin-Login & allgemeine UI-Funktionen
+// ----------------------------------------
 
-// Admin-Login Funktion
 window.adminLogin = function() {
   const email = document.getElementById("admin-email-input").value;
   const password = document.getElementById("admin-password-input").value;
 
+  // Nur Admin-E-Mail erlaubt:
   if (email !== "thomas.schuster-vb@eclipso.at") {
     alert("Kein Admin-Zugang!");
     return;
@@ -47,10 +48,12 @@ window.adminLogin = function() {
     .then(() => {
       window.location.href = "admin.html";
     })
-    .catch(error => alert(error.message));
+    .catch(error => {
+      console.log(error.code, error.message);
+      alert(error.message);
+    });
 };
 
-// Video Popup
 window.zeigeVideoPopup = function() {
   document.getElementById("video-popup").style.display = "block";
 };
@@ -59,29 +62,28 @@ window.schließeVideoPopup = function() {
   document.getElementById("video-popup").style.display = "none";
 };
 
-// Admin-Login Popup anzeigen
 window.zeigeAdminLogin = function() {
   const popup = document.getElementById("admin-login-popup");
   if (popup) popup.style.display = "block";
 };
 
-// Admin-Login Popup schließen
 window.schließeAdminLogin = function() {
   const popup = document.getElementById("admin-login-popup");
   if (popup) popup.style.display = "none";
 };
 
-/** Alle 10 Level +100 XP pro Stufe */
+// ----------------------------------------
+// Helper-Funktionen (XP, Level, Regen, etc.)
+// ----------------------------------------
+
 function xpNeededForLevel(level) {
   let block = Math.floor((level - 1) / 10) + 1;
   return 100 * block;
 }
 
-/** Level-up check => returns { newLevel, newXP, leveledUp:boolean } */
 function checkLevelUp(userData) {
-  let xp  = userData.xp    || 0;
+  let xp = userData.xp || 0;
   let lvl = userData.level || 1;
-
   let xpNeed = xpNeededForLevel(lvl);
   let leveledUp = false;
   while (xp >= xpNeed) {
@@ -93,22 +95,18 @@ function checkLevelUp(userData) {
   return { newXP: xp, newLevel: lvl, leveledUp };
 }
 
-/** TÄGLICHE REGEN */
 async function checkeTäglicheRegen(uid) {
   const today = new Date().toISOString().split("T")[0];
-  const snap  = await get(ref(db, "benutzer/" + uid));
+  const snap = await get(ref(db, "benutzer/" + uid));
   if (!snap.exists()) return;
-
   let uData = snap.val();
   if (uData.lastDailyRegen === today) return;
 
   let level = uData.level || 1;
-  let hp    = uData.hp    || 100;
-  let mp    = uData.mp    || 100;
-
+  let hp = uData.hp || 100;
+  let mp = uData.mp || 100;
   let maxHP = 100 + Math.floor((level - 1) / 10) * 100;
   let maxMP = 100 + Math.floor((level - 1) / 10) * 50;
-
   let newHP = Math.min(maxHP, hp + Math.floor(maxHP * 0.1));
   let newMP = Math.min(maxMP, mp + Math.floor(maxMP * 0.1));
 
@@ -119,119 +117,36 @@ async function checkeTäglicheRegen(uid) {
   });
 }
 
-/** Updatet XP-Balken + Text */
 function updateXPBar(userData) {
-  let xp    = userData.xp    || 0;
-  let lvl   = userData.level || 1;
+  let xp = userData.xp || 0;
+  let lvl = userData.level || 1;
   let xpNeed = xpNeededForLevel(lvl);
-
-  let bar = document.getElementById("xp-bar-inner");
-  let txt = document.getElementById("xp-bar-text");
+  const bar = document.getElementById("xp-bar-inner");
+  const txt = document.getElementById("xp-bar-text");
   if (!bar || !txt) return;
-
   let perc = Math.round((xp / xpNeed) * 100);
   bar.style.width = Math.min(100, perc) + "%";
   let rest = xpNeed - xp;
   txt.textContent = `Noch ${rest} XP bis zum nächsten Level`;
 }
 
-/** Zeigt kurz eine "LEVEL UP!"-Animation */
 function playLevelUpAnimation() {
   const elem = document.getElementById("levelup-animation");
   if (!elem) return;
-  // reset
   elem.style.transform = "translate(-50%,-50%) scale(0)";
-  elem.style.opacity   = "1";
-
+  elem.style.opacity = "1";
   setTimeout(() => {
     elem.style.transform = "translate(-50%,-50%) scale(1)";
   }, 50);
-
-  // Wegfaden nach 1.5s
   setTimeout(() => {
     elem.style.opacity = "0";
   }, 1500);
 }
 
-/**
- * Zauber wirken
- */
-async function wirkeZauber(zielID, zauberKey) {
-  const user = auth.currentUser;
-  if (!user) return;
+// ----------------------------------------
+// Auth & Login/Logout Funktionen
+// ----------------------------------------
 
-  // caster
-  const cSnap = await get(ref(db, "benutzer/" + user.uid));
-  if (!cSnap.exists()) return;
-  let caster = cSnap.val();
-
-  // zauber
-  const zSnap = await get(ref(db, "zauber/" + zauberKey));
-  if (!zSnap.exists()) {
-    alert("Zauber existiert nicht!");
-    return;
-  }
-  let z = zSnap.val();
-
-  // ziel
-  const tSnap = await get(ref(db, "benutzer/" + zielID));
-  if (!tSnap.exists()) {
-    alert("Ziel nicht gefunden!");
-    return;
-  }
-  let ziel = tSnap.val();
-
-  // Prüfen, ob Caster genug MP hat
-  if ((caster.mp || 0) < (z.kostenMP || 0)) {
-    alert("Nicht genug MP!");
-    return;
-  }
-
-  // Effekt anwenden: HP beim Ziel verändern, MP beim Caster abziehen
-  let newCasterMP = (caster.mp || 0) - (z.kostenMP || 0);
-  let newZielHP   = (ziel.hp   || 0);
-
-  if (z.typ === "heilen") {
-    newZielHP += (z.wert || 0);
-    // max HP beachten
-    let maxHP = 100 + Math.floor(((ziel.level || 1) - 1) / 10) * 100;
-    if (newZielHP > maxHP) newZielHP = maxHP;
-  } else if (z.typ === "schaden") {
-    newZielHP -= (z.wert || 0);
-    if (newZielHP < 0) newZielHP = 0;
-  }
-
-  // Updates vorbereiten
-  let updates = {};
-  updates[`benutzer/${user.uid}/mp`]   = newCasterMP;
-  updates[`benutzer/${zielID}/hp`]    = newZielHP;
-
-  await update(ref(db), updates);
-
-  // Log-Eintrag
-  let casterName = caster.name || caster.email;
-  let zielName   = ziel.name  || ziel.email;
-
-  await push(ref(db, "publicLogs"), {
-    timestamp: Date.now(),
-    actionType: "zauber",
-    casterID:   user.uid,
-    targetID:   zielID,
-    casterName: casterName,
-    targetName: zielName,
-    zauber:     z.name,
-    typ:        z.typ,
-    wert:       z.wert,
-    kosten:     z.kostenMP
-  });
-
-  // UI neu laden => aktualisiert HP/MP/Level
-  await ladeBenutzerdaten();
-
-  alert(`Zauber erfolgreich gewirkt: ${z.name} auf ${zielName}`);
-}
-
-// ================ AUTH STATE ================
 onAuthStateChanged(auth, (user) => {
   if (user && window.location.href.includes("dashboard.html")) {
     ladeBenutzerdaten();
@@ -240,17 +155,13 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// ================ LOGIN / REGISTER / LOGOUT ================
 document.addEventListener("DOMContentLoaded", () => {
   const lBtn = document.getElementById("login-btn");
   const rBtn = document.getElementById("register-btn");
   const copyright = document.getElementById("copyright");
-
   if (lBtn) {
     lBtn.onclick = () => {
-      if (document.getElementById("login-form")) {
-        document.getElementById("login-form").style.display = "block";
-      }
+      document.getElementById("login-form").style.display = "block";
       if (document.getElementById("register-form")) {
         document.getElementById("register-form").style.display = "none";
       }
@@ -258,16 +169,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (rBtn) {
     rBtn.onclick = () => {
-      if (document.getElementById("login-form")) {
-        document.getElementById("login-form").style.display = "none";
-      }
+      document.getElementById("login-form").style.display = "none";
       if (document.getElementById("register-form")) {
         document.getElementById("register-form").style.display = "block";
       }
     };
   }
-
-  // ✅ Admin-Login durch Klicken auf das Copyright
   if (copyright) {
     copyright.style.cursor = "pointer";
     copyright.addEventListener("click", () => {
@@ -278,11 +185,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.benutzerEinloggen = async function() {
   const email = document.getElementById("login-email")?.value;
-  const pw    = document.getElementById("login-password")?.value;
+  const pw = document.getElementById("login-password")?.value;
   try {
     await signInWithEmailAndPassword(auth, email, pw);
     window.location.href = "dashboard.html";
-  } catch(e) {
+  } catch (e) {
+    console.log(e.code, e.message);
     alert(e.message);
   }
 };
@@ -292,15 +200,16 @@ window.googleLogin = async function() {
   try {
     await signInWithPopup(auth, provider);
     window.location.href = "dashboard.html";
-  } catch(e) {
+  } catch (e) {
+    console.log(e.code, e.message);
     alert(e.message);
   }
 };
 
 window.familieErstellen = async function() {
-  const famName    = document.getElementById("family-name").value.trim();
+  const famName = document.getElementById("family-name").value.trim();
   const adminEmail = document.getElementById("admin-email").value.trim();
-  const adminPass  = document.getElementById("admin-password").value.trim();
+  const adminPass = document.getElementById("admin-password").value.trim();
   if (!adminEmail || !adminPass) {
     alert("E-Mail und Passwort erforderlich!");
     return;
@@ -308,9 +217,7 @@ window.familieErstellen = async function() {
   try {
     const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
     const uid = userCred.user.uid;
-
     if (!famName) {
-      // ohne Familie
       await set(ref(db, "benutzer/" + uid), {
         email: adminEmail,
         familie: null,
@@ -322,11 +229,9 @@ window.familieErstellen = async function() {
       window.location.href = "dashboard.html";
       return;
     } else {
-      // check familie
       const famQ = query(ref(db, "familien"), orderByChild("name"), equalTo(famName));
       const snap = await get(famQ);
       if (snap.exists()) {
-        // exist => mitglied
         const data = snap.val();
         const famKey = Object.keys(data)[0];
         await set(ref(db, "benutzer/" + uid), {
@@ -340,7 +245,6 @@ window.familieErstellen = async function() {
         alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
         window.location.href = "dashboard.html";
       } else {
-        // neu => admin
         const famID = Date.now().toString();
         await set(ref(db, "familien/" + famID), {
           name: famName,
@@ -358,7 +262,8 @@ window.familieErstellen = async function() {
         window.location.href = "dashboard.html";
       }
     }
-  } catch(e) {
+  } catch (e) {
+    console.log(e.code, e.message);
     alert(e.message);
   }
 };
@@ -367,98 +272,82 @@ window.ausloggen = async function() {
   try {
     await signOut(auth);
     window.location.href = "index.html";
-  } catch(e) {
+  } catch (e) {
     console.error(e);
   }
 };
 
-// ================ LADE BENUTZERDATEN ================
+// ----------------------------------------
+// Laden der Benutzerdaten und UI-Aktualisierung
+// ----------------------------------------
+
 async function ladeBenutzerdaten() {
   const user = auth.currentUser;
   if (!user) return;
   const snap = await get(ref(db, "benutzer/" + user.uid));
   if (!snap.exists()) return;
-
   let userData = snap.val();
 
-  // Tägliche Regen
   await checkeTäglicheRegen(user.uid);
 
-  // check levelUp
   let { newXP, newLevel, leveledUp } = checkLevelUp(userData);
   if (newLevel !== userData.level || newXP !== userData.xp) {
-    // update DB
     userData.level = newLevel;
-    userData.xp    = newXP;
+    userData.xp = newXP;
     await update(ref(db, "benutzer/" + user.uid), {
       level: newLevel,
       xp: newXP
     });
   }
-
-  // falls leveledUp => animation
   if (leveledUp) {
     playLevelUpAnimation();
   }
-
-  // avatar
   const av = document.getElementById("avatar-anzeige");
   if (av) av.src = userData.avatarURL || "avatars/avatar1.png";
   const bn = document.getElementById("benutzer-name");
   if (bn) bn.textContent = userData.name || userData.email;
-
-  // xpBar
   updateXPBar(userData);
 
-  // familie
   if (userData.familie) {
     const famSnap = await get(ref(db, "familien/" + userData.familie));
     if (famSnap.exists()) {
       let fD = famSnap.val();
       document.getElementById("familien-name").textContent = fD.name;
-      document.getElementById("admin-email").textContent   = fD.admin;
+      document.getElementById("admin-email").textContent = fD.admin;
     }
     await zeigeFamilienMitglieder(userData.familie);
   } else {
     document.getElementById("familien-name").textContent = "Keine";
-    document.getElementById("admin-email").textContent    = userData.isAdmin ? userData.email : "-";
+    document.getElementById("admin-email").textContent = userData.isAdmin ? userData.email : "-";
     await zeigeAlleNutzer();
   }
 
-  // logs, quests, etc
   await ladeZauberListe();
   await ladeZielListe();
   ladeLogsInTabelle();
   ladeQuests(user.uid);
 
-  // Admin => show "Alle Logs löschen" ?
   if (userData.isAdmin) {
     const logClearBtn = document.getElementById("btn-log-clear");
     if (logClearBtn) logClearBtn.style.display = "inline-block";
   }
 }
 
-/* =============== SPIELER-KARTEN =============== */
 async function zeigeFamilienMitglieder(famID) {
   const fSnap = await get(ref(db, "familien/" + famID + "/mitglieder"));
   if (!fSnap.exists()) return;
   let memObj = fSnap.val();
-
   const container = document.getElementById("player-cards-container");
   if (!container) return;
   container.innerHTML = "";
-
   for (let uid in memObj) {
     const bsnap = await get(ref(db, "benutzer/" + uid));
     if (!bsnap.exists()) continue;
     let bD = bsnap.val();
-
     let maxHP = 100 + Math.floor((bD.level - 1) / 10) * 100;
     let maxMP = 100 + Math.floor((bD.level - 1) / 10) * 50;
-
     let hpPerc = Math.round(((bD.hp || 0) / maxHP) * 100);
     let mpPerc = Math.round(((bD.mp || 0) / maxMP) * 100);
-
     let card = document.createElement("div");
     card.className = "player-card";
     card.innerHTML = `
@@ -488,17 +377,13 @@ async function zeigeAlleNutzer() {
   const container = document.getElementById("player-cards-container");
   if (!container) return;
   container.innerHTML = "";
-
   let uObj = snap.val();
   for (let uid in uObj) {
     let ud = uObj[uid];
-
     let maxHP = 100 + Math.floor((ud.level - 1) / 10) * 100;
     let maxMP = 100 + Math.floor((ud.level - 1) / 10) * 50;
-
     let hpPerc = Math.round(((ud.hp || 0) / maxHP) * 100);
     let mpPerc = Math.round(((ud.mp || 0) / maxMP) * 100);
-
     let card = document.createElement("div");
     card.className = "player-card";
     card.innerHTML = `
@@ -522,7 +407,10 @@ async function zeigeAlleNutzer() {
   }
 }
 
-/* =============== ZAUBER & ANGRIFF (Dropdown) =============== */
+// ----------------------------------------
+// Zauber & Ziel Dropdowns
+// ----------------------------------------
+
 async function ladeZauberListe() {
   const sel = document.getElementById("zauber-auswahl");
   if (!sel) return;
@@ -538,17 +426,16 @@ async function ladeZauberListe() {
     sel.appendChild(opt);
   });
 }
+
 async function ladeZielListe() {
   const user = auth.currentUser;
   if (!user) return;
   const bSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!bSnap.exists()) return;
   let bD = bSnap.val();
-
   const sel = document.getElementById("zauber-ziel");
   if (!sel) return;
   sel.innerHTML = "";
-
   if (bD.familie) {
     const famSnap = await get(ref(db, "familien/" + bD.familie + "/mitglieder"));
     if (famSnap.exists()) {
@@ -566,6 +453,7 @@ async function ladeZielListe() {
     }
   }
 }
+
 window.zauberWirkenHandler = async function() {
   const zSel = document.getElementById("zauber-auswahl");
   const tSel = document.getElementById("zauber-ziel");
@@ -579,23 +467,75 @@ window.zauberWirkenHandler = async function() {
   await wirkeZauber(target, zKey);
 };
 
-// =============== ZAUBER-POPUP ===============
+async function wirkeZauber(zielID, zauberKey) {
+  const user = auth.currentUser;
+  if (!user) return;
+  const cSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!cSnap.exists()) return;
+  let caster = cSnap.val();
+  const zSnap = await get(ref(db, "zauber/" + zauberKey));
+  if (!zSnap.exists()) {
+    alert("Zauber existiert nicht!");
+    return;
+  }
+  let z = zSnap.val();
+  const tSnap = await get(ref(db, "benutzer/" + zielID));
+  if (!tSnap.exists()) {
+    alert("Ziel nicht gefunden!");
+    return;
+  }
+  let ziel = tSnap.val();
+  if ((caster.mp || 0) < (z.kostenMP || 0)) {
+    alert("Nicht genug MP!");
+    return;
+  }
+  let newCasterMP = (caster.mp || 0) - (z.kostenMP || 0);
+  let newZielHP = (ziel.hp || 0);
+  if (z.typ === "heilen") {
+    newZielHP += (z.wert || 0);
+    let maxHP = 100 + Math.floor(((ziel.level || 1) - 1) / 10) * 100;
+    if (newZielHP > maxHP) newZielHP = maxHP;
+  } else if (z.typ === "schaden") {
+    newZielHP -= (z.wert || 0);
+    if (newZielHP < 0) newZielHP = 0;
+  }
+  let updates = {};
+  updates[`benutzer/${user.uid}/mp`] = newCasterMP;
+  updates[`benutzer/${zielID}/hp`] = newZielHP;
+  await update(ref(db), updates);
+  let casterName = caster.name || caster.email;
+  let zielName = ziel.name || ziel.email;
+  await push(ref(db, "publicLogs"), {
+    timestamp: Date.now(),
+    actionType: "zauber",
+    casterID: user.uid,
+    targetID: zielID,
+    casterName: casterName,
+    targetName: zielName,
+    zauber: z.name,
+    typ: z.typ,
+    wert: z.wert,
+    kosten: z.kostenMP
+  });
+  await ladeBenutzerdaten();
+  alert(`Zauber erfolgreich gewirkt: ${z.name} auf ${zielName}`);
+}
+
+// ----------------------------------------
+// Zauber-Popup
+// ----------------------------------------
+
 window.zeigeZauberPopup = async function() {
   const pop = document.getElementById("popup-zauber");
   if (!pop) return;
   pop.style.display = "flex";
-
-  // Ziel-liste + zauber-liste
   const user = auth.currentUser;
   if (!user) return;
-  // Clear
   const selTarget = document.getElementById("zauber-ziel-popup");
   const selZauber = document.getElementById("zauber-liste-popup");
   if (!selTarget || !selZauber) return;
   selTarget.innerHTML = "";
   selZauber.innerHTML = "";
-
-  // hole familie => mitglieder
   const bSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!bSnap.exists()) return;
   let bD = bSnap.val();
@@ -615,7 +555,6 @@ window.zeigeZauberPopup = async function() {
       }
     }
   }
-  // Zauber-liste
   const zSnap = await get(ref(db, "zauber"));
   if (!zSnap.exists()) return;
   let zObj = zSnap.val();
@@ -643,25 +582,24 @@ window.popupZauberWirken = async function() {
   closeZauberPopup();
 };
 
-// =============== SPEZIAL-POPUP ===============
+// ----------------------------------------
+// Spezial-Popup & Spezialfähigkeit
+// ----------------------------------------
+
 window.zeigeSpezialPopup = async function() {
   const pop = document.getElementById("popup-spezial");
   if (!pop) return;
   pop.style.display = "flex";
-
   const user = auth.currentUser;
   if (!user) return;
-
   const bSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!bSnap.exists()) return;
   let bD = bSnap.val();
-
   const selTarget = document.getElementById("spezial-ziel-popup");
-  const selSpec   = document.getElementById("spezial-liste-popup");
+  const selSpec = document.getElementById("spezial-liste-popup");
   if (!selTarget || !selSpec) return;
   selTarget.innerHTML = "";
-  selSpec.innerHTML   = "";
-
+  selSpec.innerHTML = "";
   if (bD.familie) {
     const famSnap = await get(ref(db, "familien/" + bD.familie + "/mitglieder"));
     if (famSnap.exists()) {
@@ -678,7 +616,6 @@ window.zeigeSpezialPopup = async function() {
       }
     }
   }
-  // "spezial/"
   const spSnap = await get(ref(db, "spezial"));
   if (!spSnap.exists()) return;
   let spObj = spSnap.val();
@@ -700,89 +637,61 @@ window.popupSpezialWirken = async function() {
   const selT = document.getElementById("spezial-ziel-popup");
   const selS = document.getElementById("spezial-liste-popup");
   if (!selT || !selS) return;
-
   let tVal = selT.value;
   let sVal = selS.value;
-
   await wirkeSpezial(tVal, sVal);
   closeSpezialPopup();
 };
 
-/** Spezialfähigkeit analog */
 async function wirkeSpezial(zielID, spKey) {
   const user = auth.currentUser;
   if (!user) return;
-
-  // caster
   const cSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!cSnap.exists()) return;
   let caster = cSnap.val();
-
-  // ability
   const spSnap = await get(ref(db, "spezial/" + spKey));
   if (!spSnap.exists()) return alert("Spezialfähigkeit existiert nicht!");
   let sp = spSnap.val();
-
-  // Ziel
   const zSnap = await get(ref(db, "benutzer/" + zielID));
   if (!zSnap.exists()) return alert("Ziel nicht gefunden!");
   let ziel = zSnap.val();
-
-  // Check level cost
   if ((caster.level || 1) < (sp.kostenLevel || 0)) {
     alert(`Nicht genug Level! Benötigt: ${sp.kostenLevel || 0}`);
     return;
   }
-
-  // Check cooldown
   let now = new Date();
   let casterSpecUsed = caster.spezialUsed || {};
   if (casterSpecUsed[spKey]) {
     let lastUsedMs = casterSpecUsed[spKey];
-    let diffDays   = (now.getTime() - lastUsedMs) / (1000 * 60 * 60 * 24);
+    let diffDays = (now.getTime() - lastUsedMs) / (1000 * 60 * 60 * 24);
     if (diffDays < (sp.cooldown || 0)) {
       let left = (sp.cooldown || 0) - diffDays;
       alert(`Fähigkeit gesperrt! Noch ~${left.toFixed(1)} Tage warten.`);
       return;
     }
   }
-
-  // Abziehen => newLevel
   let newLvl = caster.level;
   for (let i = 0; i < (sp.kostenLevel || 0); i++) {
     if (newLvl > 1) newLvl--;
   }
-
-  // check chance => success/fail
   let chance = (sp.chance || 100);
   let rolled = Math.random() * 100;
   let success = (rolled < chance);
-
-  // updates
   let updates = {};
   updates[`benutzer/${user.uid}/level`] = newLvl;
-
   if (success) {
-    // success => set lastUsed now
     casterSpecUsed[spKey] = now.getTime();
     updates[`benutzer/${user.uid}/spezialUsed`] = casterSpecUsed;
   }
-
   await update(ref(db), updates);
-
-  // UI neu laden => aktualisiert Level
   await ladeBenutzerdaten();
-
   if (!success) {
     alert(`Fähigkeit fehlgeschlagen! Du verlierst trotzdem ${sp.kostenLevel || 0} Level.`);
   } else {
     alert(`Fähigkeit erfolgreich! ${sp.kommentar || ''}`);
   }
-
-  // log => actionType="spezial"
   let casterName = caster.name || caster.email;
-  let zielName   = ziel.name  || ziel.email;
-
+  let zielName = ziel.name || ziel.email;
   await push(ref(db, "publicLogs"), {
     timestamp: Date.now(),
     actionType: "spezial",
@@ -798,7 +707,10 @@ async function wirkeSpezial(zielID, spKey) {
   });
 }
 
-/* =============== LOGS (NUR ZAUBER/SPEZIAL) =============== */
+// ----------------------------------------
+// Logs in Tabelle laden
+// ----------------------------------------
+
 function ladeLogsInTabelle() {
   const body = document.getElementById("log-table-body");
   if (!body) return;
@@ -807,23 +719,16 @@ function ladeLogsInTabelle() {
     if (!snap.exists()) return;
     let logs = snap.val();
     let keys = Object.keys(logs).sort((a, b) => logs[b].timestamp - logs[a].timestamp);
-
     keys.forEach(k => {
       let l = logs[k];
-      // skip quest
       if (l.actionType === "quest") return;
-
       let tr = document.createElement("tr");
-
       let tdD = document.createElement("td");
       tdD.textContent = new Date(l.timestamp).toLocaleString();
-
       let tdU = document.createElement("td");
       tdU.textContent = l.casterName || l.caster || l.user || "--";
-
       let tdZ = document.createElement("td");
       tdZ.textContent = l.targetName || l.target || l.targetID || "--";
-
       let tdF = document.createElement("td");
       if (l.actionType === "zauber") {
         tdF.textContent = `${l.zauber} (Typ:${l.typ}, Wert:${l.wert}, Kosten:${l.kosten || 0})`;
@@ -833,7 +738,6 @@ function ladeLogsInTabelle() {
       } else {
         tdF.textContent = `(??)`;
       }
-
       tr.appendChild(tdD);
       tr.appendChild(tdU);
       tr.appendChild(tdZ);
@@ -843,14 +747,16 @@ function ladeLogsInTabelle() {
   });
 }
 
-// Admin => log CLEAR
 window.adminLogsClear = async function() {
   if (!confirm("Wirklich ALLE Logs löschen?")) return;
   await remove(ref(db, "publicLogs"));
   alert("Alle Logs gelöscht!");
 };
 
-/* =============== QUESTS =============== */
+// ----------------------------------------
+// Quests
+// ----------------------------------------
+
 async function ladeQuests(uid) {
   const qc = document.getElementById("quest-container");
   if (!qc) return;
@@ -861,14 +767,12 @@ async function ladeQuests(uid) {
   }
   let qObj = snap.val();
   qc.innerHTML = "";
-
   Object.keys(qObj).forEach(qid => {
     let quest = qObj[qid];
     let doneCount = quest.doneCount || 0;
     let tot = quest.totalUnits || 1;
     let isFertig = (doneCount >= tot);
     let questName = isFertig ? `<s>${quest.name}</s>` : quest.name;
-
     let div = document.createElement("div");
     div.className = "quest-box";
     div.innerHTML = `
@@ -897,9 +801,8 @@ async function questAbschliessen(qid, uid) {
   const qSnap = await get(ref(db, "quests/" + qid));
   if (!qSnap.exists()) return;
   let quest = qSnap.val();
-
   let doneC = quest.doneCount || 0;
-  let tot   = quest.totalUnits || 1;
+  let tot = quest.totalUnits || 1;
   if (doneC >= tot) {
     alert("Quest ist bereits abgeschlossen.");
     return;
@@ -909,19 +812,13 @@ async function questAbschliessen(qid, uid) {
   if (!howManyStr) return;
   let howMany = parseInt(howManyStr, 10);
   if (isNaN(howMany) || howMany <= 0) return alert("Ungültige Eingabe.");
-
-  if (howMany > rest) howMany = rest; // max
-
-  // xp
+  if (howMany > rest) howMany = rest;
   const uSnap = await get(ref(db, "benutzer/" + uid));
   if (!uSnap.exists()) return;
   let uData = uSnap.val();
-
   let gainedXP = (quest.xpPerUnit || 0) * howMany;
-  let newXP    = (uData.xp || 0) + gainedXP;
-  let level    = uData.level || 1;
-
-  // check level up
+  let newXP = (uData.xp || 0) + gainedXP;
+  let level = uData.level || 1;
   let xpNeed = xpNeededForLevel(level);
   let leveledUp = false;
   while (newXP >= xpNeed) {
@@ -930,83 +827,87 @@ async function questAbschliessen(qid, uid) {
     xpNeed = xpNeededForLevel(level);
     leveledUp = true;
   }
-
   let newDone = doneC + howMany;
-
   let updates = {};
-  updates[`benutzer/${uid}/xp`]     = newXP;
-  updates[`benutzer/${uid}/level`]  = level;
-  updates[`quests/${qid}/doneCount`]= newDone;
-
+  updates[`benutzer/${uid}/xp`] = newXP;
+  updates[`benutzer/${uid}/level`] = level;
+  updates[`quests/${qid}/doneCount`] = newDone;
   await update(ref(db), updates);
-
-  // direct xpBar update
-  updateXPBar({ xp:newXP, level:level });
-
+  updateXPBar({ xp: newXP, level: level });
   if (leveledUp) {
     playLevelUpAnimation();
   }
-
-  // **Neu**: Gesamte UI aktualisieren => Kartenanzeige + Level
   await ladeBenutzerdaten();
 }
 
-/* =============== EINSTELLUNGEN (TABS) =============== */
-window.oeffneEinstellungen = async function() {
-  const s = document.getElementById("einstellungen-section");
-  if (!s) return;
-  s.style.display = "block";
-  switchTab("tab-profile");
-
+window.adminQuestAnlegen = async function() {
+  const qName = document.getElementById("quest-name").value;
+  const qXP = parseInt(document.getElementById("quest-xp").value, 10);
+  const qTot = parseInt(document.getElementById("quest-totalunits").value, 10);
+  if (!qName || isNaN(qXP) || isNaN(qTot)) {
+    alert("Bitte Name, XP und Anzahl angeben!");
+    return;
+  }
+  const newK = push(ref(db, "quests")).key;
+  await set(ref(db, "quests/" + newK), {
+    name: qName,
+    xpPerUnit: qXP,
+    totalUnits: qTot,
+    doneCount: 0
+  });
+  alert("Quest angelegt!");
+  adminQuestListeLaden();
   const user = auth.currentUser;
-  if (!user) return;
-  const uSnap = await get(ref(db, "benutzer/" + user.uid));
-  if (!uSnap.exists()) return;
-  let uData = uSnap.val();
-
-  const tz = document.querySelector("[data-tab='tab-zauber']");
-  const tq = document.querySelector("[data-tab='tab-quests']");
-  const ts = document.querySelector("[data-tab='tab-spezial']");
-
-  if (uData.isAdmin) {
-    tz.style.display = "inline-block";
-    tq.style.display = "inline-block";
-    ts.style.display = "inline-block";
-    adminZauberListeLaden();
-    adminQuestListeLaden();
-    adminSpezialListeLaden();
-  } else {
-    tz.style.display = "none";
-    tq.style.display = "none";
-    ts.style.display = "none";
+  if (user) {
+    ladeQuests(user.uid);
   }
-
-  await zeigeAvatarEinstellungen();
 };
 
-window.schliesseEinstellungen = function() {
-  const s = document.getElementById("einstellungen-section");
-  if (s) s.style.display = "none";
-};
-
-function switchTab(tabId) {
-  document.querySelectorAll(".tab-content").forEach(tc => tc.style.display = "none");
-  const t = document.getElementById(tabId);
-  if (t) t.style.display = "block";
+async function adminQuestListeLaden() {
+  const ul = document.getElementById("admin-quests-liste");
+  if (!ul) return;
+  ul.innerHTML = "";
+  const snap = await get(ref(db, "quests"));
+  if (!snap.exists()) {
+    ul.innerHTML = "<li>Keine Quests vorhanden.</li>";
+    return;
+  }
+  let qObj = snap.val();
+  Object.keys(qObj).forEach(qKey => {
+    let q = qObj[qKey];
+    let li = document.createElement("li");
+    let dc = q.doneCount || 0;
+    let tot = q.totalUnits || 1;
+    li.textContent = `${q.name} (XP:${q.xpPerUnit}, Fortschritt:${dc}/${tot})`;
+    let btn = document.createElement("button");
+    btn.textContent = "Löschen";
+    btn.onclick = () => adminQuestLoeschen(qKey);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
 }
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("tab-btn")) {
-    let tb = e.target.getAttribute("data-tab");
-    switchTab(tb);
-  }
-});
 
-/* =============== ADMIN: ZAUBER  =============== */
+async function adminQuestLoeschen(qKey) {
+  if (!confirm("Quest wirklich löschen?")) return;
+  await remove(ref(db, "quests/" + qKey));
+  adminQuestListeLaden();
+}
+
+window.adminQuestsAlleLoeschen = async function() {
+  if (!confirm("Wirklich ALLE Quests löschen?")) return;
+  await remove(ref(db, "quests"));
+  alert("Alle Quests gelöscht!");
+  adminQuestListeLaden();
+};
+
+// ----------------------------------------
+// ADMIN: ZAUBER
+// ----------------------------------------
+
 async function adminZauberListeLaden() {
   const ul = document.getElementById("admin-zauber-liste");
   if (!ul) return;
   ul.innerHTML = "";
-
   const snap = await get(ref(db, "zauber"));
   if (!snap.exists()) {
     ul.innerHTML = "<li>Keine Zauber vorhanden.</li>";
@@ -1024,138 +925,71 @@ async function adminZauberListeLaden() {
     ul.appendChild(li);
   });
 }
+
 window.adminZauberAnlegen = async function() {
-  const zName= document.getElementById("zauber-name").value;
-  const zTyp=  document.getElementById("zauber-typ").value;
-  const zWert= parseInt(document.getElementById("zauber-wert").value,10);
-  const zCost= parseInt(document.getElementById("zauber-kosten").value,10);
-  if(!zName || isNaN(zWert) || isNaN(zCost)) {
+  const zName = document.getElementById("zauber-name").value;
+  const zTyp = document.getElementById("zauber-typ").value;
+  const zWert = parseInt(document.getElementById("zauber-wert").value, 10);
+  const zCost = parseInt(document.getElementById("zauber-kosten").value, 10);
+  if (!zName || isNaN(zWert) || isNaN(zCost)) {
     alert("Bitte Name, Typ, Wert, Kosten angeben!");
     return;
   }
-  const newKey= push(ref(db,"zauber")).key;
-  await set(ref(db,"zauber/"+newKey),{
-    name:zName, 
-    typ:zTyp,
-    wert:zWert,
-    kostenMP:zCost
+  const newKey = push(ref(db, "zauber")).key;
+  await set(ref(db, "zauber/" + newKey), {
+    name: zName,
+    typ: zTyp,
+    wert: zWert,
+    kostenMP: zCost
   });
   alert("Zauber angelegt!");
   adminZauberListeLaden();
 };
-async function adminZauberLoeschen(k){
-  if(!confirm("Zauber wirklich löschen?")) return;
-  // Du kannst hier ebenfalls remove() verwenden, wenn du den Zauber komplett löschen willst:
-  await update(ref(db,"zauber/"+k), null);
+
+async function adminZauberLoeschen(k) {
+  if (!confirm("Zauber wirklich löschen?")) return;
+  await remove(ref(db, "zauber/" + k));
   adminZauberListeLaden();
 }
 
-/* =============== ADMIN: QUESTS  =============== */
-async function adminQuestListeLaden(){
-  const ul= document.getElementById("admin-quests-liste");
-  if(!ul) return;
-  ul.innerHTML="";
+// ----------------------------------------
+// ADMIN: SPEZIAL
+// ----------------------------------------
 
-  const snap= await get(ref(db,"quests"));
-  if(!snap.exists()){
-    ul.innerHTML="<li>Keine Quests vorhanden.</li>";
+async function adminSpezialListeLaden() {
+  const ul = document.getElementById("admin-spezial-liste");
+  if (!ul) return;
+  ul.innerHTML = "";
+  const snap = await get(ref(db, "spezial"));
+  if (!snap.exists()) {
+    ul.innerHTML = "<li>Keine Spezialfähigkeiten vorhanden.</li>";
     return;
   }
-  let qObj= snap.val();
-  Object.keys(qObj).forEach(qKey=>{
-    let q= qObj[qKey];
-    let li= document.createElement("li");
-    let dc= q.doneCount||0;
-    let tot= q.totalUnits||1;
-    li.textContent= `${q.name} (XP:${q.xpPerUnit}, Fortschritt:${dc}/${tot})`;
-    let btn= document.createElement("button");
-    btn.textContent="Löschen";
-    btn.onclick= ()=> adminQuestLoeschen(qKey);
+  let sObj = snap.val();
+  Object.keys(sObj).forEach(sk => {
+    let s = sObj[sk];
+    let li = document.createElement("li");
+    li.textContent = `${s.name} (Kosten:${s.kostenLevel || 0} Lvl, Chance:${s.chance || 100}%, Cooldown:${s.cooldown || 0}d, '${s.kommentar || ''}')`;
+    let btn = document.createElement("button");
+    btn.textContent = "Löschen";
+    btn.onclick = () => adminSpezialLoeschen(sk);
     li.appendChild(btn);
     ul.appendChild(li);
   });
 }
 
-/**
- * Hier fügen wir NACH dem Anlegen zusätzlich 'ladeQuests(user.uid)' ein,
- * damit die neue Quest sofort in den Täglichen Quests sichtbar ist.
- */
-window.adminQuestAnlegen= async function(){
-  const qName= document.getElementById("quest-name").value;
-  const qXP=   parseInt(document.getElementById("quest-xp").value,10);
-  const qTot=  parseInt(document.getElementById("quest-totalunits").value,10);
-  if(!qName|| isNaN(qXP)|| isNaN(qTot)){
-    alert("Bitte Name, XP und Anzahl angeben!");
-    return;
-  }
-  const newK= push(ref(db,"quests")).key;
-  await set(ref(db,"quests/"+newK), {
-    name:qName,
-    xpPerUnit:qXP,
-    totalUnits:qTot,
-    doneCount:0
-  });
-  alert("Quest angelegt!");
-  
-  // 1) Admin-Liste aktualisieren
-  adminQuestListeLaden();
-
-  // 2) Tägliche Quests sofort neu laden
-  const user = auth.currentUser;
-  if (user) {
-    ladeQuests(user.uid);
-  }
-};
-
-async function adminQuestLoeschen(qKey){
-  if(!confirm("Quest wirklich löschen?")) return;
-  await remove(ref(db, "quests/" + qKey));
-  adminQuestListeLaden();
-}
-window.adminQuestsAlleLoeschen= async function(){
-  if(!confirm("Wirklich ALLE Quests löschen?")) return;
-  await remove(ref(db, "quests"));
-  alert("Alle Quests gelöscht!");
-  adminQuestListeLaden();
-};
-
-
-/* =============== ADMIN: SPEZIAL  =============== */
-async function adminSpezialListeLaden(){
-  const ul= document.getElementById("admin-spezial-liste");
-  if(!ul) return;
-  ul.innerHTML="";
-
-  const snap= await get(ref(db,"spezial"));
-  if(!snap.exists()){
-    ul.innerHTML="<li>Keine Spezialfähigkeiten vorhanden.</li>";
-    return;
-  }
-  let sObj= snap.val();
-  Object.keys(sObj).forEach(sk=>{
-    let s= sObj[sk];
-    let li= document.createElement("li");
-    li.textContent=`${s.name} (Kosten:${s.kostenLevel||0} Lvl, Chance:${s.chance||100}%, Cooldown:${s.cooldown||0}d, '${s.kommentar||''}')`;
-    let btn= document.createElement("button");
-    btn.textContent="Löschen";
-    btn.onclick= ()=> adminSpezialLoeschen(sk);
-    li.appendChild(btn);
-    ul.appendChild(li);
-  });
-}
-window.adminSpezialAnlegen= async function(){
-  const sName= document.getElementById("spezial-name").value.trim();
-  const sKosten= parseInt(document.getElementById("spezial-kosten").value,10);
-  const sChance= parseInt(document.getElementById("spezial-chance").value,10);
-  const sCd= parseInt(document.getElementById("spezial-cooldown").value,10);
-  const sComm= document.getElementById("spezial-kommentar").value.trim();
-
-  if(!sName|| isNaN(sKosten)|| isNaN(sChance)|| isNaN(sCd)){
+window.adminSpezialAnlegen = async function() {
+  const sName = document.getElementById("spezial-name").value.trim();
+  const sKosten = parseInt(document.getElementById("spezial-kosten").value, 10);
+  const sChance = parseInt(document.getElementById("spezial-chance").value, 10);
+  const sCd = parseInt(document.getElementById("spezial-cooldown").value, 10);
+  const sComm = document.getElementById("spezial-kommentar").value.trim();
+  if (!sName || isNaN(sKosten) || isNaN(sChance) || isNaN(sCd)) {
     alert("Bitte Name, Kosten, Chance, Cooldown angeben!");
     return;
   }
-  const newKey= push(ref(db,"spezial")).key;
-  await set(ref(db,"spezial/"+newKey), {
+  const newKey = push(ref(db, "spezial")).key;
+  await set(ref(db, "spezial/" + newKey), {
     name: sName,
     kostenLevel: sKosten,
     chance: sChance,
@@ -1164,68 +998,69 @@ window.adminSpezialAnlegen= async function(){
   });
   alert("Spezialfähigkeit angelegt!");
   adminSpezialListeLaden();
-};
-async function adminSpezialLoeschen(sk){
-  if(!confirm("Wirklich löschen?")) return;
-  // Du kannst hier ebenfalls remove(...) verwenden, wenn du den Eintrag komplett löschen willst:
-  await update(ref(db,"spezial/"+sk), null);
+}
+
+async function adminSpezialLoeschen(sk) {
+  if (!confirm("Wirklich löschen?")) return;
+  await remove(ref(db, "spezial/" + sk));
   adminSpezialListeLaden();
 }
 
-/* =============== AVATAR & NAME =============== */
-window.zeigeAvatarEinstellungen= async function(){
-  const user= auth.currentUser;
-  if(!user) return;
-  const snap= await get(ref(db,"benutzer/"+user.uid));
-  if(!snap.exists()) return;
-  let ud= snap.val();
+// ----------------------------------------
+// AVATAR & NAME
+// ----------------------------------------
 
-  const pImg= document.getElementById("avatar-preview");
-  const nInp= document.getElementById("namen-input");
-  const sel= document.getElementById("avatar-auswahl");
-  if(!pImg|| !nInp|| !sel) return;
-
-  nInp.value= ud.name||"";
-  pImg.src= ud.avatarURL||"avatars/avatar1.png";
-
-  const avList= [
-    "avatars/avatar1.png","avatars/avatar2.png","avatars/avatar3.png",
-    "avatars/avatar4.png","avatars/avatar5.png","avatars/avatar6.png",
-    "avatars/avatar7.png","avatars/avatar8.png","avatars/avatar9.png",
+window.zeigeAvatarEinstellungen = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const snap = await get(ref(db, "benutzer/" + user.uid));
+  if (!snap.exists()) return;
+  let ud = snap.val();
+  const pImg = document.getElementById("avatar-preview");
+  const nInp = document.getElementById("namen-input");
+  const sel = document.getElementById("avatar-auswahl");
+  if (!pImg || !nInp || !sel) return;
+  nInp.value = ud.name || "";
+  pImg.src = ud.avatarURL || "avatars/avatar1.png";
+  const avList = [
+    "avatars/avatar1.png", "avatars/avatar2.png", "avatars/avatar3.png",
+    "avatars/avatar4.png", "avatars/avatar5.png", "avatars/avatar6.png",
+    "avatars/avatar7.png", "avatars/avatar8.png", "avatars/avatar9.png",
     "avatars/avatar10.png"
   ];
-  sel.innerHTML="";
-  avList.forEach(a=>{
-    let opt= document.createElement("option");
-    opt.value=a;
-    opt.textContent= a.split("/").pop();
+  sel.innerHTML = "";
+  avList.forEach(a => {
+    let opt = document.createElement("option");
+    opt.value = a;
+    opt.textContent = a.split("/").pop();
     sel.appendChild(opt);
   });
-  sel.value= ud.avatarURL||"avatars/avatar1.png";
-  sel.onchange= ()=> pImg.src= sel.value;
+  sel.value = ud.avatarURL || "avatars/avatar1.png";
+  sel.onchange = () => pImg.src = sel.value;
 };
 
-window.avatarSpeichern= async function(){
-  const user= auth.currentUser;
-  if(!user) return;
-  const nInp= document.getElementById("namen-input");
-  const sel= document.getElementById("avatar-auswahl");
-  const aImg= document.getElementById("avatar-anzeige");
-  if(!nInp|| !sel|| !aImg) return;
-
-  let newN= nInp.value.trim()|| "Unbekannt";
-  let chURL= sel.value|| "avatars/avatar1.png";
-
-  await update(ref(db,"benutzer/"+user.uid), {
-    name:newN,
+window.avatarSpeichern = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const nInp = document.getElementById("namen-input");
+  const sel = document.getElementById("avatar-auswahl");
+  const aImg = document.getElementById("avatar-anzeige");
+  if (!nInp || !sel || !aImg) return;
+  let newN = nInp.value.trim() || "Unbekannt";
+  let chURL = sel.value || "avatars/avatar1.png";
+  await update(ref(db, "benutzer/" + user.uid), {
+    name: newN,
     avatarURL: chURL
   });
-  aImg.src= chURL;
-  document.getElementById("benutzer-name").textContent= newN;
+  aImg.src = chURL;
+  document.getElementById("benutzer-name").textContent = newN;
   alert("Profil aktualisiert!");
 };
 
-// =============== VIDEO-POPUP ===============
+// ----------------------------------------
+// Weitere UI-Funktionen (Video, Admin-Login, Fehlermeldung)
+// ----------------------------------------
+
 window.zeigeVideoPopup = function() {
   document.getElementById("video-popup").style.display = "flex";
 };
@@ -1234,7 +1069,6 @@ window.schließeVideoPopup = function() {
   document.getElementById("video-popup").style.display = "none";
 };
 
-// =============== ADMIN-LOGIN-POPUP ===============
 window.zeigeAdminLogin = function() {
   document.getElementById("admin-login-popup").style.display = "flex";
 };
@@ -1243,7 +1077,6 @@ window.schließeAdminLogin = function() {
   document.getElementById("admin-login-popup").style.display = "none";
 };
 
-// =============== FEHLERMELDUNGS-POPUP ===============
 window.zeigeFehlerPopup = function() {
   document.getElementById("error-popup").style.display = "flex";
 };
@@ -1252,19 +1085,66 @@ window.schließeFehlerPopup = function() {
   document.getElementById("error-popup").style.display = "none";
 };
 
-// =============== FEHLERMELDUNG SENDEN ===============
 window.sendeFehlermeldung = function() {
   const name = document.getElementById("error-name").value;
   const email = document.getElementById("error-email").value;
   const message = document.getElementById("error-message").value;
-
   if (!name || !email || !message) {
     alert("Bitte alle Felder ausfüllen!");
     return;
   }
-
   const mailtoLink = `mailto:thomas.schuster-vb@eclipso.at?subject=Fehlermeldung von ${name}&body=${message}%0D%0A%0D%0AVon: ${email}`;
   window.location.href = mailtoLink;
   alert("Fehlermeldung wurde vorbereitet. Bitte prüfe dein E-Mail-Programm.");
   schließeFehlerPopup();
 };
+
+// ----------------------------------------
+// Tabs (Einstellungen)
+// ----------------------------------------
+
+window.oeffneEinstellungen = async function() {
+  const s = document.getElementById("einstellungen-section");
+  if (!s) return;
+  s.style.display = "block";
+  switchTab("tab-profile");
+  const user = auth.currentUser;
+  if (!user) return;
+  const uSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!uSnap.exists()) return;
+  let uData = uSnap.val();
+  const tz = document.querySelector("[data-tab='tab-zauber']");
+  const tq = document.querySelector("[data-tab='tab-quests']");
+  const ts = document.querySelector("[data-tab='tab-spezial']");
+  if (uData.isAdmin) {
+    tz.style.display = "inline-block";
+    tq.style.display = "inline-block";
+    ts.style.display = "inline-block";
+    adminZauberListeLaden();
+    adminQuestListeLaden();
+    adminSpezialListeLaden();
+  } else {
+    tz.style.display = "none";
+    tq.style.display = "none";
+    ts.style.display = "none";
+  }
+  await zeigeAvatarEinstellungen();
+};
+
+window.schliesseEinstellungen = function() {
+  const s = document.getElementById("einstellungen-section");
+  if (s) s.style.display = "none";
+};
+
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-content").forEach(tc => tc.style.display = "none");
+  const t = document.getElementById(tabId);
+  if (t) t.style.display = "block";
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("tab-btn")) {
+    let tb = e.target.getAttribute("data-tab");
+    switchTab(tb);
+  }
+});
