@@ -53,26 +53,25 @@
     </div>
   </div>
 
-<!-- POPUP SPEZIAL -->
-<div id="popup-spezial" class="popup-modal" style="display:none;">
-  <div class="popup-content">
-    <h3>Spezialfähigkeiten</h3>
-    <select id="spezial-liste-popup"></select>
-    <br><br>
-    <label>Ziel:</label>
-    <select id="spezial-ziel-popup"></select>
-    <br><br>
+  <!-- POPUP SPEZIAL -->
+  <div id="popup-spezial" class="popup-modal" style="display:none;">
+    <div class="popup-content">
+      <h3>Spezialfähigkeiten</h3>
+      <select id="spezial-liste-popup"></select>
+      <br><br>
+      <label>Ziel:</label>
+      <select id="spezial-ziel-popup"></select>
+      <br><br>
 
-    <!-- NEU: Kommentar-Eingabefeld -->
-    <label>Was möchtest du?</label>
-    <input type="text" id="spezial-extra-text" placeholder="z.B. eine Massage" />
-    <br><br>
+      <!-- NEU: Kommentar-Eingabefeld für den Nutzer -->
+      <label>Was möchtest du?</label>
+      <input type="text" id="spezial-extra-text" placeholder="z.B. eine Massage" />
+      <br><br>
 
-    <button onclick="window.popupSpezialWirken()">Anwenden</button>
-    <button onclick="window.closeSpezialPopup()">Schließen</button>
+      <button onclick="window.popupSpezialWirken()">Anwenden</button>
+      <button onclick="window.closeSpezialPopup()">Schließen</button>
+    </div>
   </div>
-</div>
-
 
   <!-- SPIELER-KARTEN -->
   <div id="player-cards-container"></div>
@@ -161,6 +160,7 @@
       <input type="number" id="spezial-kosten" placeholder="Kosten (Level)">
       <input type="number" id="spezial-chance" placeholder="Chance in %">
       <input type="number" id="spezial-cooldown" placeholder="Cooldown (Tage)">
+      <!-- KEIN Kommentarfeld hier! -->
       <button onclick="window.adminSpezialAnlegen()">Erstellen</button>
     </div>
     <ul id="admin-spezial-liste"></ul>
