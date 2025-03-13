@@ -636,29 +636,44 @@ window.closeSpezialPopup = function() {
 window.popupSpezialWirken = async function() {
   const selT = document.getElementById("spezial-ziel-popup");
   const selS = document.getElementById("spezial-liste-popup");
-  if (!selT || !selS) return;
+  const extraInput = document.getElementById("spezial-extra-text"); // <--
+
+  if (!selT || !selS || !extraInput) return;
+
   let tVal = selT.value;
   let sVal = selS.value;
-  await wirkeSpezial(tVal, sVal);
+  let extraVal = extraInput.value.trim();  // Kommentar
+
+  await wirkeSpezial(tVal, sVal, extraVal);
   closeSpezialPopup();
 };
 
-async function wirkeSpezial(zielID, spKey) {
+async function wirkeSpezial(zielID, spKey, extraVal) {
   const user = auth.currentUser;
   if (!user) return;
+
+  // caster
   const cSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!cSnap.exists()) return;
   let caster = cSnap.val();
+
+  // ability
   const spSnap = await get(ref(db, "spezial/" + spKey));
   if (!spSnap.exists()) return alert("Spezialfähigkeit existiert nicht!");
   let sp = spSnap.val();
+
+  // Ziel
   const zSnap = await get(ref(db, "benutzer/" + zielID));
   if (!zSnap.exists()) return alert("Ziel nicht gefunden!");
   let ziel = zSnap.val();
+
+  // Check level cost
   if ((caster.level || 1) < (sp.kostenLevel || 0)) {
     alert(`Nicht genug Level! Benötigt: ${sp.kostenLevel || 0}`);
     return;
   }
+
+  // Check cooldown
   let now = new Date();
   let casterSpecUsed = caster.spezialUsed || {};
   if (casterSpecUsed[spKey]) {
@@ -670,28 +685,46 @@ async function wirkeSpezial(zielID, spKey) {
       return;
     }
   }
+
+  // Abziehen => newLevel
   let newLvl = caster.level;
   for (let i = 0; i < (sp.kostenLevel || 0); i++) {
     if (newLvl > 1) newLvl--;
   }
+
+  // check chance => success/fail
   let chance = (sp.chance || 100);
   let rolled = Math.random() * 100;
   let success = (rolled < chance);
+
+  // updates
   let updates = {};
   updates[`benutzer/${user.uid}/level`] = newLvl;
+
   if (success) {
+    // success => set lastUsed now
     casterSpecUsed[spKey] = now.getTime();
     updates[`benutzer/${user.uid}/spezialUsed`] = casterSpecUsed;
   }
+
   await update(ref(db), updates);
+
+  // UI neu laden => aktualisiert Level
   await ladeBenutzerdaten();
+
+  let casterName = caster.name || caster.email;
+  let zielName   = ziel.name  || ziel.email;
+
   if (!success) {
     alert(`Fähigkeit fehlgeschlagen! Du verlierst trotzdem ${sp.kostenLevel || 0} Level.`);
   } else {
-    alert(`Fähigkeit erfolgreich! ${sp.kommentar || ''}`);
+    // Du kannst den Text beliebig gestalten:
+    // z.B. "Thomas wünscht sich eine Massage von Maria"
+    let msg = `${casterName} wünscht sich "${extraVal}" von ${zielName}.`;
+    alert(`Fähigkeit erfolgreich! ${msg}`);
   }
-  let casterName = caster.name || caster.email;
-  let zielName = ziel.name || ziel.email;
+
+  // log => actionType="spezial"
   await push(ref(db, "publicLogs"), {
     timestamp: Date.now(),
     actionType: "spezial",
@@ -702,10 +735,12 @@ async function wirkeSpezial(zielID, spKey) {
     name: sp.name,
     kosten: sp.kostenLevel || 0,
     chance: sp.chance || 100,
-    kommentar: sp.kommentar || "",
+    // Hier speichern wir den Kommentar
+    kommentar: extraVal,
     success: success
   });
 }
+
 
 // ----------------------------------------
 // Logs in Tabelle laden
