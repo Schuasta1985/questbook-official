@@ -1111,18 +1111,20 @@ window.adminQuestAnlegen= async function(){
     ladeQuests(user.uid);
   }
 };
+import { remove } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 
 async function adminQuestLoeschen(qKey){
   if(!confirm("Quest wirklich löschen?")) return;
-  await update(ref(db,"quests/"+qKey), null);
+  await remove(ref(db, "quests/" + qKey));
   adminQuestListeLaden();
 }
 window.adminQuestsAlleLoeschen= async function(){
   if(!confirm("Wirklich ALLE Quests löschen?")) return;
-  await update(ref(db,"quests"), null);
+  await remove(ref(db, "quests"));
   alert("Alle Quests gelöscht!");
   adminQuestListeLaden();
 };
+
 
 /* =============== ADMIN: SPEZIAL  =============== */
 async function adminSpezialListeLaden(){
