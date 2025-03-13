@@ -16,11 +16,11 @@ import {
 
 // 🔑 Firebase-Konfiguration (angepasst an deine Firebase Console)
 const firebaseConfig = {
-  apiKey: "AIzaSyAtUbDDMpZodZ-rcpGJfHbVWVZD2lXFgI",
+  apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
   authDomain: "questbook-138c8.firebaseapp.com",
   databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "questbook-138c8",
-  storageBucket: "questbook-138c8.firebasestorage.app", // angepasst!
+  storageBucket: "questbook-138c8.firebasestorage.app",
   messagingSenderId: "625259298286",
   appId: "1:625259298286:web:bf60483c258cd311bea2ff",
   measurementId: "G-H6F2TB6PY7"
