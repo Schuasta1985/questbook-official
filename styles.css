@@ -3,16 +3,20 @@ body {
   background-image: url('hintergrund.jpg');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
   background-repeat: no-repeat;
   color: #FFD700;
   font-family: 'Arial', sans-serif;
   text-align: center;
+  margin: 0; 
+  padding: 0;
 }
 header, main, footer {
   margin: 0 auto;
   padding: 10px;
 }
+
+/* Meta-Tag in HTML nicht vergessen:
+   <meta name="viewport" content="width=device-width, initial-scale=1.0"> */
 
 /* HEADLINE */
 h1 {
@@ -379,13 +383,13 @@ h1 {
 /* FOOTER => zentriert unten */
 footer {
   position: fixed;
-  left: 50%;             /* zentrieren */
-  transform: translateX(-50%); 
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 10px;
-  width: auto;           /* passt sich dem Inhalt an */
+  width: auto;
   text-align: center;
   z-index: 10000;
-  background: transparent; /* kein Hintergrund */
+  background: transparent;
   color: #FFD700;
 }
 
@@ -457,6 +461,11 @@ footer {
 
 /* RESPONSIVE Anpassungen für mobile Geräte */
 @media (max-width: 600px) {
+  /* Hintergrund-Scrolling fix für iOS Safari */
+  body {
+    background-attachment: scroll; /* iOS Safari mag 'fixed' nicht */
+  }
+
   #fehler-button {
     top: 10px;
     right: 10px;
