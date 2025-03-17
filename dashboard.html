@@ -2,11 +2,9 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <!-- Wichtig: Damit die Seite auf mobilen Geräten richtig skaliert -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quest-Buch – Dashboard</title>
   <link rel="stylesheet" href="styles.css">
-  <script type="module" src="script.js"></script>
 </head>
 <body>
 
@@ -60,9 +58,9 @@
       <label>Ziel:</label>
       <select id="spezial-ziel-popup"></select>
       <br><br>
-      <!-- Kommentar-Eingabefeld für den Nutzer -->
+      <!-- Kommentar-Eingabefeld -->
       <label>Was möchtest du?</label>
-      <input type="text" id="spezial-extra-text" placeholder="z.B. eine Massage">
+      <input type="text" id="spezial-extra-text" placeholder="z.B. Rückenmassage">
       <br><br>
       <button onclick="popupSpezialWirken()">Anwenden</button>
       <button onclick="closeSpezialPopup()">Schließen</button>
@@ -154,7 +152,6 @@
       <input type="number" id="spezial-kosten" placeholder="Kosten (Level)">
       <input type="number" id="spezial-chance" placeholder="Chance in %">
       <input type="number" id="spezial-cooldown" placeholder="Cooldown (Tage)">
-      <!-- KEIN Kommentarfeld hier -->
       <button onclick="adminSpezialAnlegen()">Erstellen</button>
     </div>
     <ul id="admin-spezial-liste"></ul>
@@ -166,5 +163,7 @@
 <button id="logout-btn" onclick="ausloggen()">🔑 Ausloggen</button>
 <!-- Einstellungs-Icon -->
 <button id="einstellungen-icon" onclick="oeffneEinstellungen()">⚙️</button>
+
+<script type="module" src="script.js"></script>
 </body>
 </html>
