@@ -42,10 +42,10 @@
       <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
     </div>
 
-    <!-- Registrierungs-Formular -->
+    <!-- Registrierungs-Formular (Pflicht) -->
     <div id="register-form" class="auth-form" style="display: none;">
       <h3>Registrieren / Familie gründen</h3>
-      <input type="text" id="family-name" placeholder="(Optional) Familienname">
+      <input type="text" id="family-name" placeholder="Familienname">
       <input type="email" id="admin-email" placeholder="E-Mail">
       <input type="password" id="admin-password" placeholder="Passwort">
 
@@ -60,30 +60,29 @@
         <input type="checkbox" id="datenschutz-checkbox">
         Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzrichtlinie</a> gelesen und akzeptiere sie.
       </label>
+      <br><br>
 
       <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
     </div>
 
     <!-- Link zum Erklärvideo -->
     <div style="margin-top: 30px; text-align: center;">
-      <a href="#" id="erklaerlink" onclick="zeigeVideoPopup()">Erklärvideo ansehen</a>
+      <a href="javascript:void(0)" id="erklaer-link" onclick="zeigeVideoPopup()">Erklärvideo ansehen</a>
     </div>
   </main>
 
   <!-- Popups -->
-  <!-- Video-Popup: Nur ein Link oder optional YouTube-iFrame, je nach Wunsch -->
+  <!-- Video-Popup: Synthesia Embed -->
   <div id="video-popup" class="popup-modal" onclick="schließeVideoPopup()">
     <div class="popup-content" onclick="event.stopPropagation()">
-      <!-- Hier wahlweise direkter Link oder iFrame -->
-      <iframe 
-        id="tutorial-iframe" 
-        width="560" 
-        height="315" 
-        src=""
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-      </iframe>
+      <!-- Synthesia iFrame -->
+      <div style="position: relative; overflow: hidden; aspect-ratio: 1920/1080">
+        <iframe src="https://share.synthesia.io/embeds/videos/b4f5dc13-a14e-46ae-8e66-d973e3666c3b"
+          loading="lazy" title="Synthesia video player - Questbook"
+          allowfullscreen allow="encrypted-media; fullscreen;"
+          style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0; margin: 0; overflow:hidden;">
+        </iframe>
+      </div>
     </div>
   </div>
 
@@ -121,42 +120,10 @@
 
   <!-- Footer -->
   <footer>
-    <!-- NEU: onclick="zeigeAdminLogin()" damit man per Klick das Admin-Login sieht -->
     <span id="copyright" onclick="zeigeAdminLogin()">
       © Questbook
     </span>
   </footer>
-
-  <!-- Popups-Funktionen: -->
-  <script type="module">
-    // Video-Popup
-    window.zeigeVideoPopup = function() {
-      // iFrame
-      const iframe = document.getElementById("tutorial-iframe");
-      iframe.src = "https://www.youtube.com/embed/Trdyo2j9zbs?autoplay=1";
-      document.getElementById("video-popup").style.display = "flex";
-    };
-    window.schließeVideoPopup = function() {
-      document.getElementById("video-popup").style.display = "none";
-      document.getElementById("tutorial-iframe").src = "";
-    };
-
-    // Admin-Login
-    window.zeigeAdminLogin = function() {
-      document.getElementById("admin-login-popup").style.display = "flex";
-    };
-    window.schließeAdminLogin = function() {
-      document.getElementById("admin-login-popup").style.display = "none";
-    };
-
-    // Fehlermeldung
-    window.zeigeFehlerPopup = function() {
-      document.getElementById("error-popup").style.display = "flex";
-    };
-    window.schließeFehlerPopup = function() {
-      document.getElementById("error-popup").style.display = "none";
-    };
-  </script>
 
   <!-- Dein externes Script -->
   <script type="module" src="script.js"></script>
