@@ -206,10 +206,45 @@ window.googleLogin = async function() {
   }
 };
 
+/* ---------------------------------------------------------------
+   NEU: (Optional) Captcha-Variablen + Checkbox
+   - Nur relevant, wenn du ein Captcha-Eingabefeld & Checkbox in HTML hast
+----------------------------------------------------------------*/
+let captchaA = 0, captchaB = 0;
+document.addEventListener("DOMContentLoaded", () => {
+  // Falls du einen <div id="captcha-section"> hast
+  const capDiv = document.getElementById("captcha-section");
+  if (capDiv) {
+    captchaA = Math.floor(Math.random()*10)+1;
+    captchaB = Math.floor(Math.random()*10)+1;
+    const frageEl = document.getElementById("captcha-frage");
+    if (frageEl) {
+      frageEl.textContent = `Wieviel ist ${captchaA} + ${captchaB}?`;
+    }
+  }
+});
+
 window.familieErstellen = async function() {
   const famName    = document.getElementById("family-name").value.trim();
   const adminEmail = document.getElementById("admin-email").value.trim();
   const adminPass  = document.getElementById("admin-password").value.trim();
+
+  // NEU: Optionaler Captcha-Check
+  if (document.getElementById("captcha-section")) {
+    const userAnswer = parseInt(document.getElementById("captcha-input")?.value, 10);
+    if (isNaN(userAnswer) || userAnswer !== (captchaA + captchaB)) {
+      alert("Bitte das richtige Ergebnis der Rechenaufgabe eingeben!");
+      return;
+    }
+    // Datenschutz-Checkbox
+    const dsCb = document.getElementById("datenschutz-checkbox");
+    if (dsCb && !dsCb.checked) {
+      alert("Bitte Datenschutzrichtlinie akzeptieren!");
+      return;
+    }
+  }
+  // Ende NEU
+
   if (!adminEmail || !adminPass) {
     alert("E-Mail und Passwort erforderlich!");
     return;
@@ -230,22 +265,51 @@ window.familieErstellen = async function() {
       window.location.href = "dashboard.html";
       return;
     } else {
+      // NEU: Familie-Kollision => user kann beitreten oder suffix
       const famQ = query(ref(db, "familien"), orderByChild("name"), equalTo(famName));
       const snap = await get(famQ);
       if (snap.exists()) {
-        const data = snap.val();
-        const famKey = Object.keys(data)[0];
-        await set(ref(db, "benutzer/" + uid), {
-          email: adminEmail,
-          familie: famKey,
-          isAdmin: false,
-          name: adminEmail.split("@")[0],
-          level: 1, xp: 0, hp: 100, mp: 100
-        });
-        await update(ref(db, "familien/" + famKey + "/mitglieder"), { [uid]: true });
-        alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
-        window.location.href = "dashboard.html";
+        // exist => nachfragen
+        const yesJoin = confirm(
+          `Familie '${famName}' existiert schon.\n\n` +
+          `OK = dieser Familie beitreten\n` +
+          `Abbrechen = neue Familie anlegen (z.B. ${famName}X)`
+        );
+        if (yesJoin) {
+          // beitreten
+          const data = snap.val();
+          const famKey = Object.keys(data)[0];
+          await set(ref(db, "benutzer/" + uid), {
+            email: adminEmail,
+            familie: famKey,
+            isAdmin: false,
+            name: adminEmail.split("@")[0],
+            level: 1, xp: 0, hp: 100, mp: 100
+          });
+          await update(ref(db, "familien/" + famKey + "/mitglieder"), { [uid]: true });
+          alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
+          window.location.href = "dashboard.html";
+        } else {
+          // Suffix => neue Fam
+          const famSuffix = famName + "_" + Date.now().toString().slice(-3);
+          const famID = Date.now().toString();
+          await set(ref(db, "familien/" + famID), {
+            name: famSuffix,
+            admin: adminEmail,
+            mitglieder: { [uid]: true }
+          });
+          await set(ref(db, "benutzer/" + uid), {
+            email: adminEmail,
+            familie: famID,
+            isAdmin: true,
+            name: adminEmail.split("@")[0],
+            level: 1, xp: 0, hp: 100, mp: 100
+          });
+          alert(`Neue Familie '${famSuffix}' erstellt! Du bist Admin.`);
+          window.location.href = "dashboard.html";
+        }
       } else {
+        // wie vorher
         const famID = Date.now().toString();
         await set(ref(db, "familien/" + famID), {
           name: famName,
@@ -262,6 +326,7 @@ window.familieErstellen = async function() {
         alert(`Neue Familie '${famName}' erstellt! Du bist Admin.`);
         window.location.href = "dashboard.html";
       }
+      // Ende NEU
     }
   } catch(e) {
     console.log(e.code, e.message);
@@ -1112,8 +1177,7 @@ window.adminSpezialAnlegen= async function() {
     return;
   }
 
-  const newKey= push(ref(db, "spezial")).key;
-  await set(ref(db, "spezial/"+newKey), {
+  const newKey= push(ref(db, "spezial/"+newKey), {
     name: sName,
     kostenLevel: sKosten,
     chance: sChance,
