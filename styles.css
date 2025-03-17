@@ -499,3 +499,23 @@ footer {
     font-size: 12px;
   }
 }
+
+/* Alle Links sollen gold sein – auch wenn schon besucht */
+a, a:visited {
+  color: gold;
+  text-decoration: none; /* oder nach Wunsch */
+}
+
+/* Beim Hover z. B. unterstreichen */
+a:hover {
+  text-decoration: underline;
+  color: gold; /* bleibt gold */
+}
+
+/* Für :active und :focus ggf. ebenso */
+a:active,
+a:focus {
+  color: gold;
+  text-decoration: none; /* optional */
+}
+
