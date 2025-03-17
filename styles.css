@@ -1,33 +1,32 @@
 /* =============== GLOBAL =============== */
-body {
-  background-image: url('hintergrund.jpg');
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Damit der Hintergrund immer mindestens volle Höhe hat */
+  background: url('hintergrund.jpg') no-repeat center center fixed;
   background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   color: #FFD700;
   font-family: 'Arial', sans-serif;
   text-align: center;
-  margin: 0; 
-  padding: 0;
 }
+
+/* Container zentriert */
 header, main, footer {
   margin: 0 auto;
   padding: 10px;
 }
 
-/* Meta-Tag in HTML nicht vergessen:
-   <meta name="viewport" content="width=device-width, initial-scale=1.0"> */
-
 /* HEADLINE */
 h1 {
   margin-top: 20px;
 }
+
 #familien-info {
   font-size: 14px; 
   color: #FFFDAA;
 }
 
-/* AUTH on index page */
+/* Auth-Container (index) */
 #auth-container {
   background: rgba(0,0,0,0.7);
   max-width: 400px;
@@ -36,6 +35,8 @@ h1 {
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0,0,0,0.7);
 }
+
+/* Buttons (Login, Register etc.) */
 .auth-button {
   background-color: #808000;
   color: #FFD700;
@@ -60,7 +61,7 @@ h1 {
   display: none;
 }
 
-/* AVATAR & XP-BALKEN */
+/* AVATAR & XP-BALKEN (dashboard) */
 #avatar-display {
   margin-top: 20px;
   position: relative;
@@ -107,7 +108,7 @@ h1 {
   position: fixed;
   top: 40%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0);
+  transform: translate(-50%,-50%) scale(0);
   background: rgba(255,215,0,0.9);
   color: #000;
   font-size: 48px;
@@ -138,14 +139,14 @@ h1 {
   transform: scale(1.05);
 }
 
-/* ZAUBER-/SPEZIAL-POPUP */
+/* POPUP MODALS */
 .popup-modal {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.7);
   z-index: 9999;
-  display: flex;
+  display: none; /* hidden by default */
   justify-content: center;
   align-items: center;
 }
@@ -159,7 +160,7 @@ h1 {
   text-align: center;
 }
 
-/* SPIELER-KARTEN */
+/* SPIELER-KARTEN (dashboard) */
 #player-cards-container {
   display: flex;
   flex-wrap: wrap;
@@ -189,7 +190,7 @@ h1 {
   background: rgba(0,0,0,0.4);
 }
 
-/* HP/MP BARS */
+/* HP/MP BARS in .player-card */
 .bar-outer {
   width: 100px;
   height: 10px;
@@ -215,7 +216,7 @@ h1 {
   color: #FFD700;
 }
 
-/* LOG */
+/* LOG SECTION (dashboard) */
 #log-section {
   background: rgba(0,0,0,0.6);
   margin: 20px auto;
@@ -248,7 +249,7 @@ h1 {
   color: #C00;
 }
 
-/* QUESTS */
+/* QUESTS (dashboard) */
 #quest-section {
   background: rgba(0,0,0,0.6);
   margin: 20px auto;
@@ -317,12 +318,16 @@ h1 {
 }
 
 /* ADMIN-LISTEN */
-#admin-zauber-liste, #admin-quests-liste, #admin-spezial-liste {
+#admin-zauber-liste,
+#admin-quests-liste,
+#admin-spezial-liste {
   list-style: none;
   margin: 10px 0;
   padding: 0;
 }
-#admin-zauber-liste li, #admin-quests-liste li, #admin-spezial-liste li {
+#admin-zauber-liste li,
+#admin-quests-liste li,
+#admin-spezial-liste li {
   margin: 5px 0;
   background: rgba(255,255,255,0.1);
   padding: 5px;
@@ -330,7 +335,9 @@ h1 {
   display: flex;
   justify-content: space-between;
 }
-#admin-zauber-liste button, #admin-quests-liste button, #admin-spezial-liste button {
+#admin-zauber-liste button,
+#admin-quests-liste button,
+#admin-spezial-liste button {
   background: #C00;
   border: none;
   padding: 5px 10px;
@@ -340,7 +347,9 @@ h1 {
   cursor: pointer;
   margin-left: 5px;
 }
-#admin-zauber-liste button:hover, #admin-quests-liste button:hover, #admin-spezial-liste button:hover {
+#admin-zauber-liste button:hover,
+#admin-quests-liste button:hover,
+#admin-spezial-liste button:hover {
   background: #FFD700;
   color: #C00;
 }
@@ -393,7 +402,7 @@ footer {
   color: #FFD700;
 }
 
-/* LOGOUT => RECHTS UNTEN */
+/* Logout => rechts unten */
 #logout-btn {
   position: fixed;
   bottom: 15px;
@@ -461,25 +470,30 @@ footer {
 
 /* RESPONSIVE Anpassungen für mobile Geräte */
 @media (max-width: 600px) {
-  /* Hintergrund-Scrolling fix für iOS Safari */
-  body {
-    background-attachment: scroll; /* iOS Safari mag 'fixed' nicht */
+  html, body {
+    background-attachment: scroll; /* iOS fix */
   }
-
+  #auth-container {
+    margin: 20px auto;
+    width: 90%;
+    padding: 15px;
+  }
+  .auth-button {
+    width: 100%;
+    margin: 8px 0;
+  }
   #fehler-button {
     top: 10px;
     right: 10px;
     padding: 6px 10px;
     font-size: 14px;
   }
-  
   #donate-button {
     bottom: 10px;
     right: 10px;
     padding: 8px 12px;
     font-size: 14px;
   }
-  
   footer {
     bottom: 5px;
     font-size: 12px;
