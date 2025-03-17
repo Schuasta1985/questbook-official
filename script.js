@@ -387,12 +387,10 @@ async function ladeBenutzerdaten() {
     await zeigeAlleNutzer();
   }
 
-  // FAMILIENBASIERT: Wir laden Quests/Spezial nur aus der aktuellen Familie
+  // Lade & zeige => zauber, logs, quests, etc
   await ladeZauberListe();
   await ladeZielListe();
   ladeLogsInTabelle();
-
-  // Quests
   ladeQuests(user.uid);
 
   if (userData.isAdmin) {
@@ -485,16 +483,25 @@ async function zeigeAlleNutzer() {
 }
 
 // ----------------------------------------
-// Zauber & Ziel Dropdowns (bleiben global?)
+// Zauber (FAMILIENBASIERT)
 // ----------------------------------------
 
+// Liste fürs Dropdown
 async function ladeZauberListe() {
   const sel = document.getElementById("zauber-auswahl");
   if (!sel) return;
   sel.innerHTML = "";
 
-  const snap = await get(ref(db, "zauber"));
-  if (!snap.exists()) return;
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU = await get(ref(db, "benutzer/" + user.uid));
+  if (!snapU.exists()) return;
+  let uData = snapU.val();
+  if (!uData.familie) return; // Keine Familie => Keine Zauber
+
+  // Hole Zauber aus "familien/<famID>/zauber"
+  const snap = await get(ref(db, `familien/${uData.familie}/zauber`));
+  if (!snap.exists()) return; // keine Einträge
   let zObj = snap.val();
 
   Object.keys(zObj).forEach(k => {
@@ -506,64 +513,29 @@ async function ladeZauberListe() {
   });
 }
 
-async function ladeZielListe() {
-  const user = auth.currentUser;
-  if (!user) return;
-  const bSnap = await get(ref(db, "benutzer/" + user.uid));
-  if (!bSnap.exists()) return;
-  let bD = bSnap.val();
-
-  const sel = document.getElementById("zauber-ziel");
-  if (!sel) return;
-  sel.innerHTML = "";
-
-  if (bD.familie) {
-    const famSnap = await get(ref(db, "familien/" + bD.familie + "/mitglieder"));
-    if (famSnap.exists()) {
-      let mem = famSnap.val();
-      for (let uid in mem) {
-        if (uid === user.uid) continue;
-        const xSnap = await get(ref(db, "benutzer/" + uid));
-        if (!xSnap.exists()) continue;
-        let xd = xSnap.val();
-        let opt = document.createElement("option");
-        opt.value = uid;
-        opt.textContent = xd.name;
-        sel.appendChild(opt);
-      }
-    }
-  }
-}
-
-window.zauberWirkenHandler = async function() {
-  const zSel = document.getElementById("zauber-auswahl");
-  const tSel = document.getElementById("zauber-ziel");
-  if (!zSel || !tSel) return;
-
-  let zKey   = zSel.value;
-  let target = tSel.value;
-  if (!target) {
-    alert("Kein Ziel gewählt");
-    return;
-  }
-  await wirkeZauber(target, zKey);
-};
-
+// Zauber wirken
 async function wirkeZauber(zielID, zauberKey) {
   const user = auth.currentUser;
   if (!user) return;
 
+  // caster
   const cSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!cSnap.exists()) return;
   let caster = cSnap.val();
+  if (!caster.familie) {
+    alert("Keine Familie => keine Zauber!");
+    return;
+  }
 
-  const zSnap = await get(ref(db, "zauber/" + zauberKey));
+  // zauber => "familien/<famID>/zauber/<zauberKey>"
+  const zSnap = await get(ref(db, `familien/${caster.familie}/zauber/${zauberKey}`));
   if (!zSnap.exists()) {
-    alert("Zauber existiert nicht!");
+    alert("Zauber existiert nicht (familienbasiert)!");
     return;
   }
   let z = zSnap.val();
 
+  // ziel
   const tSnap = await get(ref(db, "benutzer/" + zielID));
   if (!tSnap.exists()) {
     alert("Ziel nicht gefunden!");
@@ -571,6 +543,7 @@ async function wirkeZauber(zielID, zauberKey) {
   }
   let ziel = tSnap.val();
 
+  // Prüfen, ob Caster genug MP hat
   if ((caster.mp || 0) < (z.kostenMP || 0)) {
     alert("Nicht genug MP!");
     return;
@@ -614,10 +587,7 @@ async function wirkeZauber(zielID, zauberKey) {
   alert(`Zauber erfolgreich gewirkt: ${z.name} auf ${zielName}`);
 }
 
-// ----------------------------------------
 // Zauber-Popup
-// ----------------------------------------
-
 window.zeigeZauberPopup = async function() {
   const pop = document.getElementById("popup-zauber");
   if (!pop) return;
@@ -633,11 +603,10 @@ window.zeigeZauberPopup = async function() {
   selTarget.innerHTML = "";
   selZauber.innerHTML = "";
 
+  // Ziel-liste
   const bSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!bSnap.exists()) return;
   let bD = bSnap.val();
-
-  // Familie => mögliche Ziele
   if (bD.familie) {
     const famSnap = await get(ref(db, "familien/" + bD.familie + "/mitglieder"));
     if (famSnap.exists()) {
@@ -655,8 +624,9 @@ window.zeigeZauberPopup = async function() {
     }
   }
 
-  // Zauber-Liste
-  const zSnap = await get(ref(db, "zauber"));
+  // Zauber-liste => "familien/<famID>/zauber"
+  if (!bD.familie) return;
+  const zSnap = await get(ref(db, `familien/${bD.familie}/zauber`));
   if (!zSnap.exists()) return;
   let zObj = zSnap.val();
   Object.keys(zObj).forEach(k => {
@@ -686,7 +656,7 @@ window.popupZauberWirken = async function() {
 };
 
 // ----------------------------------------
-// Spezial-Popup & Spezialfähigkeit (FAMILIENBASIERT!)
+// Spezial-Popup & Spezialfähigkeit (familienbasiert)
 // ----------------------------------------
 
 window.zeigeSpezialPopup = async function() {
@@ -708,7 +678,6 @@ window.zeigeSpezialPopup = async function() {
   selTarget.innerHTML = "";
   selSpec.innerHTML   = "";
 
-  // Familie => mögliche Ziele
   if (bD.familie) {
     const famSnap = await get(ref(db, "familien/" + bD.familie + "/mitglieder"));
     if (famSnap.exists()) {
@@ -726,10 +695,9 @@ window.zeigeSpezialPopup = async function() {
     }
   }
 
-  // **FAMILIENBASIERT** => Hole Spezial aus "familien/<famID>/spezial"
-  if (!bD.familie) return; // ohne Familie => keine Spezial
+  if (!bD.familie) return;
   const spSnap = await get(ref(db, `familien/${bD.familie}/spezial`));
-  if (!spSnap.exists()) return; // keine Einträge
+  if (!spSnap.exists()) return;
   let spObj = spSnap.val();
   Object.keys(spObj).forEach(k => {
     let s = spObj[k];
@@ -764,33 +732,27 @@ async function wirkeSpezial(zielID, spKey, extraVal) {
   const user = auth.currentUser;
   if (!user) return;
 
-  // caster
   const cSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!cSnap.exists()) return;
   let caster = cSnap.val();
-
   if (!caster.familie) {
     alert("Keine Familie => keine Spezialfähigkeiten!");
     return;
   }
 
-  // ability => "familien/<famID>/spezial/<spKey>"
   const spSnap = await get(ref(db, `familien/${caster.familie}/spezial/${spKey}`));
   if (!spSnap.exists()) return alert("Spezialfähigkeit existiert nicht!");
   let sp = spSnap.val();
 
-  // Ziel
   const zSnap = await get(ref(db, "benutzer/" + zielID));
   if (!zSnap.exists()) return alert("Ziel nicht gefunden!");
   let ziel = zSnap.val();
 
-  // Check level cost
   if ((caster.level || 1) < (sp.kostenLevel || 0)) {
     alert(`Nicht genug Level! Benötigt: ${sp.kostenLevel || 0}`);
     return;
   }
 
-  // Check cooldown
   let now = new Date();
   let casterSpecUsed = caster.spezialUsed || {};
   if (casterSpecUsed[spKey]) {
@@ -803,13 +765,11 @@ async function wirkeSpezial(zielID, spKey, extraVal) {
     }
   }
 
-  // Abziehen => newLevel
   let newLvl = caster.level;
   for (let i = 0; i < (sp.kostenLevel || 0); i++) {
     if (newLvl > 1) newLvl--;
   }
 
-  // check chance => success/fail
   let chance = (sp.chance || 100);
   let rolled = Math.random() * 100;
   let success = (rolled < chance);
@@ -835,7 +795,6 @@ async function wirkeSpezial(zielID, spKey, extraVal) {
     alert(`Fähigkeit erfolgreich! ${msg}`);
   }
 
-  // Log
   await push(ref(db, "publicLogs"), {
     timestamp: Date.now(),
     actionType: "spezial",
@@ -907,7 +866,7 @@ window.adminLogsClear = async function() {
 };
 
 // ----------------------------------------
-// Quests (FAMILIENBASIERT)
+// Quests (familienbasiert)
 // ----------------------------------------
 
 async function ladeQuests(uid) {
@@ -926,7 +885,7 @@ async function ladeQuests(uid) {
     return;
   }
 
-  // 2) Lade Quests aus "familien/<famID>/quests"
+  // 2) Lade Quests => "familien/<famID>/quests"
   const snapQ = await get(ref(db, `familien/${uData.familie}/quests`)); // FAMILIENBASIERT
   if (!snapQ.exists()) {
     qc.innerHTML = "<p>Keine Quests in dieser Familie.</p>";
@@ -999,7 +958,6 @@ async function questAbschliessen(qid, uid) {
 
   if (howMany > rest) howMany = rest;
 
-  // xp
   let gainedXP = (quest.xpPerUnit || 0) * howMany;
   let newXP    = (uData.xp || 0) + gainedXP;
   let level    = uData.level || 1;
@@ -1041,7 +999,6 @@ window.adminQuestAnlegen = async function() {
     return;
   }
 
-  // Hole currentUser => check familie + isAdmin
   const user = auth.currentUser;
   if (!user) return;
   const snap = await get(ref(db, "benutzer/" + user.uid));
@@ -1067,7 +1024,6 @@ window.adminQuestAnlegen = async function() {
   alert("Quest angelegt!");
   adminQuestListeLaden();
 
-  // Tägliche Quests neu laden
   if (user) {
     ladeQuests(user.uid);
   }
@@ -1078,7 +1034,6 @@ async function adminQuestListeLaden() {
   if (!ul) return;
   ul.innerHTML="";
 
-  // Hole currentUser => familie
   const user = auth.currentUser;
   if (!user) return;
   const snapU= await get(ref(db, "benutzer/" + user.uid));
@@ -1089,14 +1044,12 @@ async function adminQuestListeLaden() {
     return;
   }
 
-  // Lade Quests => "familien/<famID>/quests"
   const snap= await get(ref(db, `familien/${uData.familie}/quests`));
-  if (!snap.exists()) {
+  if(!snap.exists()){
     ul.innerHTML="<li>Keine Quests in dieser Familie.</li>";
     return;
   }
   let qObj= snap.val();
-
   Object.keys(qObj).forEach(qKey => {
     let q= qObj[qKey];
     let dc= q.doneCount || 0;
@@ -1117,7 +1070,6 @@ async function adminQuestListeLaden() {
 async function adminQuestLoeschen(qKey) {
   if(!confirm("Quest wirklich löschen?")) return;
 
-  // Hole currentUser => familie
   const user = auth.currentUser;
   if (!user) return;
   const snapU= await get(ref(db, "benutzer/" + user.uid));
@@ -1133,13 +1085,12 @@ async function adminQuestLoeschen(qKey) {
   adminQuestListeLaden();
 }
 
-// ALLE Quests der Familie löschen
 window.adminQuestsAlleLoeschen = async function() {
   if(!confirm("Wirklich ALLE Quests löschen?")) return;
 
   const user = auth.currentUser;
   if (!user) return;
-  const snapU= await get(ref(db, "benutzer/" + user.uid));
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
   if (!snapU.exists()) return;
   let uData = snapU.val();
   if (!uData.familie) return;
@@ -1150,6 +1101,98 @@ window.adminQuestsAlleLoeschen = async function() {
 };
 
 // ----------------------------------------
+// ADMIN: ZAUBER (familienbasiert)
+// ----------------------------------------
+
+async function adminZauberListeLaden() {
+  const ul= document.getElementById("admin-zauber-liste");
+  if (!ul) return;
+  ul.innerHTML="";
+
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) {
+    ul.innerHTML="<li>Keine Familie => keine Zauber.</li>";
+    return;
+  }
+
+  const snap= await get(ref(db, `familien/${uData.familie}/zauber`)); // FAMILIENBASIERT
+  if(!snap.exists()){
+    ul.innerHTML="<li>Keine Zauber in dieser Familie.</li>";
+    return;
+  }
+  let zObj= snap.val();
+  Object.keys(zObj).forEach(k => {
+    let z = zObj[k];
+    let li= document.createElement("li");
+    li.textContent= `${z.name} (Typ:${z.typ}, Wert:${z.wert}, Kosten:${z.kostenMP} MP)`;
+
+    let btn= document.createElement("button");
+    btn.textContent="Löschen";
+    btn.onclick= ()=> adminZauberLoeschen(k);
+
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+window.adminZauberAnlegen = async function() {
+  const zName= document.getElementById("zauber-name").value;
+  const zTyp=  document.getElementById("zauber-typ").value;
+  const zWert= parseInt(document.getElementById("zauber-wert").value,10);
+  const zCost= parseInt(document.getElementById("zauber-kosten").value,10);
+
+  if (!zName || isNaN(zWert) || isNaN(zCost)) {
+    alert("Bitte Name, Typ, Wert, Kosten angeben!");
+    return;
+  }
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.isAdmin) {
+    alert("Nur Admin darf Zauber anlegen!");
+    return;
+  }
+  if(!uData.familie) {
+    alert("Keine Familie => keine Zauber!");
+    return;
+  }
+
+  // "familien/<famID>/zauber"
+  const newKey= push(ref(db, `familien/${uData.familie}/zauber`)).key;
+  await set(ref(db, `familien/${uData.familie}/zauber/${newKey}`), {
+    name: zName,
+    typ: zTyp,
+    wert: zWert,
+    kostenMP: zCost
+  });
+
+  alert("Zauber angelegt!");
+  adminZauberListeLaden();
+};
+
+async function adminZauberLoeschen(k) {
+  if (!confirm("Zauber wirklich löschen?")) return;
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) return;
+
+  await remove(ref(db, `familien/${uData.familie}/zauber/${k}`));
+  alert("Zauber gelöscht!");
+  adminZauberListeLaden();
+}
+
+// ----------------------------------------
 // ADMIN: SPEZIAL (familienbasiert)
 // ----------------------------------------
 
@@ -1158,12 +1201,12 @@ async function adminSpezialListeLaden() {
   if(!ul) return;
   ul.innerHTML="";
 
-  const user = auth.currentUser;
-  if (!user) return;
-  const snapU= await get(ref(db, "benutzer/" + user.uid));
-  if (!snapU.exists()) return;
-  let uData = snapU.val();
-  if (!uData.familie) {
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) {
     ul.innerHTML="<li>Keine Familie => keine Spezialfähigkeiten.</li>";
     return;
   }
@@ -1199,21 +1242,20 @@ window.adminSpezialAnlegen= async function() {
     return;
   }
 
-  const user = auth.currentUser;
-  if (!user) return;
+  const user= auth.currentUser;
+  if(!user) return;
   const snapU= await get(ref(db, "benutzer/"+user.uid));
   if(!snapU.exists()) return;
   let uData= snapU.val();
-  if (!uData.isAdmin) {
+  if(!uData.isAdmin) {
     alert("Nur Admin darf Spezialfähigkeiten anlegen!");
     return;
   }
-  if (!uData.familie) {
+  if(!uData.familie) {
     alert("Keine Familie => keine Spezialfähigkeiten!");
     return;
   }
 
-  // "familien/<famID>/spezial/"
   const newKey= push(ref(db, `familien/${uData.familie}/spezial`)).key;
   await set(ref(db, `familien/${uData.familie}/spezial/${newKey}`), {
     name: sName,
@@ -1369,7 +1411,7 @@ window.oeffneEinstellungen = async function() {
     tz.style.display = "inline-block";
     tq.style.display = "inline-block";
     ts.style.display = "inline-block";
-    adminZauberListeLaden();
+    adminZauberListeLaden();  // FAMILIENBASIERT
     adminQuestListeLaden();   // FAMILIENBASIERT
     adminSpezialListeLaden(); // FAMILIENBASIERT
   } else {
