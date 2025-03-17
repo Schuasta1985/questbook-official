@@ -14,9 +14,9 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
-// 🔑 Firebase-Konfiguration (DUMMY-Werte ersetzen!)
+// 🔑 Firebase-Konfiguration (unverändert)
 const firebaseConfig = {
-  apiKey: "XXX-REPLACE-ME-XXX",
+  apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
   authDomain: "questbook-138c8.firebaseapp.com",
   databaseURL: "https://questbook-138c8-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "questbook-138c8",
@@ -30,142 +30,15 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 const auth= getAuth();
 
-/** Captcha-Variablen */
-let captchaA = 0, captchaB = 0;
-
 // ----------------------------------------
-// Captcha & Datenschutz => Registrieren
+// Admin-Login & allgemeine UI-Funktionen
 // ----------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  const capDiv = document.getElementById("captcha-section");
-  if (capDiv) {
-    captchaA = Math.floor(Math.random() * 10) + 1;
-    captchaB = Math.floor(Math.random() * 10) + 1;
-    const frageEl = document.getElementById("captcha-frage");
-    if (frageEl) {
-      frageEl.textContent = `Wieviel ist ${captchaA} + ${captchaB}??`;
-    }
-  }
-});
 
-// ----------------------------------------
-// Familie erstellen
-// ----------------------------------------
-window.familieErstellen = async function() {
-  const famName    = document.getElementById("family-name").value.trim();
-  const adminEmail = document.getElementById("admin-email").value.trim();
-  const adminPass  = document.getElementById("admin-password").value.trim();
-
-  // Captcha + Datenschutz
-  if (document.getElementById("captcha-section")) {
-    const userAnswer = parseInt(document.getElementById("captcha-input")?.value, 10);
-    if (isNaN(userAnswer) || userAnswer !== (captchaA + captchaB)) {
-      alert("Bitte das richtige Ergebnis eingeben!");
-      return;
-    }
-    const dsCb = document.getElementById("datenschutz-checkbox");
-    if (dsCb && !dsCb.checked) {
-      alert("Bitte Datenschutzrichtlinie akzeptieren!");
-      return;
-    }
-  }
-
-  if (!adminEmail || !adminPass) {
-    alert("E-Mail und Passwort erforderlich!");
-    return;
-  }
-  try {
-    const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
-    const uid = userCred.user.uid;
-
-    // Wenn du WILLST, dass famName Pflicht ist, kannst du das if(!famName) wegmachen:
-    if (!famName) {
-      // Falls user keine Familie angibt => Familie=null
-      await set(ref(db, "benutzer/" + uid), {
-        email: adminEmail,
-        familie: null,
-        isAdmin: false,
-        name: adminEmail.split("@")[0],
-        level: 1, xp: 0, hp: 100, mp: 100
-      });
-      alert("Registrierung erfolgreich (ohne Familie)!");
-      window.location.href = "dashboard.html";
-      return;
-    } else {
-      // Check, ob Fam existiert => beitreten oder neue anlegen
-      const famQ = query(ref(db, "familien"), orderByChild("name"), equalTo(famName));
-      const snap = await get(famQ);
-      if (snap.exists()) {
-        const yesJoin = confirm(
-          `Familie '${famName}' existiert schon.\n\n` +
-          `OK = dieser Familie beitreten\n` +
-          `Abbrechen = neue Familie anlegen (z.B. ${famName}_XYZ)`
-        );
-        if (yesJoin) {
-          // beitreten
-          const data = snap.val();
-          const famKey = Object.keys(data)[0];
-          await set(ref(db, "benutzer/" + uid), {
-            email: adminEmail,
-            familie: famKey,
-            isAdmin: false,
-            name: adminEmail.split("@")[0],
-            level: 1, xp: 0, hp: 100, mp: 100
-          });
-          await update(ref(db, "familien/" + famKey + "/mitglieder"), { [uid]: true });
-          alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
-          window.location.href = "dashboard.html";
-        } else {
-          // neue Fam => Name + suffix
-          const newFamID = Date.now().toString();
-          const newFamName = famName + "_" + Math.floor(Math.random()*10000);
-          await set(ref(db, "familien/" + newFamID), {
-            name: newFamName,
-            admin: adminEmail,
-            mitglieder: { [uid]: true }
-          });
-          await set(ref(db, "benutzer/" + uid), {
-            email: adminEmail,
-            familie: newFamID,
-            isAdmin: true,
-            name: adminEmail.split("@")[0],
-            level: 1, xp: 0, hp: 100, mp: 100
-          });
-          alert(`Neue Familie '${newFamName}' erstellt! Du bist Admin.`);
-          window.location.href = "dashboard.html";
-        }
-      } else {
-        // neu => admin
-        const famID = Date.now().toString();
-        await set(ref(db, "familien/" + famID), {
-          name: famName,
-          admin: adminEmail,
-          mitglieder: { [uid]: true }
-        });
-        await set(ref(db, "benutzer/" + uid), {
-          email: adminEmail,
-          familie: famID,
-          isAdmin: true,
-          name: adminEmail.split("@")[0],
-          level: 1, xp: 0, hp: 100, mp: 100
-        });
-        alert(`Neue Familie '${famName}' erstellt! Du bist Admin.`);
-        window.location.href = "dashboard.html";
-      }
-    }
-  } catch(e) {
-    console.log(e.code, e.message);
-    alert(e.message);
-  }
-};
-
-// ----------------------------------------
-// Auth & Login/Logout
-// ----------------------------------------
 window.adminLogin = function() {
   const email = document.getElementById("admin-email-input").value;
   const password = document.getElementById("admin-password-input").value;
 
+  // Nur du darfst Admin sein:
   if (email.toLowerCase() !== "thomas.schuster-vb@eclipso.at") {
     alert("Kein Admin-Zugang!");
     return;
@@ -181,51 +54,63 @@ window.adminLogin = function() {
     });
 };
 
-window.benutzerEinloggen = async function() {
-  const email = document.getElementById("login-email")?.value;
-  const pw    = document.getElementById("login-password")?.value;
-  try {
-    await signInWithEmailAndPassword(auth, email, pw);
-    window.location.href = "dashboard.html";
-  } catch(e) {
-    alert(e.message);
+// ----------------------------------------
+// Video-Popups (YouTube oder Synthesia) - Beispiel
+// ----------------------------------------
+
+// 1) YouTube - falls du das noch brauchst
+window.zeigeVideoPopup = function() {
+  const frame = document.getElementById("tutorial-iframe");
+  if (frame) {
+    // YouTube Link oder was immer du hattest:
+    frame.src = "https://www.youtube.com/embed/Trdyo2j9zbs?autoplay=1";
   }
+  const pop = document.getElementById("video-popup");
+  if (pop) pop.style.display = "flex";
 };
 
-window.googleLogin = async function() {
-  const provider = new GoogleAuthProvider();
-  try {
-    await signInWithPopup(auth, provider);
-    window.location.href = "dashboard.html";
-  } catch(e) {
-    alert(e.message);
-  }
+window.schließeVideoPopup = function() {
+  // Schließt dein YouTube-Popup
+  const pop = document.getElementById("video-popup");
+  if (pop) pop.style.display = "none";
+  // Stoppe das Video:
+  const frame = document.getElementById("tutorial-iframe");
+  if (frame) frame.src = "";
 };
 
-window.ausloggen = async function() {
-  try {
-    await signOut(auth);
-    window.location.href = "index.html";
-  } catch(e) {
-    console.error(e);
+// 2) Synthesia - NEU
+window.zeigeSynthesiaPopup = function() {
+  const synthIframe = document.getElementById("synthesia-iframe");
+  // Link zu deinem Synthesia-Video:
+  if (synthIframe) {
+    synthIframe.src = "https://share.synthesia.io/embeds/videos/b4f5dc13-a14e-46ae-8e66-d973e3666c3b";
   }
+  const pop = document.getElementById("synthesia-popup");
+  if (pop) pop.style.display = "flex";
+};
+
+window.schliesseSynthesiaPopup = function() {
+  const pop = document.getElementById("synthesia-popup");
+  if (pop) pop.style.display = "none";
+  // Stoppe das Video:
+  const synthIframe = document.getElementById("synthesia-iframe");
+  if (synthIframe) synthIframe.src = "";
+};
+
+// Admin-Login Popup
+window.zeigeAdminLogin = function() {
+  const popup = document.getElementById("admin-login-popup");
+  if (popup) popup.style.display = "block";
+};
+window.schließeAdminLogin = function() {
+  const popup = document.getElementById("admin-login-popup");
+  if (popup) popup.style.display = "none";
 };
 
 // ----------------------------------------
-// onAuthStateChanged => Dashboard
+// Helper-Funktionen (XP, Level, Regen, etc.)
 // ----------------------------------------
-onAuthStateChanged(auth, (user) => {
-  // Dashboard => ladeBenutzerdaten
-  if (user && window.location.href.includes("dashboard.html")) {
-    ladeBenutzerdaten();
-  } else if (!user && window.location.href.includes("dashboard.html")) {
-    window.location.href = "index.html";
-  }
-});
 
-// ----------------------------------------
-// Helper-Funktionen => XP, Regen
-// ----------------------------------------
 function xpNeededForLevel(level) {
   let block = Math.floor((level - 1) / 10) + 1;
   return 100 * block;
@@ -236,6 +121,7 @@ function checkLevelUp(userData) {
   let lvl = userData.level || 1;
   let xpNeed = xpNeededForLevel(lvl);
   let leveledUp = false;
+
   while (xp >= xpNeed) {
     xp -= xpNeed;
     lvl++;
@@ -301,8 +187,208 @@ function playLevelUpAnimation() {
 }
 
 // ----------------------------------------
-// Hauptfunktion => Dashboard
+// Auth & Login/Logout Funktionen
 // ----------------------------------------
+
+// Achtung: Falls du JS-Fehler bekommst, kann es sein, dass du
+// #login-btn oder #register-btn auf einer Seite nicht hast.
+// Dann -> if (element) { ... } abfragen. (Hast du aber implementiert.)
+
+onAuthStateChanged(auth, (user) => {
+  // Verhindere, dass "alle Popups aufgehen":
+  // => KEIN show-Funktion auf DOMContentLoaded
+  if (user && window.location.href.includes("dashboard.html")) {
+    ladeBenutzerdaten();
+  } else if (!user && window.location.href.includes("dashboard.html")) {
+    // Falls man nicht eingeloggt ist und dashboard.html aufruft => zurück
+    window.location.href = "index.html";
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const lBtn = document.getElementById("login-btn");
+  const rBtn = document.getElementById("register-btn");
+
+  // Nur Umschalten der Formulare
+  if (lBtn) {
+    lBtn.onclick = () => {
+      const lf = document.getElementById("login-form");
+      const rf = document.getElementById("register-form");
+      if (lf) lf.style.display = "block";
+      if (rf) rf.style.display = "none";
+    };
+  }
+  if (rBtn) {
+    rBtn.onclick = () => {
+      const lf = document.getElementById("login-form");
+      const rf = document.getElementById("register-form");
+      if (lf) lf.style.display = "none";
+      if (rf) rf.style.display = "block";
+    };
+  }
+});
+
+window.benutzerEinloggen = async function() {
+  const email = document.getElementById("login-email")?.value;
+  const pw    = document.getElementById("login-password")?.value;
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+    window.location.href = "dashboard.html";
+  } catch(e) {
+    console.log(e.code, e.message);
+    alert(e.message);
+  }
+};
+
+window.googleLogin = async function() {
+  const provider = new GoogleAuthProvider();
+  try {
+    await signInWithPopup(auth, provider);
+    window.location.href = "dashboard.html";
+  } catch(e) {
+    console.log(e.code, e.message);
+    alert(e.message);
+  }
+};
+
+// ----------------------------------------
+// Familie erstellen + Captcha + Datenschutz
+// ----------------------------------------
+
+let captchaA=0, captchaB=0;
+document.addEventListener("DOMContentLoaded", () => {
+  // Falls wir ein Captcha haben:
+  const capDiv = document.getElementById("captcha-section");
+  if (capDiv) {
+    captchaA = Math.floor(Math.random()*10)+1;
+    captchaB = Math.floor(Math.random()*10)+1;
+    const frageEl = document.getElementById("captcha-frage");
+    if (frageEl) {
+      frageEl.textContent = `Wieviel ist ${captchaA} + ${captchaB}?`;
+    }
+  }
+});
+
+window.familieErstellen = async function() {
+  const famName    = document.getElementById("family-name")?.value.trim();
+  const adminEmail = document.getElementById("admin-email")?.value.trim();
+  const adminPass  = document.getElementById("admin-password")?.value.trim();
+
+  // Captcha + Datenschutz
+  const capSec = document.getElementById("captcha-section");
+  if (capSec) {
+    const userAnswer = parseInt(document.getElementById("captcha-input")?.value, 10);
+    if (isNaN(userAnswer) || userAnswer !== (captchaA + captchaB)) {
+      alert("Bitte das richtige Ergebnis der Rechenaufgabe eingeben!");
+      return;
+    }
+    const dsCb = document.getElementById("datenschutz-checkbox");
+    if (dsCb && !dsCb.checked) {
+      alert("Bitte Datenschutzrichtlinie akzeptieren!");
+      return;
+    }
+  }
+
+  if (!adminEmail || !adminPass) {
+    alert("E-Mail und Passwort erforderlich!");
+    return;
+  }
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
+    const uid = userCred.user.uid;
+
+    if (!famName) {
+      // FamName nicht angegeben => user hat "keine" ... (Du hast gesagt "Es ist Pflicht" - aber hier dein alter Code)
+      await set(ref(db, "benutzer/" + uid), {
+        email: adminEmail,
+        familie: null,
+        isAdmin: false,
+        name: adminEmail.split("@")[0],
+        level: 1, xp: 0, hp: 100, mp: 100
+      });
+      alert("Registrierung erfolgreich (ohne Familie)!");
+      window.location.href = "dashboard.html";
+      return;
+    } else {
+      // check familia
+      const famQ = query(ref(db, "familien"), orderByChild("name"), equalTo(famName));
+      const snap = await get(famQ);
+      if (snap.exists()) {
+        // exist => user kann wählen beitreten oder neue
+        const yesJoin = confirm(
+          `Familie '${famName}' existiert bereits!\n\nOK = beitreten\nAbbrechen = neue Familie anlegen (z.B. ${famName}_XYZ)`
+        );
+        if (yesJoin) {
+          // beitreten
+          const data = snap.val();
+          const famKey = Object.keys(data)[0];
+          await set(ref(db, "benutzer/" + uid), {
+            email: adminEmail,
+            familie: famKey,
+            isAdmin: false,
+            name: adminEmail.split("@")[0],
+            level: 1, xp: 0, hp: 100, mp: 100
+          });
+          await update(ref(db, "familien/" + famKey + "/mitglieder"), { [uid]: true });
+          alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
+          window.location.href = "dashboard.html";
+        } else {
+          // user will neu
+          const newFamID = Date.now().toString();
+          const newFamName = famName + "_" + Math.floor(Math.random()*10000);
+          await set(ref(db, "familien/" + newFamID), {
+            name: newFamName,
+            admin: adminEmail,
+            mitglieder: { [uid]: true }
+          });
+          await set(ref(db, "benutzer/" + uid), {
+            email: adminEmail,
+            familie: newFamID,
+            isAdmin: true,
+            name: adminEmail.split("@")[0],
+            level: 1, xp: 0, hp: 100, mp: 100
+          });
+          alert(`Neue Familie '${newFamName}' erstellt! Du bist Admin.`);
+          window.location.href = "dashboard.html";
+        }
+      } else {
+        // neu
+        const famID = Date.now().toString();
+        await set(ref(db, "familien/" + famID), {
+          name: famName,
+          admin: adminEmail,
+          mitglieder: { [uid]: true }
+        });
+        await set(ref(db, "benutzer/" + uid), {
+          email: adminEmail,
+          familie: famID,
+          isAdmin: true,
+          name: adminEmail.split("@")[0],
+          level: 1, xp: 0, hp: 100, mp: 100
+        });
+        alert(`Neue Familie '${famName}' erstellt! Du bist Admin.`);
+        window.location.href = "dashboard.html";
+      }
+    }
+  } catch(e) {
+    console.log(e.code, e.message);
+    alert(e.message);
+  }
+};
+
+window.ausloggen = async function() {
+  try {
+    await signOut(auth);
+    window.location.href = "index.html";
+  } catch(e) {
+    console.error(e);
+  }
+};
+
+// ----------------------------------------
+// ladeBenutzerdaten & UI-Aktualisierung
+// ----------------------------------------
+
 async function ladeBenutzerdaten() {
   const user = auth.currentUser;
   if (!user) return;
@@ -311,10 +397,8 @@ async function ladeBenutzerdaten() {
 
   let userData = snap.val();
 
-  // Tägliche Regen
   await checkeTäglicheRegen(user.uid);
 
-  // Level Up check
   let { newXP, newLevel, leveledUp } = checkLevelUp(userData);
   if (newLevel !== userData.level || newXP !== userData.xp) {
     userData.level = newLevel;
@@ -324,17 +408,17 @@ async function ladeBenutzerdaten() {
       xp: newXP
     });
   }
+
   if (leveledUp) {
     playLevelUpAnimation();
   }
 
-  // Avatar & Name
+  // AVATAR
   const av = document.getElementById("avatar-anzeige");
   if (av) av.src = userData.avatarURL || "avatars/avatar1.png";
   const bn = document.getElementById("benutzer-name");
   if (bn) bn.textContent = userData.name || userData.email;
 
-  // XP-Bar
   updateXPBar(userData);
 
   // Familie
@@ -342,36 +426,33 @@ async function ladeBenutzerdaten() {
     const famSnap = await get(ref(db, "familien/" + userData.familie));
     if (famSnap.exists()) {
       let fD = famSnap.val();
-      const fnEl = document.getElementById("familien-name");
-      const adEl = document.getElementById("admin-email");
-      if (fnEl) fnEl.textContent = fD.name;
-      if (adEl) adEl.textContent = fD.admin;
+      const fNam = document.getElementById("familien-name");
+      const fAdm = document.getElementById("admin-email");
+      if (fNam) fNam.textContent = fD.name;
+      if (fAdm) fAdm.textContent = fD.admin;
     }
     await zeigeFamilienMitglieder(userData.familie);
   } else {
-    const fnEl = document.getElementById("familien-name");
-    const adEl = document.getElementById("admin-email");
-    if (fnEl) fnEl.textContent = "Keine";
-    if (adEl) adEl.textContent = userData.isAdmin ? userData.email : "-";
+    const fNam = document.getElementById("familien-name");
+    const fAdm = document.getElementById("admin-email");
+    if (fNam) fNam.textContent = "Keine";
+    if (fAdm) fAdm.textContent = userData.isAdmin ? userData.email : "-";
     await zeigeAlleNutzer();
   }
 
-  // Lade => Zauber, Ziele, Logs, Quests
+  // Lade und zeige Zauber/Spezial/Logs/Quests
   await ladeZauberListe();
   await ladeZielListe();
   ladeLogsInTabelle();
   ladeQuests(user.uid);
 
-  // Admin => Alle Logs löschen?
+  // Logs Clear
   if (userData.isAdmin) {
     const logClearBtn = document.getElementById("btn-log-clear");
     if (logClearBtn) logClearBtn.style.display = "inline-block";
   }
 }
 
-// ----------------------------------------
-// Familie anzeigen => player-cards
-// ----------------------------------------
 async function zeigeFamilienMitglieder(famID) {
   const fSnap = await get(ref(db, "familien/" + famID + "/mitglieder"));
   if (!fSnap.exists()) return;
@@ -418,6 +499,7 @@ async function zeigeFamilienMitglieder(famID) {
 async function zeigeAlleNutzer() {
   const snap = await get(ref(db, "benutzer"));
   if (!snap.exists()) return;
+
   const container = document.getElementById("player-cards-container");
   if (!container) return;
   container.innerHTML = "";
@@ -456,9 +538,12 @@ async function zeigeAlleNutzer() {
 }
 
 // ----------------------------------------
-// Zauber & Spezial & Quests (familienbasiert)
+// Zauber & Spezial (familienbasiert)
 // ----------------------------------------
+// => Siehe Code oben: wirkeZauber, wirkeSpezial
+
 async function ladeZauberListe() {
+  // Siehe oben: (Wir setzen das für Dropdown "zauber-auswahl")
   const sel = document.getElementById("zauber-auswahl");
   if (!sel) return;
   sel.innerHTML = "";
@@ -470,10 +555,9 @@ async function ladeZauberListe() {
   let uData = snapU.val();
   if (!uData.familie) return;
 
-  const snap = await get(ref(db, `familien/${uData.familie}/zauber`));
-  if (!snap.exists()) return;
-  let zObj = snap.val();
-
+  const snapZ = await get(ref(db, `familien/${uData.familie}/zauber`));
+  if (!snapZ.exists()) return;
+  let zObj = snapZ.val();
   Object.keys(zObj).forEach(k => {
     let z = zObj[k];
     let opt = document.createElement("option");
@@ -484,11 +568,13 @@ async function ladeZauberListe() {
 }
 
 async function ladeZielListe() {
+  // Siehe oben: (Wir setzen das für "zauber-ziel")
   const user = auth.currentUser;
   if (!user) return;
-  const snapU = await get(ref(db, "benutzer/" + user.uid));
-  if (!snapU.exists()) return;
-  let bD = snapU.val();
+  const bSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!bSnap.exists()) return;
+
+  let bD = bSnap.val();
   const sel = document.getElementById("zauber-ziel");
   if (!sel) return;
   sel.innerHTML = "";
@@ -511,46 +597,80 @@ async function ladeZielListe() {
   }
 }
 
-window.zauberWirkenHandler = async function() {
-  const zSel = document.getElementById("zauber-auswahl");
-  const tSel = document.getElementById("zauber-ziel");
-  if (!zSel || !tSel) return;
+// ----------------------------------------
+// Logs in Tabelle
+// ----------------------------------------
 
-  let zKey   = zSel.value;
-  let target = tSel.value;
-  if (!target) {
-    alert("Kein Ziel gewählt");
-    return;
-  }
-  await wirkeZauber(target, zKey);
-};
+function ladeLogsInTabelle() {
+  const body = document.getElementById("log-table-body");
+  if (!body) return;
 
-// => wirkeZauber(...) in Fam-Struktur
-async function wirkeZauber(zielID, zauberKey) {
-  // ... (siehe Code oben in deinem Beispiel)
-  // ...
+  onValue(ref(db, "publicLogs"), (snap) => {
+    body.innerHTML = "";
+    if (!snap.exists()) return;
+
+    let logs = snap.val();
+    let keys = Object.keys(logs).sort((a, b) => logs[b].timestamp - logs[a].timestamp);
+
+    keys.forEach(k => {
+      let l = logs[k];
+      if (l.actionType === "quest") return; // skip quest
+
+      let tr = document.createElement("tr");
+
+      let tdD = document.createElement("td");
+      tdD.textContent = new Date(l.timestamp).toLocaleString();
+
+      let tdU = document.createElement("td");
+      tdU.textContent = l.casterName || l.caster || l.user || "--";
+
+      let tdZ = document.createElement("td");
+      tdZ.textContent = l.targetName || l.target || l.targetID || "--";
+
+      let tdF = document.createElement("td");
+      if (l.actionType === "zauber") {
+        tdF.textContent = `${l.zauber} (Typ:${l.typ}, Wert:${l.wert}, Kosten:${l.kosten || 0})`;
+      } else if (l.actionType === "spezial") {
+        let succ = l.success ? "erfolgreich" : "fehlgeschlagen";
+        tdF.textContent = `${l.name} [${succ}] (Kosten:${l.kosten || 0}, Chance:${l.chance || 100}%, Kommentar:'${l.kommentar || ""}')`;
+      } else {
+        tdF.textContent = `(??)`;
+      }
+
+      tr.appendChild(tdD);
+      tr.appendChild(tdU);
+      tr.appendChild(tdZ);
+      tr.appendChild(tdF);
+      body.appendChild(tr);
+    });
+  });
 }
+
+window.adminLogsClear = async function() {
+  if (!confirm("Wirklich ALLE Logs löschen?")) return;
+  await remove(ref(db, "publicLogs"));
+  alert("Alle Logs gelöscht!");
+};
 
 // ----------------------------------------
 // Quests (familienbasiert)
 // ----------------------------------------
+
 async function ladeQuests(uid) {
   const qc = document.getElementById("quest-container");
   if (!qc) return;
 
-  // Hole user => familie
-  const snapU = await get(ref(db, "benutzer/" + uid));
-  if (!snapU.exists()) {
-    qc.innerHTML = "<p>Benutzer nicht gefunden.</p>";
+  const snapUser = await get(ref(db, "benutzer/" + uid));
+  if (!snapUser.exists()) {
+    qc.innerHTML = "<p>Benutzer unbekannt.</p>";
     return;
   }
-  let uData = snapU.val();
+  let uData = snapUser.val();
   if (!uData.familie) {
-    qc.innerHTML = "<p>Keine Familie vorhanden.</p>";
+    qc.innerHTML = "<p>Keine Familie => Keine Quests.</p>";
     return;
   }
 
-  // "familien/<famID>/quests"
   const snapQ = await get(ref(db, `familien/${uData.familie}/quests`));
   if (!snapQ.exists()) {
     qc.innerHTML = "<p>Keine Quests in dieser Familie.</p>";
@@ -576,6 +696,7 @@ async function ladeQuests(uid) {
         <small>(${quest.xpPerUnit || 0} XP pro Einheit)</small>
       </div>
     `;
+
     if (!isFertig) {
       let btn = document.createElement("button");
       btn.textContent = "Erledigt";
@@ -587,61 +708,421 @@ async function ladeQuests(uid) {
       sp.textContent = "Abgeschlossen!";
       div.appendChild(sp);
     }
+
     qc.appendChild(div);
   });
 }
 
 async function questAbschliessen(qid, uid) {
-  // (Siehe dein Code: "familien/<famID>/quests/<qid>")
-  // ...
+  const userSnap = await get(ref(db, "benutzer/" + uid));
+  if (!userSnap.exists()) return;
+  let uData = userSnap.val();
+  if (!uData.familie) {
+    alert("Keine Familie => keine Quests.");
+    return;
+  }
+
+  const qSnap = await get(ref(db, `familien/${uData.familie}/quests/${qid}`));
+  if (!qSnap.exists()) return;
+  let quest = qSnap.val();
+
+  let doneC = quest.doneCount || 0;
+  let tot   = quest.totalUnits || 1;
+  if (doneC >= tot) {
+    alert("Quest ist bereits abgeschlossen.");
+    return;
+  }
+
+  let rest = tot - doneC;
+  let howManyStr = prompt(`Wie viele Einheiten von '${quest.name}' möchtest du abschließen?\n(Verbleibend: ${rest})`);
+  if (!howManyStr) return;
+  let howMany = parseInt(howManyStr, 10);
+  if (isNaN(howMany) || howMany <= 0) return alert("Ungültige Eingabe.");
+
+  if (howMany > rest) howMany = rest;
+
+  let gainedXP = (quest.xpPerUnit || 0) * howMany;
+  let newXP    = (uData.xp || 0) + gainedXP;
+  let level    = uData.level || 1;
+
+  let xpNeed = xpNeededForLevel(level);
+  let leveledUp = false;
+  while (newXP >= xpNeed) {
+    newXP -= xpNeed;
+    level++;
+    xpNeed = xpNeededForLevel(level);
+    leveledUp = true;
+  }
+
+  let newDone = doneC + howMany;
+
+  let updates = {};
+  updates[`familien/${uData.familie}/quests/${qid}/doneCount`] = newDone;
+  updates[`benutzer/${uid}/xp`] = newXP;
+  updates[`benutzer/${uid}/level`] = level;
+
+  await update(ref(db), updates);
+
+  updateXPBar({ xp: newXP, level: level });
+  if (leveledUp) {
+    playLevelUpAnimation();
+  }
+  await ladeBenutzerdaten();
 }
 
-// ----------------------------------------
-// LOGS => publicLogs
-// ----------------------------------------
-function ladeLogsInTabelle() {
-  const body = document.getElementById("log-table-body");
-  if (!body) return;
+// =============== ADMIN: Quests (familienbasiert)
+window.adminQuestAnlegen = async function() {
+  const qName = document.getElementById("quest-name").value;
+  const qXP   = parseInt(document.getElementById("quest-xp").value, 10);
+  const qTot  = parseInt(document.getElementById("quest-totalunits").value, 10);
 
-  onValue(ref(db, "publicLogs"), (snap) => {
-    body.innerHTML = "";
-    if (!snap.exists()) return;
+  if (!qName || isNaN(qXP) || isNaN(qTot)) {
+    alert("Bitte Name, XP und Anzahl angeben!");
+    return;
+  }
 
-    let logs = snap.val();
-    let keys = Object.keys(logs).sort((a, b) => logs[b].timestamp - logs[a].timestamp);
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU = await get(ref(db, "benutzer/" + user.uid));
+  if (!snapU.exists()) return;
+  let uData = snapU.val();
+  if (!uData.isAdmin) {
+    alert("Nur Admin darf Quests anlegen!");
+    return;
+  }
+  if (!uData.familie) {
+    alert("Keine Familie => keine Quests!");
+    return;
+  }
 
-    keys.forEach(k => {
-      let l = logs[k];
-      // ...
-      // generiere <tr>
-    });
+  const newK = push(ref(db, `familien/${uData.familie}/quests`)).key;
+  await set(ref(db, `familien/${uData.familie}/quests/${newK}`), {
+    name: qName,
+    xpPerUnit: qXP,
+    totalUnits: qTot,
+    doneCount: 0
+  });
+
+  alert("Quest angelegt!");
+  adminQuestListeLaden();
+  if (user) {
+    ladeQuests(user.uid);
+  }
+};
+
+async function adminQuestListeLaden() {
+  const ul= document.getElementById("admin-quests-liste");
+  if (!ul) return;
+  ul.innerHTML="";
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) {
+    ul.innerHTML="<li>Keine Familie => keine Quests.</li>";
+    return;
+  }
+
+  const snap= await get(ref(db, `familien/${uData.familie}/quests`));
+  if(!snap.exists()){
+    ul.innerHTML="<li>Keine Quests in dieser Familie.</li>";
+    return;
+  }
+  let qObj= snap.val();
+  Object.keys(qObj).forEach(qKey => {
+    let q= qObj[qKey];
+    let dc= q.doneCount || 0;
+    let tot= q.totalUnits || 1;
+
+    let li= document.createElement("li");
+    li.textContent = `${q.name} (XP:${q.xpPerUnit}, Fortschritt:${dc}/${tot})`;
+
+    let btn= document.createElement("button");
+    btn.textContent="Löschen";
+    btn.onclick= ()=> adminQuestLoeschen(qKey);
+
+    li.appendChild(btn);
+    ul.appendChild(li);
   });
 }
 
-window.adminLogsClear = async function() {
-  if (!confirm("Wirklich ALLE Logs löschen?")) return;
-  await remove(ref(db, "publicLogs"));
-  alert("Alle Logs gelöscht!");
+async function adminQuestLoeschen(qKey) {
+  if(!confirm("Quest wirklich löschen?")) return;
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) return;
+
+  await remove(ref(db, `familien/${uData.familie}/quests/${qKey}`));
+  alert("Quest gelöscht!");
+  adminQuestListeLaden();
+}
+
+window.adminQuestsAlleLoeschen = async function() {
+  if(!confirm("Wirklich ALLE Quests löschen?")) return;
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) return;
+
+  await remove(ref(db, `familien/${uData.familie}/quests`));
+  alert("Alle Quests dieser Familie gelöscht!");
+  adminQuestListeLaden();
 };
 
 // ----------------------------------------
-// Admin => Quests, Zauber, Spezial anlegen (familienbasiert)
-// => z.B. window.adminQuestAnlegen, window.adminZauberAnlegen, ...
+// ADMIN: Zauber (familienbasiert)
 // ----------------------------------------
+
 async function adminZauberListeLaden() {
-  // ...
+  const ul= document.getElementById("admin-zauber-liste");
+  if (!ul) return;
+  ul.innerHTML="";
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) {
+    ul.innerHTML="<li>Keine Familie => keine Zauber.</li>";
+    return;
+  }
+
+  const snap= await get(ref(db, `familien/${uData.familie}/zauber`));
+  if(!snap.exists()){
+    ul.innerHTML="<li>Keine Zauber in dieser Familie.</li>";
+    return;
+  }
+  let zObj= snap.val();
+  Object.keys(zObj).forEach(k => {
+    let z = zObj[k];
+    let li= document.createElement("li");
+    li.textContent= `${z.name} (Typ:${z.typ}, Wert:${z.wert}, Kosten:${z.kostenMP} MP)`;
+
+    let btn= document.createElement("button");
+    btn.textContent="Löschen";
+    btn.onclick= ()=> adminZauberLoeschen(k);
+
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
 }
-async function adminQuestListeLaden() {
-  // ...
+
+window.adminZauberAnlegen = async function() {
+  const zName= document.getElementById("zauber-name").value;
+  const zTyp=  document.getElementById("zauber-typ").value;
+  const zWert= parseInt(document.getElementById("zauber-wert").value,10);
+  const zCost= parseInt(document.getElementById("zauber-kosten").value,10);
+
+  if (!zName || isNaN(zWert) || isNaN(zCost)) {
+    alert("Bitte Name, Typ, Wert, Kosten angeben!");
+    return;
+  }
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.isAdmin) {
+    alert("Nur Admin darf Zauber anlegen!");
+    return;
+  }
+  if(!uData.familie) {
+    alert("Keine Familie => keine Zauber!");
+    return;
+  }
+
+  const newKey= push(ref(db, `familien/${uData.familie}/zauber`)).key;
+  await set(ref(db, `familien/${uData.familie}/zauber/${newKey}`), {
+    name: zName,
+    typ: zTyp,
+    wert: zWert,
+    kostenMP: zCost
+  });
+
+  alert("Zauber angelegt!");
+  adminZauberListeLaden();
+};
+
+async function adminZauberLoeschen(k) {
+  if (!confirm("Zauber wirklich löschen?")) return;
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) return;
+
+  await remove(ref(db, `familien/${uData.familie}/zauber/${k}`));
+  alert("Zauber gelöscht!");
+  adminZauberListeLaden();
 }
-async function adminSpezialListeLaden() {
-  // ...
-}
-// ... etc. Du kopierst einfach deine bestehenden Admin-Funktionen rein.
 
 // ----------------------------------------
-// Einstellungen => Tabs
+// ADMIN: Spezial (familienbasiert)
 // ----------------------------------------
+
+async function adminSpezialListeLaden() {
+  const ul= document.getElementById("admin-spezial-liste");
+  if(!ul) return;
+  ul.innerHTML="";
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) {
+    ul.innerHTML="<li>Keine Familie => keine Spezialfähigkeiten.</li>";
+    return;
+  }
+
+  const snap= await get(ref(db, `familien/${uData.familie}/spezial`));
+  if(!snap.exists()){
+    ul.innerHTML="<li>Keine Spezialfähigkeiten in dieser Familie.</li>";
+    return;
+  }
+  let sObj= snap.val();
+  Object.keys(sObj).forEach(sk => {
+    let s= sObj[sk];
+    let li= document.createElement("li");
+    li.textContent=`${s.name} (Kosten:${s.kostenLevel||0} Lvl, Chance:${s.chance||100}%, Cooldown:${s.cooldown||0}d)`;
+
+    let btn= document.createElement("button");
+    btn.textContent="Löschen";
+    btn.onclick= ()=> adminSpezialLoeschen(sk);
+
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+window.adminSpezialAnlegen= async function() {
+  const sName  = document.getElementById("spezial-name").value.trim();
+  const sKosten= parseInt(document.getElementById("spezial-kosten").value,10);
+  const sChance= parseInt(document.getElementById("spezial-chance").value,10);
+  const sCd    = parseInt(document.getElementById("spezial-cooldown").value,10);
+
+  if (!sName || isNaN(sKosten) || isNaN(sChance) || isNaN(sCd)) {
+    alert("Bitte Name, Kosten, Chance, Cooldown angeben!");
+    return;
+  }
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.isAdmin) {
+    alert("Nur Admin darf Spezialfähigkeiten anlegen!");
+    return;
+  }
+  if(!uData.familie) {
+    alert("Keine Familie => keine Spezialfähigkeiten!");
+    return;
+  }
+
+  const newKey= push(ref(db, `familien/${uData.familie}/spezial`)).key;
+  await set(ref(db, `familien/${uData.familie}/spezial/${newKey}`), {
+    name: sName,
+    kostenLevel: sKosten,
+    chance: sChance,
+    cooldown: sCd
+  });
+
+  alert("Spezialfähigkeit angelegt!");
+  adminSpezialListeLaden();
+};
+
+async function adminSpezialLoeschen(sk) {
+  if(!confirm("Wirklich löschen?")) return;
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) return;
+
+  await remove(ref(db, `familien/${uData.familie}/spezial/${sk}`));
+  alert("Spezialfähigkeit gelöscht!");
+  adminSpezialListeLaden();
+}
+
+// ----------------------------------------
+// AVATAR & NAME
+// ----------------------------------------
+
+window.zeigeAvatarEinstellungen= async function() {
+  const user= auth.currentUser;
+  if(!user) return;
+  const snap= await get(ref(db, "benutzer/"+user.uid));
+  if(!snap.exists()) return;
+
+  let ud= snap.val();
+
+  const pImg= document.getElementById("avatar-preview");
+  const nInp= document.getElementById("namen-input");
+  const sel= document.getElementById("avatar-auswahl");
+  if (!pImg|| !nInp|| !sel) return;
+
+  nInp.value= ud.name || "";
+  pImg.src= ud.avatarURL || "avatars/avatar1.png";
+
+  const avList= [
+    "avatars/avatar1.png","avatars/avatar2.png","avatars/avatar3.png",
+    "avatars/avatar4.png","avatars/avatar5.png","avatars/avatar6.png",
+    "avatars/avatar7.png","avatars/avatar8.png","avatars/avatar9.png",
+    "avatars/avatar10.png"
+  ];
+  sel.innerHTML="";
+  avList.forEach(a => {
+    let opt= document.createElement("option");
+    opt.value=a;
+    opt.textContent= a.split("/").pop();
+    sel.appendChild(opt);
+  });
+  sel.value= ud.avatarURL||"avatars/avatar1.png";
+  sel.onchange= ()=> pImg.src= sel.value;
+};
+
+window.avatarSpeichern= async function() {
+  const user= auth.currentUser;
+  if(!user) return;
+
+  const nInp= document.getElementById("namen-input");
+  const sel= document.getElementById("avatar-auswahl");
+  const aImg= document.getElementById("avatar-anzeige");
+  if(!nInp|| !sel|| !aImg) return;
+
+  let newN= nInp.value.trim()|| "Unbekannt";
+  let chURL= sel.value|| "avatars/avatar1.png";
+
+  await update(ref(db, "benutzer/"+user.uid), {
+    name:newN,
+    avatarURL: chURL
+  });
+
+  aImg.src= chURL;
+  document.getElementById("benutzer-name").textContent= newN;
+  alert("Profil aktualisiert!");
+};
+
+// ----------------------------------------
+// Tabs (Einstellungen)
+// ----------------------------------------
+
 window.oeffneEinstellungen = async function() {
   const s = document.getElementById("einstellungen-section");
   if (!s) return;
@@ -660,16 +1141,17 @@ window.oeffneEinstellungen = async function() {
   const ts = document.querySelector("[data-tab='tab-spezial']");
 
   if (uData.isAdmin) {
-    tz.style.display = "inline-block";
-    tq.style.display = "inline-block";
-    ts.style.display = "inline-block";
+    if (tz) tz.style.display = "inline-block";
+    if (tq) tq.style.display = "inline-block";
+    if (ts) ts.style.display = "inline-block";
+    // Lade Listen
     adminZauberListeLaden();
     adminQuestListeLaden();
     adminSpezialListeLaden();
   } else {
-    tz.style.display = "none";
-    tq.style.display = "none";
-    ts.style.display = "none";
+    if (tz) tz.style.display = "none";
+    if (tq) tq.style.display = "none";
+    if (ts) ts.style.display = "none";
   }
 
   await zeigeAvatarEinstellungen();
@@ -692,32 +1174,3 @@ document.addEventListener("click", (e) => {
     switchTab(tb);
   }
 });
-
-// ----------------------------------------
-// Avatar & Name
-// ----------------------------------------
-window.zeigeAvatarEinstellungen= async function() {
-  // ...
-};
-window.avatarSpeichern= async function() {
-  // ...
-};
-
-// ----------------------------------------
-// Fehlermeldung => E-Mail
-// ----------------------------------------
-window.sendeFehlermeldung = function() {
-  const name    = document.getElementById("error-name").value;
-  const email   = document.getElementById("error-email").value;
-  const message = document.getElementById("error-message").value;
-
-  if (!name || !email || !message) {
-    alert("Bitte alle Felder ausfüllen!");
-    return;
-  }
-
-  const mailtoLink = `mailto:thomas.schuster-vb@eclipso.at?subject=Fehlermeldung von ${name}&body=${message}%0D%0A%0D%0AVon: ${email}`;
-  window.location.href = mailtoLink;
-  alert("Fehlermeldung wurde vorbereitet. Bitte prüfe dein E-Mail-Programm.");
-  schließeFehlerPopup();
-};
