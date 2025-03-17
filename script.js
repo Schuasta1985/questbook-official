@@ -14,7 +14,7 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
-// 🔑 Firebase-Konfiguration (unverändert)
+// 🔑 Firebase-Konfiguration
 const firebaseConfig = {
   apiKey: "AIzaSyAtUbDDMpZodZ-rcp6GJfHbVWVZD2lXFgI",
   authDomain: "questbook-138c8.firebaseapp.com",
@@ -38,12 +38,10 @@ window.adminLogin = function() {
   const email = document.getElementById("admin-email-input").value;
   const password = document.getElementById("admin-password-input").value;
 
-  // Nur du darfst Admin sein:
   if (email.toLowerCase() !== "thomas.schuster-vb@eclipso.at") {
     alert("Kein Admin-Zugang!");
     return;
   }
-
   signInWithEmailAndPassword(auth, email, password)
     .then(() => {
       window.location.href = "admin.html";
@@ -55,44 +53,38 @@ window.adminLogin = function() {
 };
 
 // ----------------------------------------
-// Video-Popups (YouTube oder Synthesia) - Beispiel
+// Video-Popups: YouTube ODER Synthesia
 // ----------------------------------------
 
-// 1) YouTube - falls du das noch brauchst
+// 1) YouTube - falls du das brauchst
 window.zeigeVideoPopup = function() {
   const frame = document.getElementById("tutorial-iframe");
   if (frame) {
-    // YouTube Link oder was immer du hattest:
     frame.src = "https://www.youtube.com/embed/Trdyo2j9zbs?autoplay=1";
   }
   const pop = document.getElementById("video-popup");
   if (pop) pop.style.display = "flex";
 };
-
 window.schließeVideoPopup = function() {
-  // Schließt dein YouTube-Popup
   const pop = document.getElementById("video-popup");
   if (pop) pop.style.display = "none";
-  // Stoppe das Video:
+  // Stoppe Video:
   const frame = document.getElementById("tutorial-iframe");
   if (frame) frame.src = "";
 };
 
-// 2) Synthesia - NEU
+// 2) Synthesia
 window.zeigeSynthesiaPopup = function() {
   const synthIframe = document.getElementById("synthesia-iframe");
-  // Link zu deinem Synthesia-Video:
   if (synthIframe) {
     synthIframe.src = "https://share.synthesia.io/embeds/videos/b4f5dc13-a14e-46ae-8e66-d973e3666c3b";
   }
   const pop = document.getElementById("synthesia-popup");
   if (pop) pop.style.display = "flex";
 };
-
 window.schliesseSynthesiaPopup = function() {
   const pop = document.getElementById("synthesia-popup");
   if (pop) pop.style.display = "none";
-  // Stoppe das Video:
   const synthIframe = document.getElementById("synthesia-iframe");
   if (synthIframe) synthIframe.src = "";
 };
@@ -187,20 +179,15 @@ function playLevelUpAnimation() {
 }
 
 // ----------------------------------------
-// Auth & Login/Logout Funktionen
+// Auth & Login/Logout
 // ----------------------------------------
 
-// Achtung: Falls du JS-Fehler bekommst, kann es sein, dass du
-// #login-btn oder #register-btn auf einer Seite nicht hast.
-// Dann -> if (element) { ... } abfragen. (Hast du aber implementiert.)
-
 onAuthStateChanged(auth, (user) => {
-  // Verhindere, dass "alle Popups aufgehen":
-  // => KEIN show-Funktion auf DOMContentLoaded
   if (user && window.location.href.includes("dashboard.html")) {
+    // Auf dem Dashboard => lade Benutzerdaten
     ladeBenutzerdaten();
   } else if (!user && window.location.href.includes("dashboard.html")) {
-    // Falls man nicht eingeloggt ist und dashboard.html aufruft => zurück
+    // Unerlaubter Zugriff => zurück zur Startseite
     window.location.href = "index.html";
   }
 });
@@ -208,8 +195,6 @@ onAuthStateChanged(auth, (user) => {
 document.addEventListener("DOMContentLoaded", () => {
   const lBtn = document.getElementById("login-btn");
   const rBtn = document.getElementById("register-btn");
-
-  // Nur Umschalten der Formulare
   if (lBtn) {
     lBtn.onclick = () => {
       const lf = document.getElementById("login-form");
@@ -257,7 +242,6 @@ window.googleLogin = async function() {
 
 let captchaA=0, captchaB=0;
 document.addEventListener("DOMContentLoaded", () => {
-  // Falls wir ein Captcha haben:
   const capDiv = document.getElementById("captcha-section");
   if (capDiv) {
     captchaA = Math.floor(Math.random()*10)+1;
@@ -298,7 +282,7 @@ window.familieErstellen = async function() {
     const uid = userCred.user.uid;
 
     if (!famName) {
-      // FamName nicht angegeben => user hat "keine" ... (Du hast gesagt "Es ist Pflicht" - aber hier dein alter Code)
+      // FamName leer => (Du sagtest "Pflicht", aber hier dein Code)
       await set(ref(db, "benutzer/" + uid), {
         email: adminEmail,
         familie: null,
@@ -310,16 +294,14 @@ window.familieErstellen = async function() {
       window.location.href = "dashboard.html";
       return;
     } else {
-      // check familia
       const famQ = query(ref(db, "familien"), orderByChild("name"), equalTo(famName));
       const snap = await get(famQ);
       if (snap.exists()) {
-        // exist => user kann wählen beitreten oder neue
+        // exist => user kann beitreten oder neu
         const yesJoin = confirm(
           `Familie '${famName}' existiert bereits!\n\nOK = beitreten\nAbbrechen = neue Familie anlegen (z.B. ${famName}_XYZ)`
         );
         if (yesJoin) {
-          // beitreten
           const data = snap.val();
           const famKey = Object.keys(data)[0];
           await set(ref(db, "benutzer/" + uid), {
@@ -352,7 +334,7 @@ window.familieErstellen = async function() {
           window.location.href = "dashboard.html";
         }
       } else {
-        // neu
+        // familie existiert nicht => neu
         const famID = Date.now().toString();
         await set(ref(db, "familien/" + famID), {
           name: famName,
@@ -538,12 +520,10 @@ async function zeigeAlleNutzer() {
 }
 
 // ----------------------------------------
-// Zauber & Spezial (familienbasiert)
+// Zauber & Ziel (Dropdown) – FAMILIENBASIERT
 // ----------------------------------------
-// => Siehe Code oben: wirkeZauber, wirkeSpezial
 
 async function ladeZauberListe() {
-  // Siehe oben: (Wir setzen das für Dropdown "zauber-auswahl")
   const sel = document.getElementById("zauber-auswahl");
   if (!sel) return;
   sel.innerHTML = "";
@@ -568,13 +548,12 @@ async function ladeZauberListe() {
 }
 
 async function ladeZielListe() {
-  // Siehe oben: (Wir setzen das für "zauber-ziel")
   const user = auth.currentUser;
   if (!user) return;
   const bSnap = await get(ref(db, "benutzer/" + user.uid));
   if (!bSnap.exists()) return;
-
   let bD = bSnap.val();
+
   const sel = document.getElementById("zauber-ziel");
   if (!sel) return;
   sel.innerHTML = "";
@@ -595,6 +574,316 @@ async function ladeZielListe() {
       }
     }
   }
+}
+
+window.zauberWirkenHandler = async function() {
+  const zSel = document.getElementById("zauber-auswahl");
+  const tSel = document.getElementById("zauber-ziel");
+  if (!zSel || !tSel) return;
+
+  let zKey   = zSel.value;
+  let target = tSel.value;
+  if (!target) {
+    alert("Kein Ziel gewählt");
+    return;
+  }
+  await wirkeZauber(target, zKey);
+};
+
+// ----------------------------------------
+// Zauber wirken (familienbasiert)
+async function wirkeZauber(zielID, zauberKey) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // caster
+  const cSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!cSnap.exists()) return;
+  let caster = cSnap.val();
+  if (!caster.familie) {
+    alert("Keine Familie => keine Zauber!");
+    return;
+  }
+
+  // zauber => "familien/<famID>/zauber"
+  const zSnap = await get(ref(db, `familien/${caster.familie}/zauber/${zauberKey}`));
+  if (!zSnap.exists()) {
+    alert("Zauber existiert nicht (familienbasiert)!");
+    return;
+  }
+  let z = zSnap.val();
+
+  // ziel
+  const tSnap = await get(ref(db, "benutzer/" + zielID));
+  if (!tSnap.exists()) {
+    alert("Ziel nicht gefunden!");
+    return;
+  }
+  let ziel = tSnap.val();
+
+  if ((caster.mp || 0) < (z.kostenMP || 0)) {
+    alert("Nicht genug MP!");
+    return;
+  }
+
+  let newCasterMP = (caster.mp || 0) - (z.kostenMP || 0);
+  let newZielHP   = (ziel.hp || 0);
+
+  if (z.typ === "heilen") {
+    newZielHP += (z.wert || 0);
+    let maxHP = 100 + Math.floor(((ziel.level || 1) - 1) / 10) * 100;
+    if (newZielHP > maxHP) newZielHP = maxHP;
+  } else if (z.typ === "schaden") {
+    newZielHP -= (z.wert || 0);
+    if (newZielHP < 0) newZielHP = 0;
+  }
+
+  let updates = {};
+  updates[`benutzer/${user.uid}/mp`] = newCasterMP;
+  updates[`benutzer/${zielID}/hp`]   = newZielHP;
+
+  await update(ref(db), updates);
+
+  let casterName = caster.name || caster.email;
+  let zielName   = ziel.name  || ziel.email;
+
+  await push(ref(db, "publicLogs"), {
+    timestamp: Date.now(),
+    actionType: "zauber",
+    casterID:   user.uid,
+    targetID:   zielID,
+    casterName: casterName,
+    targetName: zielName,
+    zauber:     z.name,
+    typ:        z.typ,
+    wert:       z.wert,
+    kosten:     z.kostenMP
+  });
+
+  await ladeBenutzerdaten();
+  alert(`Zauber erfolgreich gewirkt: ${z.name} auf ${zielName}`);
+}
+
+// Zauber-Popups
+window.zeigeZauberPopup = async function() {
+  const pop = document.getElementById("popup-zauber");
+  if (!pop) return;
+  pop.style.display = "flex";
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const selTarget = document.getElementById("zauber-ziel-popup");
+  const selZauber = document.getElementById("zauber-liste-popup");
+  if (!selTarget || !selZauber) return;
+
+  selTarget.innerHTML = "";
+  selZauber.innerHTML = "";
+
+  // familie => Mitspieler
+  const bSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!bSnap.exists()) return;
+  let bD = bSnap.val();
+
+  if (bD.familie) {
+    const famSnap = await get(ref(db, `familien/${bD.familie}/mitglieder`));
+    if (famSnap.exists()) {
+      let mem = famSnap.val();
+      for (let uid in mem) {
+        if (uid === user.uid) continue;
+        const bn = await get(ref(db, "benutzer/" + uid));
+        if (!bn.exists()) continue;
+        let d = bn.val();
+        let opt = document.createElement("option");
+        opt.value = uid;
+        opt.textContent = d.name;
+        selTarget.appendChild(opt);
+      }
+    }
+  }
+  if (!bD.familie) return;
+
+  const zSnap = await get(ref(db, `familien/${bD.familie}/zauber`));
+  if (!zSnap.exists()) return;
+  let zObj = zSnap.val();
+  Object.keys(zObj).forEach(k => {
+    let z = zObj[k];
+    let opt = document.createElement("option");
+    opt.value = k;
+    opt.textContent = `${z.name} (Kosten:${z.kostenMP || 0}MP)`;
+    selZauber.appendChild(opt);
+  });
+};
+
+window.closeZauberPopup = function() {
+  const pop = document.getElementById("popup-zauber");
+  if (pop) pop.style.display = "none";
+};
+
+window.popupZauberWirken = async function() {
+  const selT = document.getElementById("zauber-ziel-popup");
+  const selZ = document.getElementById("zauber-liste-popup");
+  if (!selT || !selZ) return;
+
+  let tVal = selT.value;
+  let zVal = selZ.value;
+  await wirkeZauber(tVal, zVal);
+  closeZauberPopup();
+};
+
+// ----------------------------------------
+// Spezial (familienbasiert) - analog
+// ----------------------------------------
+
+window.zeigeSpezialPopup = async function() {
+  const pop = document.getElementById("popup-spezial");
+  if (!pop) return;
+  pop.style.display = "flex";
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const bSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!bSnap.exists()) return;
+  let bD = bSnap.val();
+
+  const selTarget = document.getElementById("spezial-ziel-popup");
+  const selSpec   = document.getElementById("spezial-liste-popup");
+  if (!selTarget || !selSpec) return;
+
+  selTarget.innerHTML = "";
+  selSpec.innerHTML   = "";
+
+  if (bD.familie) {
+    const famSnap = await get(ref(db, `familien/${bD.familie}/mitglieder`));
+    if (famSnap.exists()) {
+      let mem = famSnap.val();
+      for (let uid in mem) {
+        if (uid === user.uid) continue;
+        const bn = await get(ref(db, "benutzer/" + uid));
+        if (!bn.exists()) continue;
+        let d = bn.val();
+        let opt = document.createElement("option");
+        opt.value = uid;
+        opt.textContent = d.name;
+        selTarget.appendChild(opt);
+      }
+    }
+  }
+  if (!bD.familie) return;
+
+  const spSnap = await get(ref(db, `familien/${bD.familie}/spezial`));
+  if (!spSnap.exists()) return;
+  let spObj = spSnap.val();
+  Object.keys(spObj).forEach(k => {
+    let s = spObj[k];
+    let opt = document.createElement("option");
+    opt.value = k;
+    opt.textContent = `${s.name} (Kosten:${s.kostenLevel || 0},Chance:${s.chance || 100}%)`;
+    selSpec.appendChild(opt);
+  });
+};
+
+window.closeSpezialPopup = function() {
+  const pop = document.getElementById("popup-spezial");
+  if (pop) pop.style.display = "none";
+};
+
+window.popupSpezialWirken = async function() {
+  const selT       = document.getElementById("spezial-ziel-popup");
+  const selS       = document.getElementById("spezial-liste-popup");
+  const extraInput = document.getElementById("spezial-extra-text");
+
+  if (!selT || !selS || !extraInput) return;
+
+  let tVal    = selT.value;
+  let sVal    = selS.value;
+  let extraVal= extraInput.value.trim();
+
+  await wirkeSpezial(tVal, sVal, extraVal);
+  closeSpezialPopup();
+};
+
+async function wirkeSpezial(zielID, spKey, extraVal) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const cSnap = await get(ref(db, "benutzer/" + user.uid));
+  if (!cSnap.exists()) return;
+  let caster = cSnap.val();
+  if (!caster.familie) {
+    alert("Keine Familie => keine Spezialfähigkeiten!");
+    return;
+  }
+
+  const spSnap = await get(ref(db, `familien/${caster.familie}/spezial/${spKey}`));
+  if (!spSnap.exists()) return alert("Spezialfähigkeit existiert nicht!");
+  let sp = spSnap.val();
+
+  const zSnap = await get(ref(db, "benutzer/" + zielID));
+  if (!zSnap.exists()) return alert("Ziel nicht gefunden!");
+  let ziel = zSnap.val();
+
+  if ((caster.level || 1) < (sp.kostenLevel || 0)) {
+    alert(`Nicht genug Level! Benötigt: ${sp.kostenLevel || 0}`);
+    return;
+  }
+
+  let now = new Date();
+  let casterSpecUsed = caster.spezialUsed || {};
+  if (casterSpecUsed[spKey]) {
+    let lastUsedMs = casterSpecUsed[spKey];
+    let diffDays   = (now.getTime() - lastUsedMs) / (1000 * 60 * 60 * 24);
+    if (diffDays < (sp.cooldown || 0)) {
+      let left = (sp.cooldown || 0) - diffDays;
+      alert(`Fähigkeit gesperrt! Noch ~${left.toFixed(1)} Tage warten.`);
+      return;
+    }
+  }
+
+  let newLvl = caster.level;
+  for (let i = 0; i < (sp.kostenLevel || 0); i++) {
+    if (newLvl > 1) newLvl--;
+  }
+
+  let chance = (sp.chance || 100);
+  let rolled = Math.random() * 100;
+  let success = (rolled < chance);
+
+  let updates = {};
+  updates[`benutzer/${user.uid}/level`] = newLvl;
+
+  if (success) {
+    casterSpecUsed[spKey] = now.getTime();
+    updates[`benutzer/${user.uid}/spezialUsed`] = casterSpecUsed;
+  }
+
+  await update(ref(db), updates);
+  await ladeBenutzerdaten();
+
+  let casterName = caster.name || caster.email;
+  let zielName   = ziel.name  || ziel.email;
+
+  if (!success) {
+    alert(`Fähigkeit fehlgeschlagen! Du verlierst trotzdem ${sp.kostenLevel || 0} Level.`);
+  } else {
+    let msg = `${casterName} wünscht sich "${extraVal}" von ${zielName}.`;
+    alert(`Fähigkeit erfolgreich! ${msg}`);
+  }
+
+  await push(ref(db, "publicLogs"), {
+    timestamp: Date.now(),
+    actionType: "spezial",
+    casterID: user.uid,
+    targetID: zielID,
+    casterName: casterName,
+    targetName: zielName,
+    name: sp.name,
+    kosten: sp.kostenLevel || 0,
+    chance: sp.chance || 100,
+    kommentar: extraVal,
+    success: success
+  });
 }
 
 // ----------------------------------------
@@ -645,7 +934,6 @@ function ladeLogsInTabelle() {
     });
   });
 }
-
 window.adminLogsClear = async function() {
   if (!confirm("Wirklich ALLE Logs löschen?")) return;
   await remove(ref(db, "publicLogs"));
@@ -770,7 +1058,7 @@ async function questAbschliessen(qid, uid) {
   await ladeBenutzerdaten();
 }
 
-// =============== ADMIN: Quests (familienbasiert)
+// ADMIN: Quests (familienbasiert)
 window.adminQuestAnlegen = async function() {
   const qName = document.getElementById("quest-name").value;
   const qXP   = parseInt(document.getElementById("quest-xp").value, 10);
@@ -1115,12 +1403,42 @@ window.avatarSpeichern= async function() {
   });
 
   aImg.src= chURL;
-  document.getElementById("benutzer-name").textContent= newN;
+  const bn = document.getElementById("benutzer-name");
+  if (bn) bn.textContent= newN;
   alert("Profil aktualisiert!");
 };
 
 // ----------------------------------------
-// Tabs (Einstellungen)
+// Fehlermeldung
+// ----------------------------------------
+
+window.zeigeFehlerPopup = function() {
+  const pop = document.getElementById("error-popup");
+  if (pop) pop.style.display = "flex";
+};
+window.schließeFehlerPopup = function() {
+  const pop = document.getElementById("error-popup");
+  if (pop) pop.style.display = "none";
+};
+
+window.sendeFehlermeldung = function() {
+  const name    = document.getElementById("error-name").value;
+  const email   = document.getElementById("error-email").value;
+  const message = document.getElementById("error-message").value;
+
+  if (!name || !email || !message) {
+    alert("Bitte alle Felder ausfüllen!");
+    return;
+  }
+
+  const mailtoLink = `mailto:thomas.schuster-vb@eclipso.at?subject=Fehlermeldung von ${name}&body=${message}%0D%0A%0D%0AVon: ${email}`;
+  window.location.href = mailtoLink;
+  alert("Fehlermeldung wurde vorbereitet. Bitte prüfe dein E-Mail-Programm.");
+  schließeFehlerPopup();
+};
+
+// ----------------------------------------
+// Einstellungen (Tabs)
 // ----------------------------------------
 
 window.oeffneEinstellungen = async function() {
@@ -1144,7 +1462,6 @@ window.oeffneEinstellungen = async function() {
     if (tz) tz.style.display = "inline-block";
     if (tq) tq.style.display = "inline-block";
     if (ts) ts.style.display = "inline-block";
-    // Lade Listen
     adminZauberListeLaden();
     adminQuestListeLaden();
     adminSpezialListeLaden();
