@@ -2,12 +2,10 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <!-- Wichtig: Damit die Seite auf mobilen Geräten richtig skaliert -->
+  <!-- Wichtig für Mobilgeräte -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quest-Buch – Start</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Externes Script -->
-  <script type="module" src="script.js"></script>
 </head>
 <body>
   <!-- Fehlermeldungsbutton oben rechts -->
@@ -50,22 +48,46 @@
       <input type="text" id="family-name" placeholder="(Optional) Familienname">
       <input type="email" id="admin-email" placeholder="E-Mail">
       <input type="password" id="admin-password" placeholder="Passwort">
+
+      <!-- Captcha: einfache Rechenaufgabe -->
+      <div id="captcha-section">
+        <p id="captcha-frage"></p>
+        <input type="number" id="captcha-input" placeholder="Antwort eingeben">
+      </div>
+
+      <!-- Datenschutz-Checkbox -->
+      <label>
+        <input type="checkbox" id="datenschutz-checkbox">
+        Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzrichtlinie</a> gelesen und akzeptiere sie.
+      </label>
+
       <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
     </div>
 
     <!-- Link zum Erklärvideo -->
     <div style="margin-top: 30px; text-align: center;">
-      <a href="#" onclick="zeigeVideoPopup()">Erklärvideo ansehen</a>
+      <a href="#" id="erklaerlink" onclick="zeigeVideoPopup()">Erklärvideo ansehen</a>
     </div>
   </main>
 
   <!-- Popups -->
+  <!-- Video-Popup: Nur ein Link oder optional YouTube-iFrame, je nach Wunsch -->
   <div id="video-popup" class="popup-modal" onclick="schließeVideoPopup()">
     <div class="popup-content" onclick="event.stopPropagation()">
-      <a href="https://www.youtube.com/watch?v=Trdyo2j9zbs" target="_blank">Klicke hier, um das Video zu öffnen</a>
+      <!-- Hier wahlweise direkter Link oder iFrame -->
+      <iframe 
+        id="tutorial-iframe" 
+        width="560" 
+        height="315" 
+        src=""
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
     </div>
   </div>
 
+  <!-- Admin-Login-Popup -->
   <div id="admin-login-popup" class="popup-modal" onclick="schließeAdminLogin()">
     <div class="popup-content" onclick="event.stopPropagation()">
       <h3>Admin-Login</h3>
@@ -75,6 +97,7 @@
     </div>
   </div>
 
+  <!-- Fehlermeldungs-Popup -->
   <div id="error-popup" class="popup-modal" onclick="schließeFehlerPopup()">
     <div class="popup-content" onclick="event.stopPropagation()">
       <h3>Fehlermeldung</h3>
@@ -98,7 +121,43 @@
 
   <!-- Footer -->
   <footer>
-    <span id="copyright">© Questbook</span>
+    <span id="copyright">
+      © Questbook
+    </span>
   </footer>
+
+  <!-- Popups-Funktionen: -->
+  <script type="module">
+    // Video-Popup
+    window.zeigeVideoPopup = function() {
+      // iFrame
+      const iframe = document.getElementById("tutorial-iframe");
+      iframe.src = "https://www.youtube.com/embed/Trdyo2j9zbs?autoplay=1";
+      document.getElementById("video-popup").style.display = "flex";
+    };
+    window.schließeVideoPopup = function() {
+      document.getElementById("video-popup").style.display = "none";
+      document.getElementById("tutorial-iframe").src = "";
+    };
+
+    // Admin-Login
+    window.zeigeAdminLogin = function() {
+      document.getElementById("admin-login-popup").style.display = "flex";
+    };
+    window.schließeAdminLogin = function() {
+      document.getElementById("admin-login-popup").style.display = "none";
+    };
+
+    // Fehlermeldung
+    window.zeigeFehlerPopup = function() {
+      document.getElementById("error-popup").style.display = "flex";
+    };
+    window.schließeFehlerPopup = function() {
+      document.getElementById("error-popup").style.display = "none";
+    };
+  </script>
+
+  <!-- Dein externes Script -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>
