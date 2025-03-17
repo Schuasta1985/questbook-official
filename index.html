@@ -8,124 +8,161 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Fehlermeldungsbutton oben rechts -->
-  <button id="fehler-button" onclick="zeigeFehlerPopup()">Fehlermeldung</button>
 
-  <header>
-    <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
-  </header>
+<!-- Fehlermeldungsbutton oben rechts -->
+<button id="fehler-button" onclick="zeigeFehlerPopup()">Fehlermeldung</button>
 
-  <main id="auth-container">
-    <!-- Infotext über das Spiel -->
-    <section id="game-info">
-      <h2>Was ist eigentlich ein Quest-Buch?</h2>
-      <p class="info-text">
-        🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
-        Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
-        Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
-        Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
-        <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
-      </p>
-    </section>
+<header>
+  <h1>Willkommen im Quest-Buch! Vers. 0.1</h1>
+</header>
 
-    <!-- Buttons für Login/Register -->
-    <div id="auth-selection">
-      <button id="login-btn" class="auth-button">Einloggen</button>
-      <button id="register-btn" class="auth-button">Registrieren</button>
-    </div>
+<main id="auth-container">
+  <!-- Infotext über das Spiel -->
+  <section id="game-info">
+    <h2>Was ist eigentlich ein Quest-Buch?</h2>
+    <p class="info-text">
+      🔥 <strong>Werde zum Helden deines Alltags!</strong> 🔥<br>
+      Mit dem <span class="highlight">Quest-Buch</span> wird dein Alltag zum <span class="epic">epischen Abenteuer!</span> 💪✨<br>
+      Erledige mit deiner Familie oder Freunden spannende Quests, wirke mächtige Zauber und setze Spezialfähigkeiten ein. 🎭🔮<br>
+      Je mehr Aufgaben du meisterst, desto stärker wird dein Charakter – Level für Level! 🚀<br>
+      <span class="cta">Bist du bereit, dein eigenes Abenteuer zu starten?</span> 🏆🎉
+    </p>
+  </section>
 
-    <!-- Login-Formular -->
-    <div id="login-form" class="auth-form" style="display: none;">
-      <h3>Einloggen</h3>
-      <input type="email" id="login-email" placeholder="E-Mail">
-      <input type="password" id="login-password" placeholder="Passwort">
-      <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
-    </div>
-
-    <!-- Registrierungs-Formular (Pflicht) -->
-    <div id="register-form" class="auth-form" style="display: none;">
-      <h3>Registrieren / Familie gründen</h3>
-      <input type="text" id="family-name" placeholder="Familienname">
-      <input type="email" id="admin-email" placeholder="E-Mail">
-      <input type="password" id="admin-password" placeholder="Passwort">
-
-      <!-- Captcha: einfache Rechenaufgabe -->
-      <div id="captcha-section">
-        <p id="captcha-frage"></p>
-        <input type="number" id="captcha-input" placeholder="Antwort eingeben">
-      </div>
-
-      <!-- Datenschutz-Checkbox -->
-      <label>
-        <input type="checkbox" id="datenschutz-checkbox">
-        Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzrichtlinie</a> gelesen und akzeptiere sie.
-      </label>
-      <br><br>
-
-      <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
-    </div>
-
-    <!-- Link zum Erklärvideo -->
-    <div style="margin-top: 30px; text-align: center;">
-      <a href="javascript:void(0)" id="erklaer-link" onclick="zeigeVideoPopup()">Erklärvideo ansehen</a>
-    </div>
-  </main>
-
-  <!-- Popups -->
-  <!-- Video-Popup: Synthesia Embed -->
-  <div id="video-popup" class="popup-modal" onclick="schließeVideoPopup()">
-    <div class="popup-content" onclick="event.stopPropagation()">
-      <!-- Synthesia iFrame -->
-      <div style="position: relative; overflow: hidden; aspect-ratio: 1920/1080">
-        <iframe src="https://share.synthesia.io/embeds/videos/b4f5dc13-a14e-46ae-8e66-d973e3666c3b"
-          loading="lazy" title="Synthesia video player - Questbook"
-          allowfullscreen allow="encrypted-media; fullscreen;"
-          style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0; margin: 0; overflow:hidden;">
-        </iframe>
-      </div>
-    </div>
+  <!-- Buttons für Login/Register -->
+  <div id="auth-selection">
+    <button id="login-btn" class="auth-button">Einloggen</button>
+    <button id="register-btn" class="auth-button">Registrieren</button>
   </div>
 
-  <!-- Admin-Login-Popup -->
-  <div id="admin-login-popup" class="popup-modal" onclick="schließeAdminLogin()">
-    <div class="popup-content" onclick="event.stopPropagation()">
-      <h3>Admin-Login</h3>
-      <input type="email" id="admin-email-input" placeholder="Admin-E-Mail">
-      <input type="password" id="admin-password-input" placeholder="Passwort">
-      <button onclick="adminLogin()">Einloggen</button>
-    </div>
+  <!-- Login-Formular -->
+  <div id="login-form" class="auth-form" style="display: none;">
+    <h3>Einloggen</h3>
+    <input type="email" id="login-email" placeholder="E-Mail">
+    <input type="password" id="login-password" placeholder="Passwort">
+    <button class="auth-button" onclick="benutzerEinloggen()">Anmelden</button>
   </div>
 
-  <!-- Fehlermeldungs-Popup -->
-  <div id="error-popup" class="popup-modal" onclick="schließeFehlerPopup()">
-    <div class="popup-content" onclick="event.stopPropagation()">
-      <h3>Fehlermeldung</h3>
-      <label for="error-name">Name:</label>
-      <input type="text" id="error-name">
-      <label for="error-email">E-Mail:</label>
-      <input type="email" id="error-email">
-      <label for="error-message">Beschreibung:</label>
-      <textarea id="error-message"></textarea>
-      <button onclick="sendeFehlermeldung()">Abschicken</button>
+  <!-- Registrierungs-Formular -->
+  <div id="register-form" class="auth-form" style="display: none;">
+    <h3>Registrieren / Familie gründen</h3>
+    <input type="text" id="family-name" placeholder="(Optional) Familienname">
+    <input type="email" id="admin-email" placeholder="E-Mail">
+    <input type="password" id="admin-password" placeholder="Passwort">
+
+    <!-- Captcha: einfache Rechenaufgabe -->
+    <div id="captcha-section">
+      <p id="captcha-frage"></p>
+      <input type="number" id="captcha-input" placeholder="Ergebnis eingeben">
     </div>
+
+    <!-- Datenschutz-Checkbox -->
+    <label style="display:block;margin-top:10px;">
+      <input type="checkbox" id="datenschutz-checkbox">
+      Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzrichtlinie</a> gelesen und akzeptiere sie.
+    </label>
+
+    <button class="auth-button" onclick="familieErstellen()">Registrieren</button>
   </div>
 
-  <!-- Spenden-Button -->
-  <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
-     target="_blank"
-     rel="noopener"
-     id="donate-button">
-    Unterstütze mich
-  </a>
+  <!-- Link zum Erklärvideo (Synthesia) -->
+  <div style="margin-top: 30px; text-align: center;">
+    <!-- Anstatt href="#" => Button oder void(0) -->
+    <a href="javascript:void(0)" id="erklaervideo-link" style="text-decoration:none;" onclick="zeigeVideoPopup()">
+      Erklärvideo ansehen
+    </a>
+  </div>
+</main>
 
-  <!-- Footer -->
-  <footer>
-    <span id="copyright" onclick="zeigeAdminLogin()">
-      © Questbook
-    </span>
-  </footer>
+<!-- Video-Popup (Synthesia) -->
+<div id="video-popup" class="popup-modal" onclick="schließeVideoPopup()">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <!-- Synthesia-Embed -->
+    <div style="position: relative; overflow: hidden; aspect-ratio: 16/9; max-width: 700px;">
+      <iframe
+        id="tutorial-iframe"
+        src=""
+        allowfullscreen
+        allow="encrypted-media; fullscreen;"
+        style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0; margin: 0; overflow:hidden;"
+      ></iframe>
+    </div>
+  </div>
+</div>
 
-  <!-- Dein externes Script -->
-  <script type="module" src="script.js"></script>
+<!-- Admin-Login-Popup -->
+<div id="admin-login-popup" class="popup-modal" onclick="schließeAdminLogin()">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <h3>Admin-Login</h3>
+    <input type="email" id="admin-email-input" placeholder="Admin-E-Mail">
+    <input type="password" id="admin-password-input" placeholder="Passwort">
+    <button onclick="adminLogin()">Einloggen</button>
+  </div>
+</div>
+
+<!-- Fehlermeldungs-Popup -->
+<div id="error-popup" class="popup-modal" onclick="schließeFehlerPopup()">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <h3>Fehlermeldung</h3>
+    <label for="error-name">Name:</label>
+    <input type="text" id="error-name">
+    <label for="error-email">E-Mail:</label>
+    <input type="email" id="error-email">
+    <label for="error-message">Beschreibung:</label>
+    <textarea id="error-message"></textarea>
+    <button onclick="sendeFehlermeldung()">Abschicken</button>
+  </div>
+</div>
+
+<!-- Spenden-Button -->
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=thomas.schuster-vb%40eclipso.at&currency_code=EUR&source=url"
+   target="_blank"
+   rel="noopener"
+   id="donate-button">
+  Unterstütze mich
+</a>
+
+<!-- Footer -->
+<footer>
+  <!-- Admin-Login über Copyright-Klick? -->
+  <span id="copyright" onclick="zeigeAdminLogin()">
+    © Questbook
+  </span>
+</footer>
+
+<!-- Popups-Funktionen, die NICHTS öffnen beim Laden -->
+<script type="module">
+  window.zeigeVideoPopup = function() {
+    // Setze SRC auf Synthesia
+    const iframe = document.getElementById("tutorial-iframe");
+    iframe.src = "https://share.synthesia.io/embeds/videos/b4f5dc13-a14e-46ae-8e66-d973e3666c3b";
+    document.getElementById("video-popup").style.display = "flex";
+  };
+
+  window.schließeVideoPopup = function() {
+    document.getElementById("video-popup").style.display = "none";
+    // STOPP: src leeren => Video stoppt
+    document.getElementById("tutorial-iframe").src = "";
+  };
+
+  window.zeigeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "flex";
+  };
+
+  window.schließeAdminLogin = function() {
+    document.getElementById("admin-login-popup").style.display = "none";
+  };
+
+  window.zeigeFehlerPopup = function() {
+    document.getElementById("error-popup").style.display = "flex";
+  };
+
+  window.schließeFehlerPopup = function() {
+    document.getElementById("error-popup").style.display = "none";
+  };
+</script>
+
+<!-- Dein externes Script -->
+<script type="module" src="script.js"></script>
 </body>
 </html>
