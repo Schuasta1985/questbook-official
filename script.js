@@ -206,13 +206,12 @@ window.googleLogin = async function() {
   }
 };
 
-/* ---------------------------------------------------------------
-   NEU: (Optional) Captcha-Variablen + Checkbox
-   - Nur relevant, wenn du ein Captcha-Eingabefeld & Checkbox in HTML hast
-----------------------------------------------------------------*/
-let captchaA = 0, captchaB = 0;
+// ----------------------------------------
+// Familie erstellen + (Captcha, DS) [optional]
+// ----------------------------------------
+
+let captchaA=0, captchaB=0;
 document.addEventListener("DOMContentLoaded", () => {
-  // Falls du einen <div id="captcha-section"> hast
   const capDiv = document.getElementById("captcha-section");
   if (capDiv) {
     captchaA = Math.floor(Math.random()*10)+1;
@@ -229,21 +228,19 @@ window.familieErstellen = async function() {
   const adminEmail = document.getElementById("admin-email").value.trim();
   const adminPass  = document.getElementById("admin-password").value.trim();
 
-  // NEU: Optionaler Captcha-Check
+  // Captcha + DS
   if (document.getElementById("captcha-section")) {
     const userAnswer = parseInt(document.getElementById("captcha-input")?.value, 10);
     if (isNaN(userAnswer) || userAnswer !== (captchaA + captchaB)) {
       alert("Bitte das richtige Ergebnis der Rechenaufgabe eingeben!");
       return;
     }
-    // Datenschutz-Checkbox
     const dsCb = document.getElementById("datenschutz-checkbox");
     if (dsCb && !dsCb.checked) {
       alert("Bitte Datenschutzrichtlinie akzeptieren!");
       return;
     }
   }
-  // Ende NEU
 
   if (!adminEmail || !adminPass) {
     alert("E-Mail und Passwort erforderlich!");
@@ -265,7 +262,6 @@ window.familieErstellen = async function() {
       window.location.href = "dashboard.html";
       return;
     } else {
-      // NEU: Familie-Kollision => user kann beitreten oder suffix
       const famQ = query(ref(db, "familien"), orderByChild("name"), equalTo(famName));
       const snap = await get(famQ);
       if (snap.exists()) {
@@ -273,7 +269,7 @@ window.familieErstellen = async function() {
         const yesJoin = confirm(
           `Familie '${famName}' existiert schon.\n\n` +
           `OK = dieser Familie beitreten\n` +
-          `Abbrechen = neue Familie anlegen (z.B. ${famName}X)`
+          `Abbrechen = neue Familie anlegen (z.B. ${famName}_XYZ)`
         );
         if (yesJoin) {
           // beitreten
@@ -290,26 +286,26 @@ window.familieErstellen = async function() {
           alert(`Registrierung erfolgreich! Du bist Mitglied der Familie '${famName}'.`);
           window.location.href = "dashboard.html";
         } else {
-          // Suffix => neue Fam
-          const famSuffix = famName + "_" + Date.now().toString().slice(-3);
-          const famID = Date.now().toString();
-          await set(ref(db, "familien/" + famID), {
-            name: famSuffix,
+          // user will new Family
+          const newFamID = Date.now().toString();
+          const newFamName = famName + "_" + Math.floor(Math.random()*10000);
+          await set(ref(db, "familien/" + newFamID), {
+            name: newFamName,
             admin: adminEmail,
             mitglieder: { [uid]: true }
           });
           await set(ref(db, "benutzer/" + uid), {
             email: adminEmail,
-            familie: famID,
+            familie: newFamID,
             isAdmin: true,
             name: adminEmail.split("@")[0],
             level: 1, xp: 0, hp: 100, mp: 100
           });
-          alert(`Neue Familie '${famSuffix}' erstellt! Du bist Admin.`);
+          alert(`Neue Familie '${newFamName}' erstellt! Du bist Admin.`);
           window.location.href = "dashboard.html";
         }
       } else {
-        // wie vorher
+        // neu => admin
         const famID = Date.now().toString();
         await set(ref(db, "familien/" + famID), {
           name: famName,
@@ -326,7 +322,6 @@ window.familieErstellen = async function() {
         alert(`Neue Familie '${famName}' erstellt! Du bist Admin.`);
         window.location.href = "dashboard.html";
       }
-      // Ende NEU
     }
   } catch(e) {
     console.log(e.code, e.message);
@@ -392,9 +387,12 @@ async function ladeBenutzerdaten() {
     await zeigeAlleNutzer();
   }
 
+  // FAMILIENBASIERT: Wir laden Quests/Spezial nur aus der aktuellen Familie
   await ladeZauberListe();
   await ladeZielListe();
   ladeLogsInTabelle();
+
+  // Quests
   ladeQuests(user.uid);
 
   if (userData.isAdmin) {
@@ -487,7 +485,7 @@ async function zeigeAlleNutzer() {
 }
 
 // ----------------------------------------
-// Zauber & Ziel Dropdowns
+// Zauber & Ziel Dropdowns (bleiben global?)
 // ----------------------------------------
 
 async function ladeZauberListe() {
@@ -688,7 +686,7 @@ window.popupZauberWirken = async function() {
 };
 
 // ----------------------------------------
-// Spezial-Popup & Spezialfähigkeit
+// Spezial-Popup & Spezialfähigkeit (FAMILIENBASIERT!)
 // ----------------------------------------
 
 window.zeigeSpezialPopup = async function() {
@@ -728,9 +726,10 @@ window.zeigeSpezialPopup = async function() {
     }
   }
 
-  // Spezial-Liste
-  const spSnap = await get(ref(db, "spezial"));
-  if (!spSnap.exists()) return;
+  // **FAMILIENBASIERT** => Hole Spezial aus "familien/<famID>/spezial"
+  if (!bD.familie) return; // ohne Familie => keine Spezial
+  const spSnap = await get(ref(db, `familien/${bD.familie}/spezial`));
+  if (!spSnap.exists()) return; // keine Einträge
   let spObj = spSnap.val();
   Object.keys(spObj).forEach(k => {
     let s = spObj[k];
@@ -749,7 +748,7 @@ window.closeSpezialPopup = function() {
 window.popupSpezialWirken = async function() {
   const selT       = document.getElementById("spezial-ziel-popup");
   const selS       = document.getElementById("spezial-liste-popup");
-  const extraInput = document.getElementById("spezial-extra-text"); // <-- Hier tippt der Nutzer "Rückenmassage" etc.
+  const extraInput = document.getElementById("spezial-extra-text");
 
   if (!selT || !selS || !extraInput) return;
 
@@ -770,8 +769,13 @@ async function wirkeSpezial(zielID, spKey, extraVal) {
   if (!cSnap.exists()) return;
   let caster = cSnap.val();
 
-  // ability
-  const spSnap = await get(ref(db, "spezial/" + spKey));
+  if (!caster.familie) {
+    alert("Keine Familie => keine Spezialfähigkeiten!");
+    return;
+  }
+
+  // ability => "familien/<famID>/spezial/<spKey>"
+  const spSnap = await get(ref(db, `familien/${caster.familie}/spezial/${spKey}`));
   if (!spSnap.exists()) return alert("Spezialfähigkeit existiert nicht!");
   let sp = spSnap.val();
 
@@ -810,7 +814,6 @@ async function wirkeSpezial(zielID, spKey, extraVal) {
   let rolled = Math.random() * 100;
   let success = (rolled < chance);
 
-  // updates
   let updates = {};
   updates[`benutzer/${user.uid}/level`] = newLvl;
 
@@ -843,7 +846,7 @@ async function wirkeSpezial(zielID, spKey, extraVal) {
     name: sp.name,
     kosten: sp.kostenLevel || 0,
     chance: sp.chance || 100,
-    kommentar: extraVal,  // Hier speichern wir den Nutzer-Kommentar
+    kommentar: extraVal,
     success: success
   });
 }
@@ -904,20 +907,33 @@ window.adminLogsClear = async function() {
 };
 
 // ----------------------------------------
-// Quests
+// Quests (FAMILIENBASIERT)
 // ----------------------------------------
 
 async function ladeQuests(uid) {
   const qc = document.getElementById("quest-container");
   if (!qc) return;
 
-  const snap = await get(ref(db, "quests"));
-  if (!snap.exists()) {
-    qc.innerHTML = "<p>Keine Quests vorhanden.</p>";
+  // 1) Hole user => familie
+  const snapUser = await get(ref(db, "benutzer/" + uid));
+  if (!snapUser.exists()) {
+    qc.innerHTML = "<p>Benutzer nicht gefunden.</p>";
+    return;
+  }
+  let uData = snapUser.val();
+  if (!uData.familie) {
+    qc.innerHTML = "<p>Keine Familie vorhanden.</p>";
     return;
   }
 
-  let qObj = snap.val();
+  // 2) Lade Quests aus "familien/<famID>/quests"
+  const snapQ = await get(ref(db, `familien/${uData.familie}/quests`)); // FAMILIENBASIERT
+  if (!snapQ.exists()) {
+    qc.innerHTML = "<p>Keine Quests in dieser Familie.</p>";
+    return;
+  }
+
+  let qObj = snapQ.val();
   qc.innerHTML = "";
 
   Object.keys(qObj).forEach(qid => {
@@ -954,7 +970,17 @@ async function ladeQuests(uid) {
 }
 
 async function questAbschliessen(qid, uid) {
-  const qSnap = await get(ref(db, "quests/" + qid));
+  // Hole user => familie
+  const userSnap = await get(ref(db, "benutzer/" + uid));
+  if (!userSnap.exists()) return;
+  let uData = userSnap.val();
+  if (!uData.familie) {
+    alert("Keine Familie => keine Quests!");
+    return;
+  }
+
+  // Quests in "familien/<famID>/quests/<qid>"
+  const qSnap = await get(ref(db, `familien/${uData.familie}/quests/${qid}`));
   if (!qSnap.exists()) return;
   let quest = qSnap.val();
 
@@ -973,10 +999,7 @@ async function questAbschliessen(qid, uid) {
 
   if (howMany > rest) howMany = rest;
 
-  const uSnap = await get(ref(db, "benutzer/" + uid));
-  if (!uSnap.exists()) return;
-  let uData = uSnap.val();
-
+  // xp
   let gainedXP = (quest.xpPerUnit || 0) * howMany;
   let newXP    = (uData.xp || 0) + gainedXP;
   let level    = uData.level || 1;
@@ -993,9 +1016,9 @@ async function questAbschliessen(qid, uid) {
   let newDone = doneC + howMany;
 
   let updates = {};
+  updates[`familien/${uData.familie}/quests/${qid}/doneCount`] = newDone;
   updates[`benutzer/${uid}/xp`]      = newXP;
   updates[`benutzer/${uid}/level`]   = level;
-  updates[`quests/${qid}/doneCount`] = newDone;
 
   await update(ref(db), updates);
 
@@ -1007,6 +1030,7 @@ async function questAbschliessen(qid, uid) {
   await ladeBenutzerdaten();
 }
 
+// =============== ADMIN: QUESTS (familienbasiert) ===============
 window.adminQuestAnlegen = async function() {
   const qName = document.getElementById("quest-name").value;
   const qXP   = parseInt(document.getElementById("quest-xp").value, 10);
@@ -1017,8 +1041,23 @@ window.adminQuestAnlegen = async function() {
     return;
   }
 
-  const newK = push(ref(db, "quests")).key;
-  await set(ref(db, "quests/" + newK), {
+  // Hole currentUser => check familie + isAdmin
+  const user = auth.currentUser;
+  if (!user) return;
+  const snap = await get(ref(db, "benutzer/" + user.uid));
+  if (!snap.exists()) return;
+  let uData = snap.val();
+  if (!uData.isAdmin) {
+    alert("Nur Admin darf Quests anlegen!");
+    return;
+  }
+  if (!uData.familie) {
+    alert("Keine Familie => keine Quests!");
+    return;
+  }
+
+  const newK = push(ref(db, `familien/${uData.familie}/quests`)).key; // FAMILIENBASIERT
+  await set(ref(db, `familien/${uData.familie}/quests/${newK}`), {
     name: qName,
     xpPerUnit: qXP,
     totalUnits: qTot,
@@ -1028,7 +1067,7 @@ window.adminQuestAnlegen = async function() {
   alert("Quest angelegt!");
   adminQuestListeLaden();
 
-  const user = auth.currentUser;
+  // Tägliche Quests neu laden
   if (user) {
     ladeQuests(user.uid);
   }
@@ -1039,9 +1078,21 @@ async function adminQuestListeLaden() {
   if (!ul) return;
   ul.innerHTML="";
 
-  const snap= await get(ref(db, "quests"));
+  // Hole currentUser => familie
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU= await get(ref(db, "benutzer/" + user.uid));
+  if (!snapU.exists()) return;
+  let uData = snapU.val();
+  if (!uData.familie) {
+    ul.innerHTML="<li>Keine Familie => keine Quests.</li>";
+    return;
+  }
+
+  // Lade Quests => "familien/<famID>/quests"
+  const snap= await get(ref(db, `familien/${uData.familie}/quests`));
   if (!snap.exists()) {
-    ul.innerHTML="<li>Keine Quests vorhanden.</li>";
+    ul.innerHTML="<li>Keine Quests in dieser Familie.</li>";
     return;
   }
   let qObj= snap.val();
@@ -1064,96 +1115,67 @@ async function adminQuestListeLaden() {
 }
 
 async function adminQuestLoeschen(qKey) {
-  if (!confirm("Quest wirklich löschen?")) return;
-  await remove(ref(db, "quests/" + qKey));
+  if(!confirm("Quest wirklich löschen?")) return;
+
+  // Hole currentUser => familie
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU= await get(ref(db, "benutzer/" + user.uid));
+  if (!snapU.exists()) return;
+  let uData = snapU.val();
+  if (!uData.familie) {
+    alert("Keine Familie => keine Quests!");
+    return;
+  }
+
+  await remove(ref(db, `familien/${uData.familie}/quests/${qKey}`));
+  alert("Quest gelöscht!");
   adminQuestListeLaden();
 }
 
+// ALLE Quests der Familie löschen
 window.adminQuestsAlleLoeschen = async function() {
-  if (!confirm("Wirklich ALLE Quests löschen?")) return;
-  await remove(ref(db, "quests"));
-  alert("Alle Quests gelöscht!");
+  if(!confirm("Wirklich ALLE Quests löschen?")) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU= await get(ref(db, "benutzer/" + user.uid));
+  if (!snapU.exists()) return;
+  let uData = snapU.val();
+  if (!uData.familie) return;
+
+  await remove(ref(db, `familien/${uData.familie}/quests`));
+  alert("Alle Quests in dieser Familie gelöscht!");
   adminQuestListeLaden();
 };
 
 // ----------------------------------------
-// ADMIN: ZAUBER
-// ----------------------------------------
-
-async function adminZauberListeLaden() {
-  const ul= document.getElementById("admin-zauber-liste");
-  if (!ul) return;
-  ul.innerHTML="";
-
-  const snap= await get(ref(db, "zauber"));
-  if (!snap.exists()) {
-    ul.innerHTML="<li>Keine Zauber vorhanden.</li>";
-    return;
-  }
-  let zObj= snap.val();
-
-  Object.keys(zObj).forEach(k => {
-    let z = zObj[k];
-    let li= document.createElement("li");
-    li.textContent= `${z.name} (Typ:${z.typ}, Wert:${z.wert}, Kosten:${z.kostenMP} MP)`;
-
-    let btn= document.createElement("button");
-    btn.textContent="Löschen";
-    btn.onclick= ()=> adminZauberLoeschen(k);
-
-    li.appendChild(btn);
-    ul.appendChild(li);
-  });
-}
-
-window.adminZauberAnlegen = async function() {
-  const zName= document.getElementById("zauber-name").value;
-  const zTyp=  document.getElementById("zauber-typ").value;
-  const zWert= parseInt(document.getElementById("zauber-wert").value,10);
-  const zCost= parseInt(document.getElementById("zauber-kosten").value,10);
-
-  if (!zName || isNaN(zWert) || isNaN(zCost)) {
-    alert("Bitte Name, Typ, Wert, Kosten angeben!");
-    return;
-  }
-
-  const newKey= push(ref(db, "zauber")).key;
-  await set(ref(db, "zauber/" + newKey), {
-    name: zName,
-    typ: zTyp,
-    wert: zWert,
-    kostenMP: zCost
-  });
-
-  alert("Zauber angelegt!");
-  adminZauberListeLaden();
-};
-
-async function adminZauberLoeschen(k) {
-  if (!confirm("Zauber wirklich löschen?")) return;
-  await remove(ref(db, "zauber/" + k));
-  adminZauberListeLaden();
-}
-
-// ----------------------------------------
-// ADMIN: SPEZIAL
+// ADMIN: SPEZIAL (familienbasiert)
 // ----------------------------------------
 
 async function adminSpezialListeLaden() {
   const ul= document.getElementById("admin-spezial-liste");
-  if (!ul) return;
+  if(!ul) return;
   ul.innerHTML="";
 
-  const snap= await get(ref(db, "spezial"));
-  if (!snap.exists()) {
-    ul.innerHTML="<li>Keine Spezialfähigkeiten vorhanden.</li>";
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU= await get(ref(db, "benutzer/" + user.uid));
+  if (!snapU.exists()) return;
+  let uData = snapU.val();
+  if (!uData.familie) {
+    ul.innerHTML="<li>Keine Familie => keine Spezialfähigkeiten.</li>";
+    return;
+  }
+
+  const snap= await get(ref(db, `familien/${uData.familie}/spezial`)); // FAMILIENBASIERT
+  if(!snap.exists()){
+    ul.innerHTML="<li>Keine Spezialfähigkeiten in dieser Familie.</li>";
     return;
   }
   let sObj= snap.val();
-
-  Object.keys(sObj).forEach(sk => {
+  Object.keys(sObj).forEach(sk=>{
     let s= sObj[sk];
-    // Kein Kommentar mehr, nur name, kostenLevel, chance, cooldown
     let li= document.createElement("li");
     li.textContent=`${s.name} (Kosten:${s.kostenLevel||0} Lvl, Chance:${s.chance||100}%, Cooldown:${s.cooldown||0}d)`;
 
@@ -1177,12 +1199,27 @@ window.adminSpezialAnlegen= async function() {
     return;
   }
 
-  const newKey= push(ref(db, "spezial/"+newKey), {
+  const user = auth.currentUser;
+  if (!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if (!uData.isAdmin) {
+    alert("Nur Admin darf Spezialfähigkeiten anlegen!");
+    return;
+  }
+  if (!uData.familie) {
+    alert("Keine Familie => keine Spezialfähigkeiten!");
+    return;
+  }
+
+  // "familien/<famID>/spezial/"
+  const newKey= push(ref(db, `familien/${uData.familie}/spezial`)).key;
+  await set(ref(db, `familien/${uData.familie}/spezial/${newKey}`), {
     name: sName,
     kostenLevel: sKosten,
     chance: sChance,
     cooldown: sCd
-    // Kein kommentar-Feld mehr
   });
 
   alert("Spezialfähigkeit angelegt!");
@@ -1190,8 +1227,17 @@ window.adminSpezialAnlegen= async function() {
 };
 
 async function adminSpezialLoeschen(sk) {
-  if (!confirm("Wirklich löschen?")) return;
-  await remove(ref(db, "spezial/"+sk));
+  if(!confirm("Wirklich löschen?")) return;
+
+  const user= auth.currentUser;
+  if(!user) return;
+  const snapU= await get(ref(db, "benutzer/"+user.uid));
+  if(!snapU.exists()) return;
+  let uData= snapU.val();
+  if(!uData.familie) return;
+
+  await remove(ref(db, `familien/${uData.familie}/spezial/${sk}`));
+  alert("Spezialfähigkeit gelöscht!");
   adminSpezialListeLaden();
 }
 
@@ -1324,8 +1370,8 @@ window.oeffneEinstellungen = async function() {
     tq.style.display = "inline-block";
     ts.style.display = "inline-block";
     adminZauberListeLaden();
-    adminQuestListeLaden();
-    adminSpezialListeLaden();
+    adminQuestListeLaden();   // FAMILIENBASIERT
+    adminSpezialListeLaden(); // FAMILIENBASIERT
   } else {
     tz.style.display = "none";
     tq.style.display = "none";
