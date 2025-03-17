@@ -4,27 +4,22 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  /* Fix, damit Hintergrund auch beim Scrollen bleibt: */
-  background-attachment: fixed; 
   color: #FFD700;
   font-family: 'Arial', sans-serif;
   text-align: center;
   margin: 0;
   padding: 0;
 }
+
 header, main, footer {
   margin: 0 auto;
   padding: 10px;
 }
 
-/* LINKS sollen immer gold bleiben, auch visited */
-a, a:visited {
-  color: #FFD700 !important;
+/* Gegen lila Links */
+a, a:visited, a:hover, a:active {
+  color: #FFD700;
   text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-  color: #FFD700 !important;
 }
 
 /* HEADLINE */
@@ -470,7 +465,6 @@ footer {
 
 /* RESPONSIVE Anpassungen für mobile Geräte */
 @media (max-width: 600px) {
-  /* Hintergrund-Scrolling fix für iOS Safari */
   body {
     background-attachment: scroll; /* iOS Safari mag 'fixed' nicht */
   }
@@ -481,14 +475,14 @@ footer {
     padding: 6px 10px;
     font-size: 14px;
   }
-  
+
   #donate-button {
     bottom: 10px;
     right: 10px;
     padding: 8px 12px;
     font-size: 14px;
   }
-  
+
   footer {
     bottom: 5px;
     font-size: 12px;
