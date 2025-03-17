@@ -1,14 +1,24 @@
-/* =============== GLOBAL =============== */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
 body {
-  background-image: url('hintergrund.jpg');
+  background: url('hintergrund.jpg') no-repeat center center fixed;
   background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   color: #FFD700;
   font-family: 'Arial', sans-serif;
   text-align: center;
-  margin: 0;
-  padding: 0;
+}
+
+/* Verhindert lila visited links */
+a, a:visited {
+  color: #FFD700;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
 }
 
 header, main, footer {
@@ -16,22 +26,6 @@ header, main, footer {
   padding: 10px;
 }
 
-/* Gegen lila Links */
-a, a:visited, a:hover, a:active {
-  color: #FFD700;
-  text-decoration: none;
-}
-
-/* HEADLINE */
-h1 {
-  margin-top: 20px;
-}
-#familien-info {
-  font-size: 14px;
-  color: #FFFDAA;
-}
-
-/* AUTH on index page */
 #auth-container {
   background: rgba(0,0,0,0.7);
   max-width: 400px;
@@ -40,6 +34,7 @@ h1 {
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0,0,0,0.7);
 }
+
 .auth-button {
   background-color: #808000;
   color: #FFD700;
@@ -64,7 +59,6 @@ h1 {
   display: none;
 }
 
-/* AVATAR & XP-BALKEN */
 #avatar-display {
   margin-top: 20px;
   position: relative;
@@ -80,7 +74,7 @@ h1 {
   font-size: 20px;
   font-weight: bold;
 }
-/* XP-Bar */
+
 #xp-bar-outer {
   width: 300px;
   height: 20px;
@@ -106,12 +100,11 @@ h1 {
   font-weight: bold;
 }
 
-/* LEVEL-UP ANIMATION */
 #levelup-animation {
   position: fixed;
   top: 40%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0);
+  transform: translate(-50%,-50%) scale(0);
   background: rgba(255,215,0,0.9);
   color: #000;
   font-size: 48px;
@@ -124,7 +117,6 @@ h1 {
   transition: transform 0.5s ease-out, opacity 0.5s;
 }
 
-/* ZAUBER & SPEZIAL BUTTONS */
 .action-button {
   background: #808000;
   color: #FFD700;
@@ -142,14 +134,13 @@ h1 {
   transform: scale(1.05);
 }
 
-/* ZAUBER-/SPEZIAL-POPUP */
 .popup-modal {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.7);
   z-index: 9999;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
 }
@@ -163,7 +154,6 @@ h1 {
   text-align: center;
 }
 
-/* SPIELER-KARTEN */
 #player-cards-container {
   display: flex;
   flex-wrap: wrap;
@@ -193,7 +183,6 @@ h1 {
   background: rgba(0,0,0,0.4);
 }
 
-/* HP/MP BARS */
 .bar-outer {
   width: 100px;
   height: 10px;
@@ -219,7 +208,6 @@ h1 {
   color: #FFD700;
 }
 
-/* LOG */
 #log-section {
   background: rgba(0,0,0,0.6);
   margin: 20px auto;
@@ -252,7 +240,6 @@ h1 {
   color: #C00;
 }
 
-/* QUESTS */
 #quest-section {
   background: rgba(0,0,0,0.6);
   margin: 20px auto;
@@ -283,7 +270,6 @@ h1 {
   color: black;
 }
 
-/* EINSTELLUNGSMENÜ (TABS) */
 #einstellungen-section {
   background: rgba(0,0,0,0.8);
   width: 600px;
@@ -320,7 +306,6 @@ h1 {
   display: none;
 }
 
-/* ADMIN-LISTEN */
 #admin-zauber-liste, #admin-quests-liste, #admin-spezial-liste {
   list-style: none;
   margin: 10px 0;
@@ -349,7 +334,6 @@ h1 {
   color: #C00;
 }
 
-/* FIXE ELEMENTE: Fehlermeldung oben rechts, Donate unten rechts */
 #fehler-button {
   position: fixed;
   top: 20px;
@@ -384,7 +368,6 @@ h1 {
   background-color: #ffb347;
 }
 
-/* FOOTER => zentriert unten */
 footer {
   position: fixed;
   left: 50%;
@@ -397,7 +380,6 @@ footer {
   color: #FFD700;
 }
 
-/* LOGOUT => RECHTS UNTEN */
 #logout-btn {
   position: fixed;
   bottom: 15px;
@@ -421,7 +403,6 @@ footer {
   transform: scale(1.05);
 }
 
-/* Einstellungs-Icon => oben rechts */
 #einstellungen-icon {
   position: fixed;
   top: 15px;
@@ -438,51 +419,30 @@ footer {
   color: white;
 }
 
-/* Startseite Info-Text etc. */
-.info-text {
-  font-size: 1.2rem;
-  line-height: 1.5;
-  text-align: center;
-  color: #333;
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-.highlight {
-  color: #d35400;
-  font-weight: bold;
-}
-.epic {
-  color: #8e44ad;
-  font-style: italic;
-}
-.cta {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #c0392b;
-}
-
-/* RESPONSIVE Anpassungen für mobile Geräte */
+/* RESPONSIVE (Handy) */
 @media (max-width: 600px) {
   body {
-    background-attachment: scroll; /* iOS Safari mag 'fixed' nicht */
+    background-attachment: scroll;
   }
 
-  #fehler-button {
+  #logout-btn {
+    bottom: auto;
     top: 10px;
     right: 10px;
-    padding: 6px 10px;
+    width: auto;
     font-size: 14px;
+    padding: 8px 12px;
   }
-
   #donate-button {
     bottom: 10px;
     right: 10px;
     padding: 8px 12px;
     font-size: 14px;
   }
-
+  #fehler-button {
+    top: 10px;
+    right: 60px;
+  }
   footer {
     bottom: 5px;
     font-size: 12px;
